@@ -9,11 +9,6 @@ const LoginForm = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -43,31 +38,59 @@ const LoginForm = () => {
     }
 
     try {
-      const token = getCookie("token");
+      // First attempt: Login as a member
       const response = await axios.post(
-        "/api/user/login",
+        "/api/member/login",
         { email, password },
-        {  headers: {
-          Authorization: `Bearer ${token}`,
-        }, withCredentials: true }
+        { withCredentials: true }
       );
+console.log("Member login response:", response.data);
       setIsLoading(false);
       if (response.data.status === "success") {
-        console.log(response.data);
-        const { token } = response.data;
-        console.log(token);
-        Cookies.set("token", token); // Expires in 7 days
-
-        // Redirect to the home page
-        window.location.href = "/";
-        // navigate("/")
+        // Assuming the response for a member includes their ID
+        const { member } = response.data;
+        // The server has set the httpOnly cookie. We just need to navigate.
+        // A full page reload is best to re-trigger the App's session check.
+        window.location.href = `/member/${member._id}`;
       } else {
         alert(response.data.message);
-      }
+      } 
     } catch (error) {
-      console.error("Error logging in:", error);
-      setIsLoading(false);
-      alert("Login failed");
+      // If the first attempt is unauthorized (401), try the second endpoint
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.log("Member login failed, trying user login...");
+        try {
+          const token = Cookies.get("token"); // Simplified cookie retrieval
+          const userResponse = await axios.post(
+            "/api/user/login",
+            { email, password },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              withCredentials: true,
+            }
+          );
+          setIsLoading(false);
+          if (userResponse.data.status === "success") {
+            const { token } = userResponse.data;
+            // For admin, we can still set a client-side cookie if the backend doesn't set an httpOnly one for it.
+            Cookies.set("userRole", "admin", { expires: 5 });
+            window.location.href = "/";
+          } else {
+            alert(userResponse.data.message);
+          }
+        } catch (userError) {
+          console.error("User login failed:", userError);
+          setIsLoading(false);
+          alert("Login failed. Please check your credentials.");
+        }
+      } else {
+        // Handle other errors from the first API call (e.g., network error)
+        console.error("Member login failed:", error);
+        setIsLoading(false);
+        alert("An error occurred during login.");
+      }
     }
   };
 

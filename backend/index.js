@@ -1,46 +1,20 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
+const fs = require("fs"); // Import the 'fs' module
 const cron = require("node-cron");
 // const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const { City } = require('country-state-city');
 const { Country } = require('country-state-city');
-const { flags } = require('country-flags-svg');
+
 require("dotenv").config();
-
-
-
-
 const app = express();
 
 // Middleware setup
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));  
-// const allowedOrigins = [
-//   'http://localhost:5173',  // Development
-//   'https://bconn.rndtechnosoft.com'  // Replace with your actual production domain
-// ];
-
-// app.use(cors({
-//   origin: function (origin, callback) {
-//     console.log("Request Origin:", origin); // Log the request's origin
-//     if (!origin || allowedOrigins.includes(origin)) {
-//       console.log("CORS policy allows this origin:", origin); // Log allowed origin
-//       callback(null, true);
-//     } else {
-//       console.error("CORS policy does not allow this origin:", origin); // Log disallowed origin
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   },
-//   credentials: true,
-// }));
-
-
-
-// // Handle preflight OPTIONS requests
-// app.options('*', cors());
 
 // Set a longer timeout for requests
 app.use((req, res, next) => {
@@ -57,15 +31,19 @@ app.use((req, res, next) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.DATABASE_URI, { 
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+const dbUri = process.env.DATABASE_URI || "mongodb+srv://harshit:Harshit%40123@userinfo.lmbsytd.mongodb.net/BNI";
+if (!dbUri) {
+  console.error("FATAL ERROR: DATABASE_URI is not defined in the environment variables.");
+  process.exit(1); // Exit the process with a failure code
+}
+
+mongoose.connect(dbUri)
   .then(() => {
     console.log("Connected to MongoDB");
   })
   .catch(err => {
     console.error("Failed to connect to MongoDB", err);
+    process.exit(1); // Also exit if the connection fails
   });
 
 // API routes
@@ -116,6 +94,9 @@ const company = require("./route/company");
 
 // Serve static files from the 'dist' directory
 app.use(express.static(path.join(__dirname, 'dist')));
+
+const uploadDir = path.join(__dirname, 'uploads'); // Define the upload directory
+
 app.get('/download/:fileName', (req, res) => {
   const fileName = req.params.fileName;
   const filePath = path.join(uploadDir, fileName);

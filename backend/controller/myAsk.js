@@ -123,20 +123,75 @@ const deleteMyAskById = async (req, res) => {
 
 const updateMyAsk = async (req, res) => {
   try {
+    // 1. Extract ID from query params
     const { id } = req.query;
-    const MyAskData = req.body;
+
+    // 2. Validate ID
+    if (!id) {
+      return res.status(400).json({ message: "ID is required" });
+    }
+
+    // Optional: Validate ObjectId format (if using MongoDB)
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+
+    // 3. Extract and validate request body
+    const { companyName, dept, message } = req.body;
+
+    if (!companyName || !dept || !message) {
+      return res.status(400).json({ 
+        message: "All fields are required: companyName, dept, message" 
+      });
+    }
+
+    // 4. Update document
     const updatedMyAskData = await MyAsk.findByIdAndUpdate(
       id,
-      MyAskData,
-      { new: true }
+      { companyName, dept, message },
+      { 
+        new: true,           // Return updated document
+        runValidators: true  // Run schema validators
+      }
     );
+
+    // 5. Check if document was found and updated
     if (!updatedMyAskData) {
       return res.status(404).json({ message: "MyAsk not found" });
     }
-    res.status(200).json({ data: updatedMyAskData });
+
+    // 6. Success response
+    res.status(200).json({
+      success: true,
+      message: "MyAsk updated successfully",
+      data: updatedMyAskData
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    // 7. Enhanced error handling
+    console.error("Error in updateMyAsk:", error);
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: "Validation failed", 
+        errors 
+      });
+    }
+
+    // Handle cast errors (e.g., invalid ObjectId)
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: "Invalid ID format" });
+    }
+
+    // Server error
+    res.status(500).json({ 
+      message: "Internal server error",
+      // Only include error details in development
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
+    });
   }
 };
 
