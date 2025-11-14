@@ -20,7 +20,8 @@ const companySchema = new Schema({
     required: true,
   },
   dept: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Department',
     required: true,
   },
   user: {

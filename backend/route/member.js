@@ -36,7 +36,7 @@ router.post("/member-register",generatePdfMiddleware, adminMemberRegistration);
 router.post("/forgot-password", sendmemberPasswordResetEmail);
 router.post("/reset-password", memberPasswordReset);
 router.post("/logout", logoutmember);
-router.get("/getUserById",authMiddleware, getmemberById);
+router.get("/getUserById", getmemberById);
 router.get("/getMemberApprovedData",authMiddleware, getMemberApprovedData);
 router.get("/getApprovedMember",authMiddleware, getApprovedMember);
 router.get("/isMemberVerify",authMiddleware, isMemberVerify);

@@ -8,11 +8,11 @@ const { addDepartment,
 const {uploadPhoto} = require('../middeleware/imageUpload');
 const {requireAuth , authMiddleware} = require("../middeleware/requireAuth")
 // Routes for CRUD operations
-router.post('/addDepartment',authMiddleware,addDepartment);
-router.get('/getDepartment',authMiddleware, getDepartment);
-router.get('/getDepartmentById',authMiddleware, getDepartmentById);
-router.put('/updateDepartmentById',authMiddleware, updateDepartmentById);
-router.delete('/deleteDepartmentById',authMiddleware, deleteDepartmentById);
-router.get('/totalDepartment',authMiddleware,TotalDepartment)
-router.get('/getAllDepartment', authMiddleware,getAllDepartment)
+router.post('/addDepartment',requireAuth,addDepartment);
+router.get('/getDepartment',requireAuth, getDepartment);
+router.get('/getDepartmentById',requireAuth, getDepartmentById);
+router.put('/updateDepartmentById',requireAuth, updateDepartmentById);
+router.delete('/deleteDepartmentById',requireAuth, deleteDepartmentById);
+router.get('/totalDepartment',requireAuth,TotalDepartment)
+router.get('/getAllDepartment', requireAuth,getAllDepartment)
 module.exports = router;

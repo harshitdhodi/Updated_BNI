@@ -55,7 +55,7 @@ const getMyAsks = async (req, res) => {
     }
 console.log('myASk',userId)
     // Query MyAsk collection for entries associated with userId
-    const userMyAsk = await MyAsk.find({ user: userId });
+    const userMyAsk = await MyAsk.find({ user: userId }).populate('dept');
 
     res.status(200).json({
       status: "success",

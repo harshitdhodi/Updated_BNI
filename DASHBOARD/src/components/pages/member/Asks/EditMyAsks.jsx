@@ -88,13 +88,8 @@ const EditMyAsk = () => {
         withCredentials: true,
       });
 
-      const regex = new RegExp(`http://localhost:5173/editMyAsks/${id}` ,{
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
-      });
-      if (regex.test(window.location.pathname)) {
+      // If userId is not in the URL, we assume it's an admin editing from a general list.
+      if (!userId) {
         navigate(`/allAsks`);
       } else {
         navigate(`/myAsks/${userId}`);
@@ -183,14 +178,14 @@ const EditMyAsk = () => {
             <select
               id="dept"
               name="dept"
-              value={myAsk.dept}
+              value={typeof myAsk.dept === 'object' ? myAsk.dept?._id : myAsk.dept || ''}
               onChange={handleChange}
               className="w-1/2 p-2 border rounded focus:outline-none focus:border-red-500"
               required
             >
               <option value="">Select Department</option>
               {departments.map((department) => (
-                <option key={department._id} value={department.name}>
+                <option key={department._id} value={department._id}>
                   {department.name}
                 </option>
               ))}

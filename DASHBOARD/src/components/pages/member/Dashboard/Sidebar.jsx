@@ -21,7 +21,7 @@ function Sidebar({ isOpen, onClose }) {
       label: "Dashboard",
       path: "dashboard",
       icon: "📊",
-      subItems: [{ id: "ecommerce", label: "Ecommerce" }],
+      subItems: [],
     },
     { id: "calendar", label: "Calendar", path: "calendar", icon: "📅", subItems: [] },
     { id: "profile", label: "User Profile", path: "user-profile", icon: "👤", subItems: [] },
@@ -133,40 +133,12 @@ function Sidebar({ isOpen, onClose }) {
             ))}
           </div>
 
-          {/* Others Section */}
-          <div className="px-4 py-4 border-t border-gray-200">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-4">OTHERS</p>
-
-            {otherMenuData.map((item) => (
-              <div key={item.id}>
-                <button
-                  onClick={() => {
-                    setActiveMenu(item.id)
-                    if (item.subItems.length > 0) {
-                      toggleMenu(item.id)
-                    }
-                  }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 mb-1 ${
-                    activeMenu === item.id
-                      ? "bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 shadow-sm"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{item.icon}</span>
-                    <span className="font-medium text-sm">{item.label}</span>
-                  </div>
-                </button>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Footer - Fixed at bottom */}
-        <div className="p-4 border-t border-gray-200 flex-shrink-0">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 text-center">
-            <p className="text-xs font-semibold text-gray-700 mb-1">TailAdmin Pro</p>
-            <p className="text-xs text-gray-500">v2.0.1</p>
+        <div className="p-4 border-t border-gray-200  flex-shrink-0">
+          <div className="bg-gradient-to-r from-red-200 to-red-400 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg p-4 text-center">
+            <p className="text-md font-semibold text-black mb-1">Logout</p>
           </div>
         </div>
       </aside>

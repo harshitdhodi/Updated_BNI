@@ -60,6 +60,7 @@ import DashboardContent from "./components/pages/member/Dashboard/DashboardData"
 import UserProfile from "./components/pages/member/Dashboard/UserProfile";
 import UserMyAsk from "./components/pages/member/Asks/UserMyAsk";
 import UserGives from "./components/pages/member/Gives/UserGives";
+import UserMyMatches from "./components/pages/member/mymatches/UserMyMatches";
 
 // Helper component to dynamically redirect with the member's ID
 const MemberIndexRedirect = () => {
@@ -111,6 +112,7 @@ function App() {
               {/* <Route path="member-info" element={<MemberInfo />} /> */}
               <Route path="my-asks" element={<UserMyAsk />} />
               <Route path="my-gives" element={<UserGives />} />
+              <Route path="my-matches" element={<UserMyMatches />} />
 
 
               {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
@@ -118,7 +120,7 @@ function App() {
 
           </>
         ) : (
-          <Route path="/" element={<Sidebar />}>
+          userRole === "admin" ? ( <Route path="/" element={<Sidebar />}>
             <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="/dashboard" index element={<Dashboard />} />
             <Route path="/country" element={<CountryList />} />
@@ -168,6 +170,9 @@ function App() {
             <Route path="/pending-member" element={<PendingMember />} />
 
           </Route>
+          ) : (
+            <Route path="*" element={<Navigate to="/login" />} />
+          )
         )}
       </Routes>
     </Router>

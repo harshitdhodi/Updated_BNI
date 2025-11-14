@@ -38,59 +38,42 @@ const LoginForm = () => {
     }
 
     try {
-      // First attempt: Login as a member
+      // Attempt 1: Login as a member
       const response = await axios.post(
         "/api/member/login",
         { email, password },
         { withCredentials: true }
       );
-console.log("Member login response:", response.data);
-      setIsLoading(false);
+
       if (response.data.status === "success") {
-        // Assuming the response for a member includes their ID
+        // SUCCESS: Member login successful.
         const { member } = response.data;
-        // The server has set the httpOnly cookie. We just need to navigate.
-        // A full page reload is best to re-trigger the App's session check.
-        window.location.href = `/member/${member._id}`;
-      } else {
-        alert(response.data.message);
-      } 
-    } catch (error) {
-      // If the first attempt is unauthorized (401), try the second endpoint
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        console.log("Member login failed, trying user login...");
-        try {
-          const token = Cookies.get("token"); // Simplified cookie retrieval
-          const userResponse = await axios.post(
-            "/api/user/login",
-            { email, password },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              withCredentials: true,
-            }
-          );
-          setIsLoading(false);
-          if (userResponse.data.status === "success") {
-            const { token } = userResponse.data;
-            // For admin, we can still set a client-side cookie if the backend doesn't set an httpOnly one for it.
-            Cookies.set("userRole", "admin", { expires: 5 });
-            window.location.href = "/";
-          } else {
-            alert(userResponse.data.message);
-          }
-        } catch (userError) {
-          console.error("User login failed:", userError);
-          setIsLoading(false);
-          alert("Login failed. Please check your credentials.");
-        }
-      } else {
-        // Handle other errors from the first API call (e.g., network error)
-        console.error("Member login failed:", error);
         setIsLoading(false);
-        alert("An error occurred during login.");
+        window.location.href = `/member/${member._id}`;
+        return; // Stop execution
       }
+      // If member login was not successful, fall through to attempt user login.
+    } catch (error) {
+      // Member login failed (e.g., 401, 404, 500).
+      // We will ignore this error and proceed to try the user login.
+      console.log("Member login failed, proceeding to user login attempt.");
+    }
+
+    // Attempt 2: Login as a user (admin)
+    try {
+      const userResponse = await axios.post(
+        "/api/user/login",
+        { email, password },
+        { withCredentials: true }
+      );
+      if (userResponse.data.status === "success") {
+        window.location.href = "/";
+      }
+    } catch (userError) {
+      console.error("User login also failed:", userError);
+      alert("Login failed. Please check your credentials.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

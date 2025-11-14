@@ -1,9 +1,57 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useParams } from "react-router-dom"
 
 function Navbar({ onMenuClick }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [userData, setUserData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+const { id:userId } = useParams();
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!userId) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/member/getUserById?id=${userId}`)
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data')
+        }
+        
+        const data = await response.json()
+        setUserData(data.data)
+        setError(null)
+      } catch (err) {
+        setError(err.message)
+        console.error('Error fetching user data:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserData()
+  }, [userId])
+
+  // Get user initials from name
+  const getUserInitials = (name) => {
+    if (!name) return 'U'
+    const names = name.split(' ')
+    if (names.length >= 2) {
+      return (names[0][0] + names[1][0]).toUpperCase()
+    }
+    return name[0].toUpperCase()
+  }
+
+  // Display name and role from API data or fallback
+  const displayName = userData?.name || 'User'
+  const displayRole = userData?.email || 'Member'
+  const initials = getUserInitials(displayName)
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
@@ -28,54 +76,8 @@ function Navbar({ onMenuClick }) {
           </div>
         </div>
 
-        {/* Center Section - Search Bar */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative flex items-center bg-gray-50 hover:bg-gray-100 rounded-lg px-4 py-2.5 w-full transition-colors duration-200 border border-gray-200">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search or type command..."
-              className="bg-transparent ml-3 outline-none text-sm text-gray-700 flex-1 placeholder-gray-400"
-            />
-            <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-gray-500 bg-white border border-gray-200 rounded">
-              ⌘K
-            </kbd>
-          </div>
-        </div>
-
         {/* Right Section - Icons & Profile */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Search icon for mobile */}
-          <button className="md:hidden text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-lg">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
-
-          {/* Theme Toggle */}
-          <button className="hidden sm:block text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-lg">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M20.354 15.354A9 9 0 015.646 5.646 9.001 9.001 0 0020.354 15.354z"
-              />
-            </svg>
-          </button>
-
           {/* Notification Bell */}
           <button className="relative text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-lg">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,29 +98,27 @@ function Navbar({ onMenuClick }) {
               className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-gray-200 hover:bg-gray-50 rounded-r-lg transition-colors py-1"
             >
               <div className="hidden sm:flex flex-col items-end">
-                <p className="text-sm font-medium text-gray-900">Musharof</p>
-                <p className="text-xs text-gray-500">Admin</p>
+                {loading ? (
+                  <>
+                    <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-3 w-16 bg-gray-200 rounded animate-pulse mt-1"></div>
+                  </>
+                ) : error ? (
+                  <>
+                    <p className="text-sm font-medium text-gray-900">User</p>
+                    <p className="text-xs text-red-500">Error loading</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-gray-900">{displayName}</p>
+                    <p className="text-xs text-gray-500">{displayRole}</p>
+                  </>
+                )}
               </div>
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-                M
+                {loading ? '...' : initials}
               </div>
             </button>
-
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                  Profile
-                </a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                  Settings
-                </a>
-                <hr className="my-1 border-gray-200" />
-                <a href="#" className="block px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                  Logout
-                </a>
-              </div>
-            )}
           </div>
         </div>
       </div>

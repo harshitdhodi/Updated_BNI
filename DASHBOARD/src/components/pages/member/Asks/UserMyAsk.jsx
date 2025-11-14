@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Edit2, Trash2, X, Loader2 } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import { Plus, Edit2, Trash2, X, Loader2, AlertTriangle } from 'lucide-react';
+import toast, { Toaster, ToastBar } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
@@ -19,6 +19,14 @@ export default function UserMyAsk() {
     message: '',
   });
   const [modalLoading, setModalLoading] = useState(false); // ← New: modal loading
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [departments, setDepartments] = useState([]);
+
+  // Create a lookup map for department names for efficient rendering
+  const departmentMap = useMemo(() =>
+    new Map(departments.map(dept => [dept._id, dept.name])),
+    [departments]);
 
   /* --------------------------------------------------------------------- *
    *  API helpers with axios
@@ -103,6 +111,20 @@ export default function UserMyAsk() {
     loadData();
   }, [userId, loadData]);
 
+  // Fetch departments for the dropdown
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get('/api/department/getAllDepartment');
+        if (response.data && Array.isArray(response.data.data)) {
+          setDepartments(response.data.data);
+        }
+      } catch (error) {
+        toast.error('Could not load departments.');
+      }
+    };
+    fetchDepartments();
+  }, []);
   /* --------------------------------------------------------------------- *
    *  Modal handlers
    * --------------------------------------------------------------------- */
@@ -158,26 +180,40 @@ export default function UserMyAsk() {
   /* --------------------------------------------------------------------- *
    *  CRUD handlers (optimistic updates)
    * --------------------------------------------------------------------- */
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!formData.companyName || !formData.dept || !formData.message) {
       toast.error('Please fill in all fields');
       return;
     }
+    if (formData.message.length < 15) {
+      toast.error('Message must be at least 15 characters long.');
+      return;
+    }
+
+    setModalLoading(true);
+
+    const originalData = [...data];
 
     try {
       if (modalMode === 'add') {
         const tempId = Date.now();
-        const optimisticItem = { id: tempId, ...formData };
+        const optimisticItem = { _id: tempId, ...formData };
         setData((prev) => [...prev, optimisticItem]);
+        closeModal();
 
         const added = await api.add(formData);
-        setData((prev) => prev.map((i) => (i.id === tempId ? added.data : i)));
+        setData((prev) => prev.map((i) => (i._id === tempId ? added.data : i)));
         toast.success('Record added');
       } else if (currentItem) {
         const optimisticItem = { ...currentItem, ...formData };
-        setData((prev) => prev.map((i) => (i.id === currentItem.id ? optimisticItem : i)));
+        setData((prev) => prev.map((i) => (i._id === currentItem._id ? optimisticItem : i)));
+        closeModal();
 
         const updated = await api.update(currentItem._id, formData);
+        // The API might return the full object, let's ensure we use it
+        // If not, we can just keep the optimistic one.
+        // Assuming updated.data is the updated item.
         setData((prev) => prev.map((i) => (i._id === currentItem._id ? updated.data : i)));
         toast.success('Record updated');
       }
@@ -185,21 +221,36 @@ export default function UserMyAsk() {
       toast.error(e.message);
       loadData(); // rollback
     } finally {
-      closeModal();
+      // Modal is closed optimistically, loading state handled inside
+      setModalLoading(false);
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) return;
+  const openDeleteModal = (item) => {
+    setItemToDelete(item);
+    setIsDeleteModalOpen(true);
+  };
 
-    setData((prev) => prev.filter((i) => i._id !== id));
+  const closeDeleteModal = () => {
+    setItemToDelete(null);
+    setIsDeleteModalOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    const originalData = [...data];
+    // Optimistic deletion
+    setData((prev) => prev.filter((i) => i._id !== itemToDelete._id));
+    closeDeleteModal();
 
     try {
-      await api.delete(id);
+      await api.delete(itemToDelete._id);
       toast.success('Record deleted');
     } catch (e) {
       toast.error(e.message);
-      loadData();
+      // Rollback on error
+      setData(originalData);
     }
   };
 
@@ -208,7 +259,7 @@ export default function UserMyAsk() {
    * --------------------------------------------------------------------- */
   return (
     <>
-      <Toaster position="top-right" />
+      <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
       <div className="min-h-screen p-8 bg-slate-50">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-xl shadow-lg overflow-hidden relative">
@@ -255,7 +306,7 @@ export default function UserMyAsk() {
                       <tr key={item._id || item.id} className="hover:bg-slate-50 transition-colors duration-150">
                         <td className="px-6 py-4 text-sm text-slate-900 font-medium">{index + 1}</td>
                         <td className="px-6 py-4 text-sm text-slate-900">{item.companyName}</td>
-                        <td className="px-6 py-4 text-sm text-slate-900">{item.dept}</td>
+                        <td className="px-6 py-4 text-sm text-slate-900">{item.dept?.name || departmentMap.get(item.dept) || item.dept}</td>
                         <td className="px-6 py-4 text-sm text-slate-900">{item.message}</td>
                         <td className="px-6 py-4 text-sm">
                           <div className="flex gap-2">
@@ -267,7 +318,7 @@ export default function UserMyAsk() {
                               <Edit2 size={18} />
                             </button>
                             <button
-                              onClick={() => handleDelete(item._id)}
+                              onClick={() => openDeleteModal(item)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-150"
                               title="Delete"
                             >
@@ -287,7 +338,7 @@ export default function UserMyAsk() {
         {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md">
+            <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-2xl w-full max-w-md">
               {/* Modal Header */}
               <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex justify-between items-center rounded-t-xl">
                 <h2 className="text-xl font-bold text-white">
@@ -323,14 +374,19 @@ export default function UserMyAsk() {
 
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">Department</label>
-                      <input
-                        type="text"
+                      <select
                         name="dept"
                         value={formData.dept}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150"
-                        placeholder="Enter department"
-                      />
+                      >
+                        <option value="" disabled>Select a department</option>
+                        {departments.map((dept) => (
+                          <option key={dept._id} value={dept._id}>
+                            {dept.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
@@ -342,6 +398,8 @@ export default function UserMyAsk() {
                         rows="4"
                         className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 resize-none"
                         placeholder="Enter message"
+                        minLength={15}
+                        maxLength={500}
                       />
                     </div>
                   </>
@@ -358,12 +416,48 @@ export default function UserMyAsk() {
                   </button>
                   <button
                     onClick={handleSubmit}
+                    type="submit"
                     disabled={modalLoading}
                     className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium hover:from-red-700 hover:to-red-800 transition-all duration-150 shadow-md disabled:opacity-50"
                   >
-                    {modalMode === 'add' ? 'Add Record' : 'Update Record'}
+                    {modalLoading ? (
+                      <Loader2 className="animate-spin mx-auto" size={20} />
+                    ) : (
+                      modalMode === 'add' ? 'Add Record' : 'Update Record'
+                    )}
                   </button>
                 </div>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm">
+              <div className="p-6 text-center">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100 mb-4">
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800">Delete Record</h3>
+                <p className="text-sm text-slate-500 mt-2">
+                  Are you sure you want to delete this record? This action cannot be undone.
+                </p>
+              </div>
+              <div className="flex gap-3 p-4 bg-slate-50 rounded-b-xl">
+                <button
+                  onClick={closeDeleteModal}
+                  className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-100 transition-colors duration-150"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors duration-150 shadow-md"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
