@@ -15,6 +15,7 @@ function Sidebar({ isOpen, onClose }) {
       [id]: !prev[id],
     }))
   }
+  
 
   const menuData = [
     {
