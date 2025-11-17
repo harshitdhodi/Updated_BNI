@@ -43,10 +43,6 @@ const userRegistration = async (req, res) => {
       });
     }
 
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(password, salt);
-
     // Generate a unique 6-digit alphanumeric referral code
     const refral_code = generateReferralCode();
 
@@ -56,7 +52,7 @@ const userRegistration = async (req, res) => {
       lastName,
       email,
       photo,
-      password: hashPassword,
+      password: password, // Storing password in plain text (insecure)
       refral_code, // Add the generated referral code
     });
 
@@ -92,8 +88,8 @@ const userLogin = async (req, res) => {
         .json({ status: "failed", message: "You are not a registered user" });
     }
 
-    // Compare the provided password with the stored hashed password
-    const isMatch = await bcrypt.compare(password, User.password);
+    // Directly compare the provided password with the stored password (insecure)
+    const isMatch = password === User.password;
     if (!isMatch) {
       return res
         .status(401)
@@ -104,14 +100,8 @@ const userLogin = async (req, res) => {
     const token = Jwt.sign({ userId: User._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "5d",
     });
-
-    // Set the token in a cookie (if needed, you can uncomment and use this)
-    // res.cookie("token", token, {
-    //   maxAge: 1000 * 60 * 60 * 24 * 5, // 5 days
-    //   httpOnly: true,
-    //   sameSite: 'None',
-    //   secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
-    // });
+  res.cookie("token", token);
+    res.cookie("userRole", "admin");
 
     // Respond with success, token, and user data
     res.json({
@@ -196,12 +186,8 @@ const userPasswordReset = async (req, res) => {
     //     .json({ success: false, message: 'Invalid password format' });
     // }
 
-    const salt = await bcrypt.genSalt(10);
-
-    const hashPassword = await bcrypt.hash(newPassword, salt);
-
     // Update password
-    User.password = hashPassword;
+    User.password = newPassword; // Storing new password in plain text (insecure)
     User.resetOTP = undefined; // Clear the OTP field
     await User.save();
     // res.redirect("/login");

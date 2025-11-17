@@ -195,7 +195,7 @@ const MyAskList = () => {
             >
               <td className="py-2 px-6">{myAsk.id}</td>
               <td className="py-2 px-6">{myAsk.companyName}</td>
-              <td className="py-2 px-6">{myAsk.dept}</td>
+              <td className="py-2 px-6">{myAsk.dept?.name}</td>
               <td className="py-2 px-6 ">
                 {" "}
                 <div className="truncate overflow-hidden max-w-xs ">

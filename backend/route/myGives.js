@@ -4,16 +4,16 @@ const router = express.Router();
 const {addMyGives,getMyGivesByUserId,AddGivesByEmail,getMyGivesByCompanyAndDepartment,getFilteredGives,MyAllGives,getmyGivesById,updateMyGives,totalMyGives, deletemyGivesById} = require('../controller/myGives');
 const { requireAuth , authMiddleware} = require('../middeleware/requireAuth');
 const {getMyGivesBasedOnMyAsks} = require('../controller/myMatch')
-router.post('/addMyGives',authMiddleware,addMyGives);
-router.get('/getMyGives',authMiddleware,getMyGivesByUserId);
+router.post('/addMyGives',requireAuth,addMyGives);
+router.get('/getMyGives',requireAuth,getMyGivesByUserId);
 router.get('/getMyMatches',getMyGivesByCompanyAndDepartment);
-router.get('/getAllMyMatchs',authMiddleware,getMyGivesBasedOnMyAsks);
+router.get('/getAllMyMatchs',requireAuth,getMyGivesBasedOnMyAsks);
 router.get('/getMyGivesBasedOnMyAsks',getMyGivesBasedOnMyAsks)
-router.get('/getMyAllGives',authMiddleware,MyAllGives)
-router.get('/totalGives',authMiddleware,MyAllGives)
-router.delete('/deletemyGivesById',authMiddleware,deletemyGivesById)
-router.put('/updateMyGives', authMiddleware, updateMyGives)
-router.get('/getmyGivesById',authMiddleware,getmyGivesById)
-router.post('/addMyGivesbyEmail',authMiddleware,AddGivesByEmail);
-router.get('/getFilteredGives',authMiddleware,getFilteredGives)
+router.get('/getMyAllGives',requireAuth,MyAllGives)
+router.get('/totalGives',MyAllGives)
+router.delete('/deletemyGivesById',requireAuth,deletemyGivesById)
+router.put('/updateMyGives', requireAuth, updateMyGives)
+router.get('/getmyGivesById',requireAuth,getmyGivesById)
+router.post('/addMyGivesbyEmail',requireAuth,AddGivesByEmail);
+router.get('/getFilteredGives',requireAuth,getFilteredGives)
 module.exports = router;

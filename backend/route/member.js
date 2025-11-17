@@ -20,7 +20,7 @@ const {
     getMemberByRef,
     getApprovedMember,
     getMemberApprovedData,
-    getMemberPendingData,
+    getMemberPendingData,verifyMemberSessions,  
     adminMemberRegistration,countApprovedMember
 } = require("../controller/member.js");
 const { generatePdfMiddleware } = require('../middeleware/pdfUpload'); 
@@ -31,11 +31,12 @@ router.post("/register",generatePdfMiddleware, memberRegistration);
 router.get("/countApprovedMember",countApprovedMember);
 router.get("/getPendingMember", authMiddleware,getMemberPendingData);
 router.post("/login", memberLogin);
+router.get("/verify-session", verifyMemberSessions); 
 router.post("/member-register",generatePdfMiddleware, adminMemberRegistration);
 router.post("/forgot-password", sendmemberPasswordResetEmail);
 router.post("/reset-password", memberPasswordReset);
 router.post("/logout", logoutmember);
-router.get("/getUserById",authMiddleware, getmemberById);
+router.get("/getUserById", getmemberById);
 router.get("/getMemberApprovedData",authMiddleware, getMemberApprovedData);
 router.get("/getApprovedMember",authMiddleware, getApprovedMember);
 router.get("/isMemberVerify",authMiddleware, isMemberVerify);

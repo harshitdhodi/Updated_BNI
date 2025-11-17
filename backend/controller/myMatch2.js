@@ -24,16 +24,22 @@ const myMatches = async (req, res) => {
 
     // Iterate over each ask to find matches in MyGives
     for (const ask of asks) {
+      // Skip asks that are missing companyName or dept to prevent errors
+      if (!ask.companyName || !ask.dept) {
+        continue;
+      }
+
       // Convert the ask company name and dept to lowercase for comparison
       const lowerCaseCompanyName = ask.companyName.toLowerCase();
-      const lowerCaseDept = ask.dept.toLowerCase();
+      console.log('Searching matches for ask:', ask);
+      console.log('Lowercase company name:', lowerCaseCompanyName);
 
       const matchedCompanies = await MyGives.find({
         // Use regex for case-insensitive matching
         companyName: { $regex: new RegExp(`^${lowerCaseCompanyName}$`, 'i') },
-        dept: { $regex: new RegExp(`^${lowerCaseDept}$`, 'i') }
+        dept: ask.dept // Match directly by ObjectId
       }).populate('user', 'name email mobile webURL'); // Populate user fields
-
+console.log('Matched Companies for ask:', ask, matchedCompanies);
       // Accumulate matched companies
       allMatchedCompanies = allMatchedCompanies.concat(matchedCompanies);
     }
@@ -85,10 +91,11 @@ const myMatchesByCompanyName = async (req, res) => {
         companyName: { $regex: new RegExp(ask.companyName, 'i') }, // Case-insensitive search in MyGives
         dept: { $regex: new RegExp(ask.dept, 'i') }, // Case-insensitive search in MyGives
       }).populate('user', 'name email mobile country city chapter keyword');
-
+console.log('Matched Companies for ask:', ask, matchedCompanies);
       // Accumulate matched companies
       if (matchedCompanies.length) {
         allMatchedCompanies = allMatchedCompanies.concat(matchedCompanies);
+     console.log('All Matched Companies so far:', allMatchedCompanies);
       }
     }
 

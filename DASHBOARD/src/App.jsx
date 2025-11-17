@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import Cookies from "js-cookie";
 import Sidebar from "./components/Sidebar";
@@ -53,19 +54,35 @@ import AddCompany from "./components/pages/company/AddCompany";
 import EditCompany from "./components/pages/company/EditCompany";
 import RefMember from "./components/pages/member/RefMember/RefMember";
 import PendingMember from "./components/pages/member/PendingMember/PendingMember";
+import MemberInfo from "./components/pages/member/Dashboard/MemberInfo";
+import Layout from "./components/pages/member/Dashboard/Layout";
+import DashboardContent from "./components/pages/member/Dashboard/DashboardData";
+import UserProfile from "./components/pages/member/Dashboard/UserProfile";
+import UserMyAsk from "./components/pages/member/Asks/UserMyAsk";
+import UserGives from "./components/pages/member/Gives/UserGives";
+import UserMyMatches from "./components/pages/member/mymatches/UserMyMatches";
+
+// Helper component to dynamically redirect with the member's ID
+const MemberIndexRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/member/${id}/dashboard`} replace />;
+};
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const token = Cookies.get("token");
-    console.log("Token:", token);
+    const role = Cookies.get("userRole");
 
-    if (token) {
+    if (token && role) {
       setIsLoggedIn(true);
+      setUserRole(role);
     } else {
       setIsLoggedIn(false);
+      setUserRole(null);
     }
     setLoading(false); // Set loading to false after checking the token
   }, []);
@@ -85,8 +102,25 @@ function App() {
             <Route path="/forgotPassword" element={<ForgotPasswordForm />} />
             <Route path="/setPassword" element={<SetPasswordForm />} />
           </>
+        ) : userRole === "member" ? (
+          <>
+            {/* Routes for 'member' role */}
+            <Route path="/member/:id" element={<Layout />}>
+              <Route index element={<MemberIndexRedirect />} />
+              <Route path="dashboard" element={<DashboardContent />} />
+              <Route path="user-profile" element={<UserProfile />} />
+              {/* <Route path="member-info" element={<MemberInfo />} /> */}
+              <Route path="my-asks" element={<UserMyAsk />} />
+              <Route path="my-gives" element={<UserGives />} />
+              <Route path="my-matches" element={<UserMyMatches />} />
+
+
+              {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
+            </Route>
+
+          </>
         ) : (
-          <Route path="/" element={<Sidebar />}>
+          userRole === "admin" ? ( <Route path="/" element={<Sidebar />}>
             <Route path="/" element={<Navigate to="/dashboard" />} />
             <Route path="/dashboard" index element={<Dashboard />} />
             <Route path="/country" element={<CountryList />} />
@@ -134,7 +168,11 @@ function App() {
             <Route path="/edit_company/:id" element={<EditCompany />} />
             <Route path="/ref-member/:refMember" element={<RefMember />} />
             <Route path="/pending-member" element={<PendingMember />} />
+
           </Route>
+          ) : (
+            <Route path="*" element={<Navigate to="/login" />} />
+          )
         )}
       </Routes>
     </Router>
@@ -142,4 +180,3 @@ function App() {
 }
 
 export default App;
-  

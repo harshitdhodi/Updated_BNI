@@ -9,11 +9,6 @@ const LoginForm = () => {
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const getCookie = (name) => {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(";").shift();
-  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -43,31 +38,42 @@ const LoginForm = () => {
     }
 
     try {
-      const token = getCookie("token");
+      // Attempt 1: Login as a member
       const response = await axios.post(
+        "/api/member/login",
+        { email, password },
+        { withCredentials: true }
+      );
+
+      if (response.data.status === "success") {
+        // SUCCESS: Member login successful.
+        const { member } = response.data;
+        setIsLoading(false);
+        window.location.href = `/member/${member._id}`;
+        return; // Stop execution
+      }
+      // If member login was not successful, fall through to attempt user login.
+    } catch (error) {
+      // Member login failed (e.g., 401, 404, 500).
+      // We will ignore this error and proceed to try the user login.
+      console.log("Member login failed, proceeding to user login attempt.");
+    }
+
+    // Attempt 2: Login as a user (admin)
+    try {
+      const userResponse = await axios.post(
         "/api/user/login",
         { email, password },
-        {  headers: {
-          Authorization: `Bearer ${token}`,
-        }, withCredentials: true }
+        { withCredentials: true }
       );
-      setIsLoading(false);
-      if (response.data.status === "success") {
-        console.log(response.data);
-        const { token } = response.data;
-        console.log(token);
-        Cookies.set("token", token); // Expires in 7 days
-
-        // Redirect to the home page
+      if (userResponse.data.status === "success") {
         window.location.href = "/";
-        // navigate("/")
-      } else {
-        alert(response.data.message);
       }
-    } catch (error) {
-      console.error("Error logging in:", error);
+    } catch (userError) {
+      console.error("User login also failed:", userError);
+      alert("Login failed. Please check your credentials.");
+    } finally {
       setIsLoading(false);
-      alert("Login failed");
     }
   };
 

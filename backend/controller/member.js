@@ -44,20 +44,16 @@ const crypto = require('crypto'); // Make sure to require the crypto module
 const secretKey = process.env.SECRET_KEY || 'your_secret_key'; // Use an environment variable for the secret key
 
 // Encryption function
+// SECURITY WARNING: This function now stores passwords in plain text.
 function encryptPassword(password) {
-  const cipher = crypto.createCipher('aes-256-cbc', secretKey);
-  let encrypted = cipher.update(password, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return encrypted;
+  return password;
 }
 
 
 // Decryption function
+// SECURITY WARNING: This function now handles passwords in plain text.
 function decryptPassword(encryptedPassword) {
-  const decipher = crypto.createDecipher('aes-256-cbc', secretKey);
-  let decrypted = decipher.update(encryptedPassword, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
+  return encryptedPassword;
 }
 
 
@@ -192,20 +188,17 @@ const memberLogin = async (req, res) => {
     }
 
     const userId = member._id;
-    const token = Jwt.sign({ userId }, process.env.JWT_SECRET_KEY, { expiresIn: '5d' });
+    const token = Jwt.sign({ userId, role: "member" }, process.env.JWT_SECRET_KEY, { expiresIn: '5d' });
 
     // Set the token in a cookie
-    res.cookie("token", token, {
-    
-      httpOnly: true,
-      sameSite: 'None',
-      secure: process.env.NODE_ENV === 'production',
-    });
+    res.cookie("token", token);
+    res.cookie("userRole", "member");
 
     res.status(200).json({
       status: "success",
       message: "Login successful",
       token,
+      role: "member",
       member,
     });
   } catch (error) {
@@ -277,12 +270,9 @@ const memberPasswordReset = async (req, res) => {
       return res.status(401).json({ success: false, message: "Invalid OTP" });
     }
 
-    const salt = await bcrypt.genSalt(10);
-
-    const hashPassword = await bcrypt.hash(newPassword, salt);
-
     // Update password
-    member.password = hashPassword;
+    // SECURITY WARNING: Storing new password in plain text.
+    member.password = newPassword;
     member.resetOTP = undefined; // Clear the OTP field
     await member.save();
     // res.redirect("/login");
@@ -774,6 +764,29 @@ const getMemberPendingData = async (req, res) => {
   }
 };
 
+const verifyMemberSessions = async (req, res) => {
+  try {
+    const token = req.cookies.token;
+    console.log("Verifying token:", token);
+    if (!token) {
+      return res.status(401).json({ isLoggedIn: false, role: null });
+    }
+
+    // Verify the token
+    const decoded = Jwt.verify(token, process.env.JWT_SECRET_KEY);
+console.log("Decoded token:", decoded);
+    // The role is stored in the token, so we can return it
+    res.status(200).json({
+      isLoggedIn: true,
+      role: decoded.role || 'member', // Default to member if role is somehow missing
+      userId: decoded.userId
+    });
+  } catch (error) {
+    // If token is invalid or expired
+    return res.status(401).json({ isLoggedIn: false, role: null });
+  }
+};
+
 
 
 module.exports = {
@@ -794,5 +807,6 @@ module.exports = {
   getApprovedMember,
   getMemberApprovedData,
   adminMemberRegistration,
-  countApprovedMember
+  countApprovedMember,
+  verifyMemberSessions
 };
