@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import { toast } from "react-hot-toast";
 
 const EditMyAsk = () => {
   const { id, userId } = useParams();
@@ -88,6 +89,7 @@ const EditMyAsk = () => {
         withCredentials: true,
       });
 
+      toast.success("My Ask updated successfully");
       // If userId is not in the URL, we assume it's an admin editing from a general list.
       if (!userId) {
         navigate(`/allAsks`);
@@ -99,6 +101,7 @@ const EditMyAsk = () => {
         "Failed to update My Ask:",
         error.response ? error.response.data : error.message
       );
+      toast.error("Failed to update My Ask");
     }
   };
 
