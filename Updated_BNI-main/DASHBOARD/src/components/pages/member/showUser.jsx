@@ -8,12 +8,13 @@ import { MdEmail, MdPlace } from "react-icons/md";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
 import Badge from "@mui/material/Badge";
 import Swal from "sweetalert2";
+import { Toaster, toast } from "react-hot-toast";
 const MemberList = () => {
   const [member, setMember] = useState([]);
   const [filteredMember, setFilteredMember] = useState([]);
+  const [allMembers, setAllMembers] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageCount, setPageCount] = useState(1);
-  const [cache, setCache] = useState({});
   const [searchValue, setSearchValue] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -24,18 +25,22 @@ const MemberList = () => {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
+  // when pageIndex or allMembers change, update current page slice
   useEffect(() => {
-    if (cache[pageIndex]) {
-      setMember(cache[pageIndex].data);
-      setPageCount(cache[pageIndex].pageCount);
-    } else {
-      fetchMember();
-    }
-  }, [pageIndex]);
+    const start = pageIndex * pageSize;
+    const pageSlice = allMembers.slice(start, start + pageSize);
+    setMember(pageSlice);
+    setPageCount(Math.max(1, Math.ceil(allMembers.length / pageSize)));
+  }, [pageIndex, allMembers]);
+
+  // initial fetch
+  useEffect(() => {
+    fetchMember();
+  }, []);
 
   useEffect(() => {
     filterMember(searchValue);
-  }, [member, searchValue]);
+  }, [allMembers, searchValue]);
 
   const fetchMember = async () => {
     try {
@@ -46,19 +51,18 @@ const MemberList = () => {
           Authorization: `Bearer ${token}`,
         },withCredentials: true }
       );
-      const dataWithIds = response.data.data.map((customer, index) => ({
+      // store full list and compute pagination client-side
+      const data = response.data.data || [];
+      const dataWithIds = data.map((customer, index) => ({
         ...customer,
-        id: pageIndex * pageSize + index + 1,
+        // assign an id based on absolute index in the full list
+        id: index + 1,
       }));
-      setMember(dataWithIds);
-      setPageCount(Math.ceil(response.data.total / pageSize));
-      setCache((prevCache) => ({
-        ...prevCache,
-        [pageIndex]: {
-          data: dataWithIds,
-          pageCount: Math.ceil(response.data.total / pageSize),
-        },
-      }));
+      setAllMembers(dataWithIds);
+      // set initial page slice
+      const start = pageIndex * pageSize;
+      setMember(dataWithIds.slice(start, start + pageSize));
+      setPageCount(Math.max(1, Math.ceil(dataWithIds.length / pageSize)));
     } catch (error) {
       console.error("There was an error fetching the members!", error);
     }
@@ -102,17 +106,20 @@ const MemberList = () => {
           withCredentials: true,
         });
   
-        // Optional: Fetch the updated list of members after deletion
-        fetchMember();
-  
-        // Show success message
-        Swal.fire("Deleted!", "The member has been deleted.", "success");
-        // Optionally, you can reload the page or update the state here
-        window.location.reload();
+        // remove from client state instead of reloading
+        const remaining = allMembers.filter((m) => m._id !== id);
+        setAllMembers(remaining);
+        // adjust pageIndex if current page became empty
+        const newPageCount = Math.max(1, Math.ceil(remaining.length / pageSize));
+        if (pageIndex >= newPageCount) setPageIndex(newPageCount - 1);
+
+        // Show success toast
+        toast.success("Member deleted successfully");
       } catch (error) {
         console.error("There was an error deleting the member!", error);
-        // Show error message
-        Swal.fire("Error!", "There was an error deleting the member.", "error");
+        // Show error toast
+        const msg = error?.response?.data?.message || "There was an error deleting the member.";
+        toast.error(msg);
       }
     }
   };
@@ -120,7 +127,7 @@ const MemberList = () => {
 
   const filterMember = (searchValue) => {
     if (searchValue !== "") {
-      const filtered = member.filter((customer) =>
+      const filtered = allMembers.filter((customer) =>
         Object.keys(customer).some((key) =>
           String(customer[key])
             .toLowerCase()
@@ -129,7 +136,8 @@ const MemberList = () => {
       );
       setFilteredMember(filtered);
     } else {
-      setFilteredMember(member);
+      // if no search, show current page slice
+      setFilteredMember(allMembers.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize));
     }
   };
 
@@ -158,16 +166,6 @@ const MemberList = () => {
                 <img
                   src={`/api/image/download/${member.profileImg}`}
                   alt="Profile"
-                  className="w-1/2 max-h-60 object-cover mb-2"
-                />
-              </div>
-              <div>
-                <p>
-                  <strong>Banner Image:</strong>
-                </p>
-                <img
-                  src={`/api/image/download/${member.bannerImg}`}
-                  alt="Banner"
                   className="w-1/2 max-h-60 object-cover mb-2"
                 />
               </div>
@@ -207,6 +205,7 @@ const MemberList = () => {
 
   return (
     <div className="p-4  ">
+      <Toaster />
       <div className="lg:flex flex-wrap justify-between items-center mb-4 ">
         <h1 className="text-xl font-bold mb-3 ml-2 ">Members List</h1>
         <div>
@@ -331,12 +330,11 @@ const MemberList = () => {
                           <p>Matches</p>
                         </button>
                       </Link>
-                      <Link to={`/myBusiness/${customer._id}`}>
+                      {/* <Link to={`/myBusiness/${customer._id}`}>
                         <button className="bg-blue-500 flex justify-center gap-2 items-center text-white px-2 py-1 rounded hover:bg-blue-700 transition">
-                          {/* <FaEdit className="text-lg" /> */}
                           <p>Business</p>
                         </button>
-                      </Link>
+                      </Link> */}
                     </div>
                   </td>
                 </tr>

@@ -62,6 +62,7 @@ import UserMyAsk from "./components/pages/member/Asks/UserMyAsk";
 import UserGives from "./components/pages/member/Gives/UserGives";
 import UserMyMatches from "./components/pages/member/mymatches/UserMyMatches";
 import SmartCalendar from "./components/pages/calender/Calender";
+import { Toaster } from "react-hot-toast";
 
 // Helper component to dynamically redirect with the member's ID
 const MemberIndexRedirect = () => {
@@ -94,6 +95,7 @@ function App() {
 
   return (
     <Router>
+        <Toaster position="top-right" />
       <Routes>
         {!isLoggedIn ? (
           <>

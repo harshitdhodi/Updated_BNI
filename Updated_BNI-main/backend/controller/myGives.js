@@ -80,6 +80,7 @@ const getMyGivesByUserId = async (req, res) => {
     const count = await myGives.countDocuments({ user: userId });
     const userMyGives = await myGives
       .find({ user: userId })
+      .populate('dept')
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -182,7 +183,7 @@ const getmyGivesById = async (req, res) => {
       return res.status(400).json({ message: "Invalid member ID" });
     }
 
-    const MyGives = await myGives.findById(id);
+    const MyGives = await myGives.findById(id).populate('dept');
     if (!MyGives) {
       return res.status(404).json({ message: "MyGives not found" });
     }

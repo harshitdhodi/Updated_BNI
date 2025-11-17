@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const EditDepartment = () => {
   const { id } = useParams();
@@ -47,6 +48,7 @@ const EditDepartment = () => {
         }, withCredentials: true }
       );
       setName("");
+      toast.success("Department updated successfully");
       navigate("/departmentList");
     } catch (error) {
       console.error(
@@ -78,7 +80,7 @@ const EditDepartment = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label htmlFor="name" className="block font-semibold mb-2">
-              Department Name
+              Department Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -87,6 +89,8 @@ const EditDepartment = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-1/2 p-2 border rounded focus:outline-none focus:border-red-500"
               required
+              minLength={2}
+              maxLength={20}
             />
           </div>
           <button
