@@ -9,15 +9,7 @@ const MemberImageModal = ({ isOpen, closeModal, bannerImg, profileImg }) => {
       contentLabel="Member Image Modal"
     >
       <div className="bg-white p-8 rounded-lg shadow-lg">
-        <div className="flex justify-center space-x-8">
-          <div>
-            <img
-              src={`/api/image/download/${bannerImg}`}
-              alt="Banner Image"
-              className="max-w-full h-auto"
-            />
-            <p className="text-center">Banner Image</p>
-          </div>
+        <div className="flex justify-center">
           <div>
             <img
               src={`/api/image/download/${profileImg}`}
@@ -43,7 +35,6 @@ const MemberImageModal = ({ isOpen, closeModal, bannerImg, profileImg }) => {
 MemberImageModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   closeModal: PropTypes.func.isRequired,
-  bannerImg: PropTypes.string.isRequired,
   profileImg: PropTypes.string.isRequired,
 };
 

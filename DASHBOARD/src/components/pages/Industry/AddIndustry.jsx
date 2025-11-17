@@ -67,6 +67,9 @@ const CreateIndustry = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-1/2 px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
               required
+              minLength={2}
+              maxLength={25}
+             
             />
           </div>
           <button

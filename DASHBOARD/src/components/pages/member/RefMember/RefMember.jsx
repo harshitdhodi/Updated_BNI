@@ -135,16 +135,6 @@ const RefMember = () => {
                   className="w-1/2 max-h-60 object-cover mb-2"
                 />
               </div>
-              <div>
-                <p>
-                  <strong>Banner Image:</strong>
-                </p>
-                <img
-                  src={`/api/image/download/${member.bannerImg}`}
-                  alt="Banner"
-                  className="w-1/2 max-h-60 object-cover mb-2"
-                />
-              </div>
             </div>
             <p>
               <strong>Name:</strong> {member.name}
