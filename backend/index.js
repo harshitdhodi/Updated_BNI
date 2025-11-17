@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 });
 
 // MongoDB connection
-mongoose.connect(process.env.DATABASE_URI, { 
+mongoose.connect("mongodb+srv://harshit:Harshit%40123@userinfo.lmbsytd.mongodb.net/BNI", { 
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
