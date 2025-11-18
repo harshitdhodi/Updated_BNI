@@ -30,6 +30,7 @@ function Sidebar({ isOpen, onClose }) {
     { id: "My Asks", label: "My Asks", path: "my-asks", icon: "📝", subItems: [] },
     { id: "My Gives", label: "My Gives", path: "my-gives", icon: "📋", subItems: [] },
     { id: "My Matches", label: "My Matches", path: "my-matches", icon: "📄", subItems: [] },
+    { id: "Business ", label: "Business ", path: "bussiness", icon: "🏢", subItems: [] },
   ]
 
  

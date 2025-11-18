@@ -26,18 +26,18 @@ const Business = require('../model/business')
 router.post('/create',generatePdfMiddleware, authMiddleware,createBusiness);
 
 router.get("/getbusiness",authMiddleware,getbusiness)
-router.get("/getbusinessByuserId",authMiddleware  ,getbusinessByuserId)
+router.get("/getbusinessByuserId"  ,getbusinessByuserId)
 // router.put("/updateImg",base64ImageHandler,uploadimages,bearerAuth,updateImages)
 router.put("/updateContactLinks",authMiddleware,updateContactLinks)
-router.put("/updateBusinessDetails",authMiddleware,updateBusinessDetails)
+router.put("/updateBusinessDetails",updateBusinessDetails)
 router.get("/businesssList",authMiddleware,businessList)
 router.get("/getbusinessbyId",authMiddleware,getbusinessbyId)
 router.put("/updateBusinessById",authMiddleware,generatePdfMiddleware,updateBusinessById)
-router.get("/getbusinessbymyId",authMiddleware,getbusinessbyId)
+router.get("/getbusinessbymyId",getbusinessbyId)
 router.get("/totalbusiness",authMiddleware,Totalbusiness)
 router.delete("/deletebusiness",authMiddleware,deletebusiness)
 // Updated route to accept user parameter
-router.post('/createProfile', authMiddleware, generatePdfMiddleware, async (req, res) => {
+router.post('/createProfile',  generatePdfMiddleware, async (req, res) => {
     try {
         // Log uploaded files and request query
         console.log('Files:', req.files);
