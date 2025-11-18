@@ -103,13 +103,13 @@ const CityForm = () => {
     <>
       <div className="w-full p-2 rounded-md">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
             Dashboard /
           </Link>
-          <Link to="/cities" className="mr-2 text-red-300 hover:text-red-500">
+          <Link to="/cities" className="mr-2 text-gray-400 hover:text-gray-500">
             Cities /
           </Link>
-          <span className="font-semibold text-red-500">Insert City</span>
+          <span className="font-semibold text-gray-600">Insert City</span>
         </nav>
       </div>
       <div className="p-4">

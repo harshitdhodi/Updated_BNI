@@ -212,7 +212,7 @@ export default function SmartCalendar() {
                         </div>
                         <button
                           onClick={() => deleteEvent(event.id)}
-                          className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity text-sm font-bold"
+                          className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-700 transition-opacity text-sm font-bold"
                         >
                           ✕
                         </button>

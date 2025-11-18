@@ -197,7 +197,7 @@ const AllGives = () => {
                       </Link>
                     </button>
                     <button onClick={() => handleDelete(company._id)}>
-                      <FaTrashAlt className="text-red-500 text-lg" />
+                      <FaTrashAlt className="text-gray-600 text-lg" />
                     </button>
                   </td>
                 </tr>

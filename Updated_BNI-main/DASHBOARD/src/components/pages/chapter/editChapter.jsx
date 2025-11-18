@@ -130,17 +130,17 @@ const EditChapter = () => {
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
             Dashboard /
           </Link>
           <Link
             to="/ChapterList"
-            className="mr-2 text-red-300 hover:text-red-500"
+            className="mr-2 text-gray-400 hover:text-gray-500"
           >
             {" "}
             Chapters /
           </Link>
-          <span className="font-semibold text-red-500"> Edit Chapter</span>
+          <span className="font-semibold text-gray-600"> Edit Chapter</span>
         </nav>
       </div>
       <div className="p-4">

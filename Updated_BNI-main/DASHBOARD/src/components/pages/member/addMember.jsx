@@ -158,14 +158,14 @@ const CreateUser = () => {
           >
             Members /
           </Link>
-          <Link className="font-bold text-red-500"> Insert User</Link>
+          <Link className="font-bold text-gray-600"> Insert User</Link>
         </nav>
       </div>
       <div className="p-4">
         <h1 className="text-xl font-bold mb-4">Create User</h1>
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Name <span className="text-red-500">*</span></label>
+            <label className="block text-gray-700 font-bold mb-2">Name <span className="text-gray-600">*</span></label>
             <input
               type="text"
               value={name}
@@ -173,10 +173,10 @@ const CreateUser = () => {
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
               aria-invalid={errors.name ? "true" : "false"}
             />
-            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-gray-600 text-sm mt-1">{errors.name}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Email <span className="text-red-500">*</span></label>
+            <label className="block text-gray-700 font-bold mb-2">Email <span className="text-gray-600">*</span></label>
             <input
               type="email"
               value={email}
@@ -184,7 +184,7 @@ const CreateUser = () => {
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
               aria-invalid={errors.email ? "true" : "false"}
             />
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-gray-600 text-sm mt-1">{errors.email}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -231,7 +231,7 @@ const CreateUser = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Password <span className="text-red-500">*</span></label>
+            <label className="block text-gray-700 font-bold mb-2">Password <span className="text-gray-600">*</span></label>
             <input
               type="password"
               value={password}
@@ -239,10 +239,10 @@ const CreateUser = () => {
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
               aria-invalid={errors.password ? "true" : "false"}
             />
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+            {errors.password && <p className="text-gray-600 text-sm mt-1">{errors.password}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Confirm Password <span className="text-red-500">*</span></label>
+            <label className="block text-gray-700 font-bold mb-2">Confirm Password <span className="text-gray-600">*</span></label>
             <input
               type="password"
               value={confirmPassword}
@@ -250,10 +250,10 @@ const CreateUser = () => {
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
               aria-invalid={errors.confirmPassword ? "true" : "false"}
             />
-            {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+            {errors.confirmPassword && <p className="text-gray-600 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Country <span className="text-red-500">*</span></label>
+            <label className="block text-gray-700 font-bold mb-2">Country <span className="text-gray-600">*</span></label>
             <Autocomplete
               options={countries}
               getOptionLabel={(option) => option.name}
@@ -271,10 +271,10 @@ const CreateUser = () => {
                 />
               )}
             />
-            {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+            {errors.country && <p className="text-gray-600 text-sm mt-1">{errors.country}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">City <span className="text-red-500">*</span></label>
+            <label className="block text-gray-700 font-bold mb-2">City <span className="text-gray-600">*</span></label>
             <Autocomplete
               options={cities}
               getOptionLabel={(option) => option.name}
@@ -293,10 +293,10 @@ const CreateUser = () => {
                 />
               )}
             />
-            {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+            {errors.city && <p className="text-gray-600 text-sm mt-1">{errors.city}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Mobile Number <span className="text-red-500">*</span></label>
+            <label className="block text-gray-700 font-bold mb-2">Mobile Number <span className="text-gray-600">*</span></label>
             <input
               type="text"
               value={mobile}
@@ -306,7 +306,7 @@ const CreateUser = () => {
               minLength={10}
               maxLength={10}
             />
-            {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
+            {errors.mobile && <p className="text-gray-600 text-sm mt-1">{errors.mobile}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">Profile Image</label>

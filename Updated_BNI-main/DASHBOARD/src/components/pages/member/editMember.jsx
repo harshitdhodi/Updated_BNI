@@ -237,13 +237,13 @@ const EditMember = () => {
     <Toaster position="top-right" />
     <div className="w-full p-2">
       <nav>
-        <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
           Dashboard /
         </Link>
-        <Link to="/memberList" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/memberList" className="mr-2 text-gray-400 hover:text-gray-500">
           Members /
         </Link>
-        <Link className="font-semibold text-red-500"> Edit Member</Link>
+        <Link className="font-semibold text-gray-600"> Edit Member</Link>
       </nav>
     </div>
     <div className="p-4">
@@ -343,7 +343,7 @@ const EditMember = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="mt-2 text-red-500 hover:text-red-700"
+                      className="mt-2 text-gray-600 hover:text-red-700"
                     >
                       {showPassword ? "Hide Password" : "Show Password"}
                     </button>

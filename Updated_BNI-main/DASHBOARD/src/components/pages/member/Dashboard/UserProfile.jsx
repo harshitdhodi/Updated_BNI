@@ -635,7 +635,7 @@ export default function UserProfile() {
               <h3 className="text-2xl text-black font-bold mb-2">Your Referral Code</h3>
               <p className="text-black mb-4">Share this code with friends and earn rewards!</p>
               <div className="inline-flex items-center gap-3 bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-6 py-3 border border-white border-opacity-30">
-                <span className="text-3xl font-bold text-red-500 tracking-wider">
+                <span className="text-3xl font-bold text-gray-600 tracking-wider">
                   {userData.refral_code || "—"}
                 </span>
                 <button

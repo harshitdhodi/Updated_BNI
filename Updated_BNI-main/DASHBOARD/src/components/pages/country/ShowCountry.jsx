@@ -139,7 +139,7 @@ const CountryList = () => {
                     </Link>
                   </button>
                   <button onClick={() => handleDelete(country._id)}>
-                    <FaTrashAlt className="text-red-500 text-lg" />
+                    <FaTrashAlt className="text-gray-600 text-lg" />
                   </button>
                 </div>
               </td>

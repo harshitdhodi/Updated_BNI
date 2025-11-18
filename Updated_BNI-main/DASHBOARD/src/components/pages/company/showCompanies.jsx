@@ -284,7 +284,7 @@ const CompanyList = () => {
           </div>
           {/* <div
             onClick={() => handleRemoveCompany(company.id)} // Replace with the actual ID or identifier
-            className="absolute top-0 right-0 p-1 text-red-500 cursor-pointer"
+            className="absolute top-0 right-0 p-1 text-gray-600 cursor-pointer"
           >
             <FaTimes /> 
           </div> */}
@@ -333,13 +333,13 @@ const CompanyList = () => {
       }`}
     >
       {/* <nav className="mb-4">
-        <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
           Dashboard /
         </Link>
-        <Link to="/memberList" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/memberList" className="mr-2 text-gray-400 hover:text-gray-500">
           MemberList /
         </Link>
-        <span className="font-semibold text-red-500">Company List</span>
+        <span className="font-semibold text-gray-600">Company List</span>
       </nav> */}
 
       <div className="flex flex-wrap justify-between items-center mb-4">
@@ -439,7 +439,7 @@ const CompanyList = () => {
                       </button>
                       <button
                         onClick={() => handleDelete(company._id)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-gray-600 hover:text-red-700"
                       >
                         <FaTrashAlt />
                       </button>

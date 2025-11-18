@@ -237,7 +237,7 @@ const MyBusinessList = () => {
                 Download Catalog
               </a>
             ) : (
-              <p className="text-red-500">No catalog available</p>
+              <p className="text-gray-600">No catalog available</p>
             )} */}
           </div>
           <button
@@ -254,13 +254,13 @@ const MyBusinessList = () => {
   return (
     <div className={`p-4 overflow-x-auto ${showModal ? "modal-open" : ""}`}>
       <nav className="mb-4">
-        <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
           Dashboard /
         </Link>
-        <Link to="/memberList" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/memberList" className="mr-2 text-gray-400 hover:text-gray-500">
           MemberList /
         </Link>
-        <span className="font-semibold text-red-500">Business List</span>
+        <span className="font-semibold text-gray-600">Business List</span>
       </nav>
 
       <div className="flex flex-wrap justify-between items-center mb-4">
@@ -381,7 +381,7 @@ const MyBusinessList = () => {
                         </Link>
                       </button>
                       <button onClick={() => handleDelete(business._id)}>
-                        <FaTrashAlt className="text-red-500 text-lg" />
+                        <FaTrashAlt className="text-gray-600 text-lg" />
                       </button>
                       <button
                         onClick={() => handleViewDetails(business)}

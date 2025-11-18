@@ -73,13 +73,13 @@ const MyAllMatches = () => {
     <div className="p-4 overflow-x-auto">
       <h1 className="text-xl font-bold mb-3 ml-2">All Matches List</h1>
       <nav className="mb-4">
-        <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
           Dashboard /
         </Link>
-        <Link to="/memberList" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/memberList" className="mr-2 text-gray-400 hover:text-gray-500">
           MemberList /
         </Link>
-        <Link className="font-semibold text-red-500"> My Matches</Link>
+        <Link className="font-semibold text-gray-600"> My Matches</Link>
       </nav>
 
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
@@ -137,7 +137,7 @@ const MyAllMatches = () => {
                     </Link>
                   </button>
                   <button onClick={() => handleDelete(match._id)}>
-                    <FaTrashAlt className="text-red-500 text-lg" />
+                    <FaTrashAlt className="text-gray-600 text-lg" />
                   </button>
                 </div>
               </td> */}

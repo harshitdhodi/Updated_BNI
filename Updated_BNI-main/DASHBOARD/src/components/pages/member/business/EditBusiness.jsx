@@ -151,7 +151,7 @@ formData.append("mobile", mobile);
           >
             My Business /
           </Link>
-          <span className="font-bold text-red-500"> Edit Business</span>
+          <span className="font-bold text-gray-600"> Edit Business</span>
         </nav>
       </div>
       <div className="p-4">

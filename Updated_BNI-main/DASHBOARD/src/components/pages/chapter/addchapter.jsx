@@ -127,17 +127,17 @@ const CreateChapter = () => {
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
             Dashboard /
           </Link>
           <Link
             to="/ChapterList"
-            className="mr-2 text-red-300 hover:text-red-500"
+            className="mr-2 text-gray-400 hover:text-gray-500"
           >
             {" "}
             Chapters /
           </Link>
-          <span className="font-semibold text-red-500"> Insert Chapter</span>
+          <span className="font-semibold text-gray-600"> Insert Chapter</span>
         </nav>
       </div>
       <div className="p-4">
@@ -145,7 +145,7 @@ const CreateChapter = () => {
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <p className="text-gray-600">{error}</p>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="mb-4 w-1/2">

@@ -207,7 +207,7 @@ const CreateMyGives = () => {
           >
             My Gives /
           </Link>
-          <Link className="font-bold text-red-500"> Add My Gives</Link>
+          <Link className="font-bold text-gray-600"> Add My Gives</Link>
         </nav>
       </div>
       <div className="p-4">
@@ -215,7 +215,7 @@ const CreateMyGives = () => {
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-gray-700 font-bold mb-2">
-              Company Name <span className="text-red-500">*</span>
+              Company Name <span className="text-gray-600">*</span>
             </label>
             <Autocomplete
               freeSolo
@@ -239,7 +239,7 @@ const CreateMyGives = () => {
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
-              Email <span className="text-red-500">*</span>
+              Email <span className="text-gray-600">*</span>
             </label>
             <input
               type="email"
@@ -255,7 +255,7 @@ const CreateMyGives = () => {
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
-              Phone Number <span className="text-red-500">*</span>
+              Phone Number <span className="text-gray-600">*</span>
             </label>
             <input
               type="tel"
@@ -274,7 +274,7 @@ const CreateMyGives = () => {
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
-              Website URL <span className="text-red-500">*</span>
+              Website URL <span className="text-gray-600">*</span>
             </label>
             <input
               type="text"
@@ -298,7 +298,7 @@ const CreateMyGives = () => {
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
-              Department <span className="text-red-500">*</span>
+              Department <span className="text-gray-600">*</span>
             </label>
             <Autocomplete
               options={departments}

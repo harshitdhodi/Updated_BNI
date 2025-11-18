@@ -141,7 +141,7 @@ const BusinessList = () => {
             <h1 className="text-xl font-bold mb-3 ml-2">Business Details</h1>
             <button
               onClick={onClose}
-              className="text-red-500 hover:text-red-700"
+              className="text-gray-600 hover:text-red-700"
             >
               X
             </button>
@@ -362,7 +362,7 @@ const BusinessList = () => {
                 </button>
                 <button
                   onClick={() => handleDelete(business._id)}
-                  className="text-red-500 hover:text-red-700"
+                  className="text-gray-600 hover:text-red-700"
                 >
                   <FaTrash />
                 </button>

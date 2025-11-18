@@ -103,7 +103,7 @@ const EditCity = () => {
             {" "}
             Cities /
           </Link>
-          <span className="font-bold text-red-500">
+          <span className="font-bold text-gray-600">
             {id ? "Edit City" : "Insert City"}
           </span>
         </nav>

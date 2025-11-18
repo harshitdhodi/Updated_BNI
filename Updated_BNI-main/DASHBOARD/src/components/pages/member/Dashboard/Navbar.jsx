@@ -106,7 +106,7 @@ const { id:userId } = useParams();
                 ) : error ? (
                   <>
                     <p className="text-sm font-medium text-gray-900">User</p>
-                    <p className="text-xs text-red-500">Error loading</p>
+                    <p className="text-xs text-gray-600">Error loading</p>
                   </>
                 ) : (
                   <>
