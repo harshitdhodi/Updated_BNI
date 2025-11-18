@@ -63,6 +63,7 @@ import UserGives from "./components/pages/member/Gives/UserGives";
 import UserMyMatches from "./components/pages/member/mymatches/UserMyMatches";
 import SmartCalendar from "./components/pages/calender/Calender";
 import { Toaster } from "react-hot-toast";
+import UserBusinessList from "./components/pages/member/business/UserBusinessList";
 
 // Helper component to dynamically redirect with the member's ID
 const MemberIndexRedirect = () => {
@@ -117,7 +118,7 @@ function App() {
               <Route path="my-gives" element={<UserGives />} />
               <Route path="my-matches" element={<UserMyMatches />} />
               <Route path="calendar" element={<SmartCalendar />} />
-
+               <Route path="bussiness" element={<UserBusinessList />} />
               {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
             </Route>
 
