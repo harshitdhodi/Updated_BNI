@@ -140,7 +140,7 @@ const EditMyAsk = () => {
       </nav>
 
       {/* Form Container */}
-      <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-lg shadow-md">
+      <div className="max-w-3xl  bg-white p-6 md:p-8 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">
           Edit My Ask
         </h1>

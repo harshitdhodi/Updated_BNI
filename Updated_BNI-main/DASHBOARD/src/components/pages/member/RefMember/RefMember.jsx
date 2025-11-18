@@ -5,7 +5,9 @@ import { Link, useParams } from "react-router-dom";
 import { FaEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 import { BsFillTelephoneFill } from "react-icons/bs";
 import { MdEmail, MdPlace } from "react-icons/md";
+import { ChevronLeft, ChevronRight } from "lucide-react"; // Recommended
 import Swal from "sweetalert2";
+
 const RefMember = () => {
   const { refMember } = useParams();
   const [member, setMember] = useState([]);
@@ -16,11 +18,13 @@ const RefMember = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const pageSize = 5;
+
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
+
   useEffect(() => {
     fetchMember();
   }, [pageIndex, refMember]);
@@ -35,23 +39,26 @@ const RefMember = () => {
       const response = await axios.get(
         `/api/member/getMemberByRef?refMember=${refMember}&page=${pageIndex + 1}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-           withCredentials: true }
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
+
       const dataWithIds = response.data.data.map((member, index) => ({
         ...member,
         id: pageIndex * pageSize + index + 1,
       }));
+
       setMember(dataWithIds);
       setFilteredMember(dataWithIds);
-      if (response.data.total != null) {
-        setPageCount(Math.ceil(response.data.total / pageSize));
-      } else {
-        setPageCount(Math.ceil(response.data.data.length / pageSize));
+
+      const total = response.data.total ?? response.data.data.length;
+      setPageCount(Math.max(1, Math.ceil(total / pageSize)));
+
+      // Adjust page if current page becomes empty after delete
+      if (pageIndex > 0 && response.data.data.length === 0) {
+        setPageIndex(prev => prev - 1);
       }
-    
     } catch (error) {
       console.error("Error fetching member data:", error);
     }
@@ -67,28 +74,20 @@ const RefMember = () => {
       cancelButtonColor: "#d33",
       confirmButtonText: "Yes, delete it!",
     });
-  
+
     if (result.isConfirmed) {
       try {
         const token = getCookie("token");
         await axios.delete(`/api/member/deletememberById?id=${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         });
-  
-        // Optional: Fetch the updated list of members after deletion
-        fetchMember();
-  
-        // Show success message
+
         Swal.fire("Deleted!", "The member has been deleted.", "success");
-        // Optionally, you can reload the page or update the state here
-        window.location.reload();
+        fetchMember(); // Refresh list
       } catch (error) {
-        console.error("There was an error deleting the member!", error);
-        // Show error message
-        Swal.fire("Error!", "There was an error deleting the member.", "error");
+        console.error("Error deleting member:", error);
+        Swal.fire("Error!", "Failed to delete member.", "error");
       }
     }
   };
@@ -97,80 +96,60 @@ const RefMember = () => {
     setSelectedMember(member);
     setShowModal(true);
   };
+
+  const closeModal = () => setShowModal(false);
+
   const filterMember = (searchValue) => {
     const filtered = member.filter((mem) =>
       mem.name.toLowerCase().includes(searchValue.toLowerCase())
     );
     setFilteredMember(filtered);
   };
-  const closeModal = () => {
-    setShowModal(false);
-  };
+
   const handleNextPage = () => {
-    if (pageIndex < pageCount - 1) {
-      setPageIndex(pageIndex + 1);
-    }
+    if (pageIndex < pageCount - 1) setPageIndex(pageIndex + 1);
   };
 
   const handlePreviousPage = () => {
-    if (pageIndex > 0) {
-      setPageIndex(pageIndex - 1);
-    }
+    if (pageIndex > 0) setPageIndex(pageIndex - 1);
   };
+
   const MemberModal = ({ member, onClose }) => {
     if (!member) return null;
 
     return (
-      <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-        <div className="bg-white w-[580px] p-6 rounded shadow-lg max-w-lg overflow-y-auto">
-          <div className="mb-4">
-            <div className="flex">
-              <div>
-                <p>
-                  <strong>Profile Image:</strong>
-                </p>
-                <img
-                  src={`/api/image/download/${member.profileImg}`}
-                  alt="Profile"
-                  className="w-1/2 max-h-60 object-cover mb-2"
-                />
-              </div>
-              <div>
-                <p>
-                  <strong>Banner Image:</strong>
-                </p>
-                <img
-                  src={`/api/image/download/${member.bannerImg}`}
-                  alt="Banner"
-                  className="w-1/2 max-h-60 object-cover mb-2"
-                />
-              </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white w-[580px] p-6 rounded-lg shadow-xl max-h-screen overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <p className="font-semibold mb-2">Profile Image:</p>
+              <img
+                src={`/api/image/download/${member.profileImg}`}
+                alt="Profile"
+                className="w-full h-48 object-cover rounded border"
+              />
             </div>
-            <p>
-              <strong>Name:</strong> {member.name}
-            </p>
-            <p>
-              {/* <strong>Chapter:</strong> {member.chapter} */}
-            </p>
-            <p>
-              <strong>Mobile:</strong> {member.mobile}
-            </p>
-            <p>
-              <strong>Email:</strong> {member.email}
-            </p>
-            <p>
-              <strong>Country:</strong> {member.country}
-            </p>
-            <p>
-              <strong>City:</strong> {member.city}
-            </p>
-            {/* <p>
-              <strong>Keyword:</strong> {member.keyword}
-            </p> */}
+            <div>
+              <p className="font-semibold mb-2">Banner Image:</p>
+              <img
+                src={`/api/image/download/${member.bannerImg}`}
+                alt="Banner"
+                className="w-full h-48 object-cover rounded border"
+              />
+            </div>
           </div>
+
+          <div className="space-y-2 text-gray-700">
+            <p><strong>Name:</strong> {member.name}</p>
+            <p><strong>Mobile:</strong> {member.mobile}</p>
+            <p><strong>Email:</strong> {member.email}</p>
+            <p><strong>Country:</strong> {member.country}</p>
+            <p><strong>City:</strong> {member.city}</p>
+          </div>
+
           <button
             onClick={onClose}
-            className="mt-4 bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded"
+            className="mt-6 w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700 transition"
           >
             Close
           </button>
@@ -178,131 +157,117 @@ const RefMember = () => {
       </div>
     );
   };
+
   return (
     <div className="p-4 overflow-x-auto">
-      <nav className="mb-4">
-        <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
-          Dashboard /
-        </Link>
-        <Link to="/memberList" className="mr-2 text-gray-400 hover:text-gray-500">
-          MemberList /
-        </Link>
-        <Link className="font-semibold text-gray-600">Ref Members</Link>
+      <nav className="mb-4 text-sm">
+        <Link to="/" className="text-gray-400 hover:text-gray-600">Dashboard /</Link>{" "}
+        <Link to="/memberList" className="text-gray-400 hover:text-gray-600">MemberList /</Link>{" "}
+        <span className="font-semibold text-gray-700">Ref Members</span>
       </nav>
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold mb-3 ml-2">Referred Members</h1>
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Referred Members</h1>
         <input
           type="text"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
-          placeholder="Search by name"
-          className="px-4 py-2 border border-gray-300 rounded"
+          placeholder="Search by name..."
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64"
         />
       </div>
 
       {filteredMember.length > 0 ? (
         <>
-          <table className="w-full mt-4 border-collapse shadow-lg">
-            <thead>
-              <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
-                <th className="py-2 px-4">ID</th>
-                <th className="py-2 px-4">Name</th>
-                {/* <th className="py-2 px-4">Phone</th>
-                <th className="py-2 px-4">Email</th>
-                <th className="py-2 px-4">City</th> */}
-                <th className="py-2 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMember.map((member) => (
-                <tr
-                  key={member._id}
-                  className="bg-gray-50 border-b border-gray-300 hover:bg-gray-100 transition duration-150"
-                >
-                  <td className="py-2 px-4">{member.id}</td>
-                  <td className="py-2 px-4">
-                  <p className="flex items-center gap-1 capitalize font-bold ">
-                       
-                       {member.name}
-                     </p>
-                  <div>
-                 
-                      <p className="flex items-center gap-1 ">
-                        <BsFillTelephoneFill className="text-gray-600" />
-                        {member.mobile}
-                      </p>
-                      <p className="flex items-center gap-1">
-                        <MdEmail className="text-gray-600" /> {member.email}
-                      </p>
-                      <p className="flex items-center gap-1">
-                        <MdPlace className="text-gray-600" />{" "}
-                        <span>{member.country}, </span>
-                        <span>{member.city}</span>
-                      </p>
-                    </div>
-                  </td>
-                  {/* <td className="py-2 px-4">
-                    <BsFillTelephoneFill className="inline-block mr-2" />
-                    {member.mobile}
-                  </td>
-                  <td className="py-2 px-4">
-                    <MdEmail className="inline-block mr-2" />
-                    {member.email}
-                  </td>
-                  <td className="py-2 px-4">
-                    <MdPlace className="inline-block mr-2" />
-                    {member.city}
-                  </td> */}
-                  <td className="py-2 px-4">
-                    <div className="flex items-center space-x-2">
-                      <Link to={`/editMember/${member._id}`}>
-                        <FaEdit className="text-blue-500" />
-                      </Link>
-                      <FaEye
-                        onClick={() => handleViewDetails(member)}
-                        className="text-green-700"
-                      />
-                      <FaTrashAlt
-                        className="text-gray-600 cursor-pointer"
-                        onClick={() => handleDelete(member._id)}
-                      />
-                    </div>  
-                  </td>
+          <div className="overflow-x-auto rounded-lg shadow-md">
+            <table className="w-full border-collapse bg-white">
+              <thead>
+                <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left text-sm uppercase tracking-wider">
+                  <th className="py-3 px-4 font-medium">ID</th>
+                  <th className="py-3 px-4 font-medium">Name & Details</th>
+                  <th className="py-3 px-4 font-medium text-center">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredMember.map((member) => (
+                  <tr
+                    key={member._id}
+                    className="border-b border-gray-200 hover:bg-gray-50 transition"
+                  >
+                    <td className="py-4 px-4 font-medium text-gray-800">{member.id}</td>
+                    <td className="py-4 px-4">
+                      <p className="font-bold text-gray-900 capitalize text-lg">{member.name}</p>
+                      <div className="mt-2 space-y-1 text-sm text-gray-600">
+                        <p className="flex items-center gap-2">
+                          <BsFillTelephoneFill className="text-blue-600" />
+                          {member.mobile}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <MdEmail className="text-red-600" />
+                          {member.email}
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <MdPlace className="text-green-600" />
+                          {member.country}, {member.city}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center justify-center gap-4 text-xl">
+                        <FaEye
+                          className="text-gray-600 hover:text-blue-600 cursor-pointer transition"
+                          onClick={() => handleViewDetails(member)}
+                        />
+                        <Link to={`/editMember/${member._id}`}>
+                          <FaEdit className="text-gray-600 hover:text-green-600 cursor-pointer transition" />
+                        </Link>
+                        <FaTrashAlt
+                          className="text-red-600 hover:text-red-800 cursor-pointer transition"
+                          onClick={() => handleDelete(member._id)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-          <div className="mt-4 flex justify-center items-center space-x-2">
-        <button
-          onClick={handlePreviousPage}
-          disabled={pageIndex === 0}
-          className="px-3 py-1 bg-[#CF2030] text-white flex justify-center rounded transition"
-        >
-          {"<"}
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={pageIndex + 1 >= pageCount}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded transition"
-        >
-          {">"}
-        </button>
-        <span>
-          Page{" "}
-          <strong>
-            {pageIndex + 1} of {pageCount}
-          </strong>{" "}
-        </span>
-      </div>
+          {/* Beautiful Pagination - Same as before */}
+          <div className="mt-8 flex justify-between items-center bg-white px-6 py-4 rounded-lg shadow-md border border-gray-200">
+            <div className="text-sm text-gray-700">
+              Page <span className="font-bold text-gray-900">{pageIndex + 1}</span> of{" "}
+              <span className="font-bold text-gray-900">{pageCount}</span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handlePreviousPage}
+                disabled={pageIndex === 0}
+                className="flex items-center justify-center px-4 h-10 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                <ChevronLeft size={18} className="mr-1" />
+                Previous
+              </button>
+
+              <button
+                onClick={handleNextPage}
+                disabled={pageIndex + 1 >= pageCount}
+                className="flex items-center justify-center px-4 h-10 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Next
+                <ChevronRight size={18} className="ml-1" />
+              </button>
+            </div>
+          </div>
         </>
       ) : (
-        <div className="text-center text-gray-500 mt-4">No referred members found.</div>
+        <div className="text-center py-12 text-gray-500 text-lg">
+          No referred members found.
+        </div>
       )}
 
-{showModal && (
-        <MemberModal member={selectedMember} onClose={closeModal} />
-      )}
+      {showModal && <MemberModal member={selectedMember} onClose={closeModal} />}
     </div>
   );
 };

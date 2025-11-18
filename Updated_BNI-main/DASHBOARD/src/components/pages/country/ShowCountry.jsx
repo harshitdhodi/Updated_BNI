@@ -100,7 +100,7 @@ const CountryList = () => {
     <div className="p-4 overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Country List</h1>
-        <button className="px-4 py-2 mt-3 bg-[#CF2030] text-white rounded hover:bg-red-600 transition duration-300">
+        <button className="px-4 py-2 mt-3 bg-gradient-to-r from-[#FF7979] to-[#F76C6C] text-white text-xl font-bold rounded-full">Add New Country</button>
           <Link to="/addCountry">Add New Country</Link>
         </button>
       </div>
