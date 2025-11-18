@@ -32,6 +32,10 @@ const Sidebar = () => {
       text: "Company",
       submenu: [
         {
+          title: "Companies",
+          path: "/company",
+        },
+        {
           title: "Departments",
           path: "/departmentList",
         },
@@ -57,6 +61,7 @@ const Sidebar = () => {
         },
       ],
     },
+    
     {
       title: "Total Asks",
       path: "/allAsks",

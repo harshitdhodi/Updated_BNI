@@ -48,14 +48,6 @@ const MyAllMatches = () => {
     }
   };
 
-  // const handleDelete = async (id) => {
-  //   try {
-  //     await axios.delete(`/match2/deleteMatchById?id=${id}`);
-  //     fetchMatches(); // Refresh matches after deletion
-  //   } catch (error) {
-  //     console.error("Error deleting Match:", error);
-  //   }
-  // };
 
   const handleNextPage = () => {
     if (pageIndex < pageCount - 1) {
@@ -84,7 +76,7 @@ const MyAllMatches = () => {
 
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
         <thead>
-          <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+          <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px]">
             <th className="py-2 px-4">ID</th>
             <th className="py-2 px-4">Company Info</th>
             <th className="py-2 px-4">User Info</th>
@@ -129,18 +121,7 @@ const MyAllMatches = () => {
                   <span>No user information available</span>
                 )}
               </td>
-              {/* <td className="py-2 px-4">
-                <div className="flex py-1 px-4 items-center space-x-2">
-                  <button>
-                    <Link to={`/editMatch/${match._id}`}>
-                      <FaEdit className="text-blue-500 text-lg" />
-                    </Link>
-                  </button>
-                  <button onClick={() => handleDelete(match._id)}>
-                    <FaTrashAlt className="text-gray-600 text-lg" />
-                  </button>
-                </div>
-              </td> */}
+             
             </tr>
           ))}
         </tbody>
@@ -150,14 +131,14 @@ const MyAllMatches = () => {
         <button
           onClick={handlePreviousPage}
           disabled={pageIndex === 0}
-          className="px-3 py-1 bg-[#CF2030] text-white flex justify-center rounded transition"
+          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 border border-gray-300flex justify-center rounded transition"
         >
           {"<"}
         </button>
         <button
           onClick={handleNextPage}
           disabled={pageIndex + 1 >= pageCount}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded transition"
+          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 border border-gray-300 flex justify-center rounded transition"
         >
           {">"}
         </button>

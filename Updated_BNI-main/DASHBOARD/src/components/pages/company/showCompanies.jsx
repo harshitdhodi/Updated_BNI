@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { IoLogoWhatsapp } from "react-icons/io";
 import { FaFacebook, FaTwitterSquare, FaLinkedin } from "react-icons/fa";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { FaTimes } from 'react-icons/fa';
 import Swal from 'sweetalert2';
+import { Eye, EyeIcon } from "lucide-react";
 const CompanyList = () => {
   const [companies, setCompanies] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
@@ -24,6 +24,34 @@ const CompanyList = () => {
   useEffect(() => {
     fetchCompanies();
   }, [pageIndex, userId]);
+
+  const getPagination = (pageIndex, pageCount) => {
+    const delta = 2;
+    const left = pageIndex - delta;
+    const right = pageIndex + delta + 1;
+    const range = [];
+    const rangeWithDots = [];
+    let l;
+
+    for (let i = 1; i <= pageCount; i++) {
+      if (i === 1 || i === pageCount || (i >= left && i < right)) {
+        range.push(i);
+      }
+    }
+
+    for (const i of range) {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l > 2) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    }
+    return rangeWithDots;
+  };
 
   const fetchCompanies = async () => {
     try {
@@ -172,16 +200,7 @@ const CompanyList = () => {
                   className="w-full max-h-60 object-cover mb-2"
                 />
               </div>
-              <div className="w-1/2">
-                <p>
-                  <strong>Banner Image:</strong>
-                </p>
-                <img
-                  src={`/api/image/download/${company.bannerImg}`}
-                  alt="Banner"
-                  className="w-full max-h-60 object-cover mb-2"
-                />
-              </div>
+             
             </div>
             <p>
               <strong>Company Name:</strong> {company.companyName}
@@ -332,15 +351,7 @@ const CompanyList = () => {
         showCompanyModal || showFindCompanyModal ? "modal-open" : ""
       }`}
     >
-      {/* <nav className="mb-4">
-        <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
-          Dashboard /
-        </Link>
-        <Link to="/memberList" className="mr-2 text-gray-400 hover:text-gray-500">
-          MemberList /
-        </Link>
-        <span className="font-semibold text-gray-600">Company List</span>
-      </nav> */}
+      
 
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Company List</h1>
@@ -350,7 +361,7 @@ const CompanyList = () => {
           </button> */}
           <button
             onClick={fetchCompanyNames}
-            className="px-4 py-2 mt-3 ml-4 bg-[#007BFF] text-white rounded hover:bg-blue-600 transition duration-300"
+            className="px-4 py-2 mt-3 ml-4 bg-gradient-to-r shadow-md from-blue-100 to-blue-50 text-gray-700 rounded  transition duration-300"
           >
             Add Company
           </button>
@@ -362,10 +373,9 @@ const CompanyList = () => {
           <div className="w-full overflow-x-auto lg:overflow-x-scroll mt-4 shadow-lg">
             <table className="min-w-full border-collapse">
               <thead>
-                <tr className="bg-[#CF2030] text-white text-left font-serif text-[14px]">
+                <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left text-sm  tracking-wider">
                   <th className="py-2 px-4 lg:px-6">Profile Image</th>
-                  <th className="py-2 px-4 lg:px-6">Banner Image</th>
-                  <th className="py-2 px-4 lg:px-6">Company Name</th>
+                 <th className="py-2 px-4 lg:px-6">Company Name</th>
                   <th className="py-2 px-4 lg:px-6">Contact Links</th>
                   <th className="py-2 px-4 lg:px-6">Actions</th>
                 </tr>
@@ -383,13 +393,7 @@ const CompanyList = () => {
                         className="w-16 h-16 object-cover"
                       />
                     </td>
-                    <td className="py-2 px-6">
-                      <img
-                        src={`/api/image/download/${company.bannerImg}`}
-                        alt="Banner"
-                        className="w-16 h-16 object-cover"
-                      />
-                    </td>
+                  
                     <td className="py-2 px-6">{company.companyName}</td>
                     <td className="py-2 px-6 mt-5 flex gap-2 items-center ">
                       <a
@@ -425,12 +429,14 @@ const CompanyList = () => {
                         <FaLinkedin className="w-[20px] h-[20px] text-blue-500" />
                       </a>
                     </td>
-                    <td className="py-2 px-6">
-                      <button
+                    <td className=" px-6">
+                      <div className="flex items-center justify-start gap-4 text-xl">  
+                         <button
                         onClick={() => handleViewDetails(company)}
-                        className="text-blue-500 hover:text-blue-700 mr-2"
+                        className="text-blue-500 hover:text-blue-700 mt-2 mr-2"
                       >
-                        View
+                        <EyeIcon className="text-blue-500 text-lg" /> 
+                        {/* View */}
                       </button>
                       <button>
                         <Link to={`/edit_company/${company._id}`}>
@@ -443,6 +449,7 @@ const CompanyList = () => {
                       >
                         <FaTrashAlt />
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -450,27 +457,52 @@ const CompanyList = () => {
             </table>
           </div>
 
-          <div className="mt-4 flex justify-center items-center space-x-2">
-            <button
-              onClick={handlePreviousPage}
-              disabled={pageIndex === 0}
-              className="px-3 py-1 bg-[#CF2030] text-white flex justify-center rounded transition"
-            >
-              {"<"}
-            </button>
-            <button
-              onClick={handleNextPage}
-              disabled={pageIndex + 1 >= pageCount}
-              className="px-3 py-1 bg-[#CF2030] text-white rounded transition"
-            >
-              {">"}
-            </button>
-            <span>
-              Page{" "}
-              <strong>
-                {pageIndex + 1} of {pageCount}
-              </strong>{" "}
-            </span>
+          <div className="mt-4 flex justify-between items-center">
+            <div>
+              <span className="text-sm text-gray-700">
+                Page <span className="font-semibold">{pageIndex + 1}</span> of <span className="font-semibold">{pageCount}</span>
+              </span>
+            </div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={handlePreviousPage}
+                disabled={pageIndex === 0}
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">Previous</span>
+                &lt;
+              </button>
+              
+              {getPagination(pageIndex, pageCount).map((page, index) => (
+                page === '...' ? (
+                  <span key={index} className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={index}
+                    onClick={() => setPageIndex(page - 1)}
+                    aria-current={pageIndex === page - 1 ? 'page' : undefined}
+                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                      pageIndex === page - 1
+                        ? 'bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
+                    } focus:z-20 focus:outline-offset-0`}
+                  >
+                    {page}
+                  </button>
+                )
+              ))}
+
+              <button
+                onClick={handleNextPage}
+                disabled={pageIndex + 1 >= pageCount}
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+              >
+                <span className="sr-only">Next</span>
+                &gt;
+              </button>
+            </nav>
           </div>
         </>
       )}

@@ -205,11 +205,11 @@ const MemberList = () => {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
         <div className="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-y-auto max-h-[90vh]">
-          <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex justify-between items-center">
-            <h2 className="text-white font-semibold text-lg">Member Details</h2>
+          <div className="sticky top-0 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left text-sm uppercase tracking-wider px-6 py-4 flex justify-between items-center">
+            <h2 className="font-semibold text-lg">Member Details</h2>
             <button
               onClick={onClose}
-              className="text-white hover:bg-blue-800 rounded-full p-1 transition"
+              className="hover:bg-blue-800 rounded-full p-1 transition"
             >
               ✕
             </button>
@@ -257,7 +257,7 @@ const MemberList = () => {
 
             <button
               onClick={onClose}
-              className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition"
+              className="w-full mt-6 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 hover:bg-blue-600 font-medium py-2 px-4 rounded-lg transition"  
             >
               Close
             </button>
@@ -549,7 +549,7 @@ const MemberList = () => {
 
             <button
               onClick={() => setShowRefMemberModal(false)}
-              className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition"
+              className="w-full mt-6 bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition"
             >
               Close
             </button>

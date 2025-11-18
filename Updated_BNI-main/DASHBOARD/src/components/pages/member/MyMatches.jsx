@@ -89,7 +89,7 @@ const MyMatches = () => {
 
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
         <thead>
-          <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+          <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px]">
             <th className="py-2 px-4">ID</th>
             <th className="py-2 px-4">Company Info</th>
             <th className="py-2 px-4">User Info</th>
@@ -147,14 +147,14 @@ const MyMatches = () => {
         <button
           onClick={handlePreviousPage}
           disabled={pageIndex === 0}
-          className="px-3 py-1 bg-[#CF2030] text-white flex justify-center rounded transition"
+          className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px] px-3 py-1 bg-[#CF2030] rounded transition"
         >
           {"<"}
         </button>
         <button
           onClick={handleNextPage}
           disabled={pageIndex + 1 >= pageCount}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded transition"
+          className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px] px-3 py-1 bg-[#CF2030] rounded transition"
         >
           {">"}
         </button>

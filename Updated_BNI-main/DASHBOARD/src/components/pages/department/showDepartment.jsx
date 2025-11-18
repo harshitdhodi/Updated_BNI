@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
@@ -100,14 +100,14 @@ const DepartmentList = () => {
     <div className="p-4 overflow-x-auto">
       <div className="lg:flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 sm:ml-2">Department List</h1>
-        <button className="px-4 py-2 mt-3 bg-[#CF2030] text-white rounded transition duration-300">
+        <button className="px-4 py-2 mt-3 bg-gradient-to-r shadow-md from-blue-100 to-blue-50 text-gray-700 rounded transition duration-300">
           <Link to="/createDepartment">Add New Department</Link>
         </button>
       </div>
 
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
         <thead>
-          <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+          <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px]">
             <th className="py-2 px-6 ">ID</th>
             <th className="py-2 px-6 ">Department Name</th>
             <th className="py-2 px-6 ">Actions</th>
@@ -125,11 +125,11 @@ const DepartmentList = () => {
                 <div className="flex py-1 px-4 items-center space-x-2">
                   <button>
                     <Link to={`/editdepartment/${department._id}`}>
-                      <FaEdit className="text-blue-500 text-lg" />
+                      <FaEdit className="text-gray-500 text-lg" />
                     </Link>
                   </button>
                   <button onClick={() => handleDelete(department._id)}>
-                    <FaTrashAlt className="text-gray-600 text-lg" />
+                    <FaTrashAlt className="text-red-600 text-lg" />
                   </button>
                 </div>
               </td>
@@ -142,14 +142,14 @@ const DepartmentList = () => {
         <button
           onClick={handlePreviousPage}
           disabled={pageIndex === 0}
-          className="px-3 py-1 bg-[#CF2030] text-white flex justify-center rounded transition"
+          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 flex justify-center rounded transition"
         >
           {"<"}
         </button>
         <button
           onClick={handleNextPage}
           disabled={pageIndex + 1 >= pageCount}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded transition"
+          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded transition"
         >
           {">"}
         </button>

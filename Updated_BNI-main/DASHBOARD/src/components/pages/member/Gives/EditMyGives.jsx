@@ -317,7 +317,7 @@ console.log("Fetched My Gives Data:", myGiveData);
                             }
                           }
                         }}
-                        className="w-full p-4 border bg-[#F1F1F1] border-[#aeabab] rounded focus:outline-none focus:border-red-500 transition duration-300"
+                        className="w-full p-4 border  border-[#aeabab] rounded focus:outline-none focus:border-red-500 transition duration-300"
                         required
                         minLength={key === 'phoneNumber' ? 10 : undefined}
                         maxLength={key === 'phoneNumber' ? 10 : undefined}
@@ -331,7 +331,7 @@ console.log("Fetched My Gives Data:", myGiveData);
           <div className="col-span-2">
             <button
               type="submit"
-              className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-300 disabled:opacity-50"
+              className="bg-gray-500 text-white px-6 py-3 rounded-md hover:bg-gray-600 transition duration-300 disabled:opacity-50"
               disabled={!isFormValid()}
             >
               Save

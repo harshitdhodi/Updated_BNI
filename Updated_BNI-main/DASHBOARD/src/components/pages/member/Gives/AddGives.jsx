@@ -198,12 +198,12 @@ const CreateMyGives = () => {
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-600">
+          <Link to="/" className="mr-2 text-gray-300 hover:text-gray-600">
             Dashboard /
           </Link>
           <Link
             to={`/myGives/${userId}`}
-            className="mr-2 text-red-300 hover:text-red-600"
+            className="mr-2 text-gray-300 hover:text-gray-600"
           >
             My Gives /
           </Link>
@@ -234,7 +234,7 @@ const CreateMyGives = () => {
               )}
             />
             {errors.companyName && (
-              <p className="text-sm text-red-600 mt-1">{errors.companyName}</p>
+              <p className="text-sm text-gray-600 mt-1">{errors.companyName}</p>
             )}
           </div>
           <div>
@@ -248,10 +248,10 @@ const CreateMyGives = () => {
                 setEmail(e.target.value);
                 setErrors((prev) => ({ ...prev, email: validateEmail(e.target.value) }));
               }}
-              className="w-full p-4 border bg-[#e8e8ebe6] border-[#aeabab] rounded focus:outline-none focus:border-black hover:border-black "
+              className="w-full p-4 border  border-[#aeabab] rounded focus:outline-none focus:border-black hover:border-black "
               required
             />
-            {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
+            {errors.email && <p className="text-sm text-gray-600 mt-1">{errors.email}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -265,12 +265,12 @@ const CreateMyGives = () => {
                 setPhoneNumber(v);
                 setErrors((prev) => ({ ...prev, phoneNumber: validatePhone(v) }));
               }}
-              className="w-full p-4 border bg-[#e8e8ebe6] border-[#aeabab] rounded focus:outline-none focus:border-black hover:border-black "
+              className="w-full p-4 border  border-[#aeabab] rounded focus:outline-none focus:border-black hover:border-black "
               required
               minLength={10}
               maxLength={10}
             />
-            {errors.phoneNumber && <p className="text-sm text-red-600 mt-1">{errors.phoneNumber}</p>}
+            {errors.phoneNumber && <p className="text-sm text-gray-600 mt-1">{errors.phoneNumber}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -291,10 +291,10 @@ const CreateMyGives = () => {
                   setWebURL(trimmedValue);
                 }
               }}
-              className="w-full p-4 border bg-[#e8e8ebe6] border-[#aeabab] rounded focus:outline-none focus:border-black hover:border-black "
+              className="w-full p-4 border  border-[#aeabab] rounded focus:outline-none focus:border-black hover:border-black "
               required
             />
-            {errors.webURL && <p className="text-sm text-red-600 mt-1">{errors.webURL}</p>}
+            {errors.webURL && <p className="text-sm text-gray-600 mt-1">{errors.webURL}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -321,12 +321,12 @@ const CreateMyGives = () => {
                 />
               )}
             />
-            {errors.dept && <p className="text-sm text-red-600 mt-1">{errors.dept}</p>}
+            {errors.dept && <p className="text-sm text-gray-600 mt-1">{errors.dept}</p>}
           </div>
           <div className="col-span-2">
             <button
               type="submit"
-              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300 disabled:opacity-50"
+              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-red-600 transition duration-300 disabled:opacity-50"
               disabled={!isFormValid()}
             >
               Add My Gives
