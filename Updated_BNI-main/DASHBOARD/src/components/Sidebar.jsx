@@ -40,10 +40,10 @@ const Sidebar = () => {
           title: "Departments",
           path: "/departmentList",
         },
-        {
-          title: "Company",
-          path: "/company",
-        },
+        // {
+        //   title: "Company",
+        //   path: "/company",
+        // },
       ],
     },
    
@@ -77,13 +77,13 @@ const Sidebar = () => {
         },
       ],
     },
-    {
-      title: "My Business",
-      path: "/business",
-      icon: <FaAddressBook />,
-      text: "MyBusiness",
-      submenu: [],
-    },
+    // {
+    //   title: "My Business",
+    //   path: "/business",
+    //   icon: <FaAddressBook />,
+    //   text: "MyBusiness",
+    //   submenu: [],
+    // },
    
     {
       title: "Total Asks",

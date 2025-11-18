@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import { Toaster, toast } from "react-hot-toast";
 
 const EditMember = () => {
   const { id } = useParams();
@@ -17,7 +18,6 @@ const EditMember = () => {
     password: "",
     confirm_password: "",
     profileImg: "", // State for profile image
-    bannerImg: "", // State for banner image
   });
   
   // New state for social links
@@ -31,6 +31,7 @@ const EditMember = () => {
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [chapters, setChapters] = useState([]);
+  const [profilePreview, setProfilePreview] = useState("");
   const navigate = useNavigate();
 
   const getCookie = (name) => {
@@ -67,6 +68,7 @@ const EditMember = () => {
       });
       const memberData = response.data.data;
       setMember(memberData);
+      setProfilePreview(memberData.profileImg ? `/api/image/download/${memberData.profileImg}` : "");
       setWhatsapp(memberData.whatsapp || "");  // Set social links
       setFacebook(memberData.facebook || "");
       setLinkedin(memberData.linkedin || "");
@@ -150,19 +152,7 @@ const EditMember = () => {
     }
   };
 
-  // const handleCityChange = (event, newValue) => {
-  //   const selectedCity = newValue ? newValue.name : "";
-  //   setMember((prevMember) => ({
-  //     ...prevMember,
-  //     city: selectedCity,
-  //     chapter: "",
-  //   }));
-  //   if (selectedCity) {
-  //     fetchChapters(selectedCity);
-  //   } else {
-  //     setChapters([]);
-  //   }
-  // };
+ 
 
   const handleCityChange = (value) => {
     setMember((prevState) => ({
@@ -185,18 +175,17 @@ const EditMember = () => {
         ...prevMember,
         profileImg: file,
       }));
+      // revoke old preview if it was a blob URL
+      if (profilePreview && profilePreview.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(profilePreview);
+        } catch (err) {}
+      }
+      // create preview URL for selected file
+      setProfilePreview(URL.createObjectURL(file));
     }
   };
 
-  const handleBannerImgChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setMember((prevMember) => ({
-        ...prevMember,
-        bannerImg: file,
-      }));
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -213,9 +202,11 @@ const EditMember = () => {
       formData.append("password", member.password);
       formData.append("confirm_password", member.confirm_password);
       formData.append("keyword", member.keyword);
-      formData.append("profileImg", member.profileImg); // Append profile image file
-      formData.append("bannerImg", member.bannerImg); // Append banner image file
-
+      // only append profileImg if a File was selected (avoid sending existing filename string)
+      if (member.profileImg instanceof File) {
+        formData.append("profileImg", member.profileImg);
+      }
+   
       // Append social links
       formData.append("whatsapp", whatsapp);
       formData.append("facebook", facebook);
@@ -229,17 +220,21 @@ const EditMember = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate("/memberList");
+      toast.success("Member updated successfully");
+      setTimeout(() => navigate("/memberList"), 900);
     } catch (error) {
       console.error(
         "Failed to update member:",
         error.response ? error.response.data : error.message
       );
+      const msg = error?.response?.data?.message || "Failed to update member";
+      toast.error(msg);
     }
   };
 
   return (
     <>
+    <Toaster position="top-right" />
     <div className="w-full p-2">
       <nav>
         <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
@@ -269,6 +264,12 @@ const EditMember = () => {
       key !== "facebook" &&
       key !== "linkedin" &&
       key !== "twitter" && 
+      key !== "profileImg" &&
+        key !== "createdAt" &&
+        key !== "updatedAt" &&
+        key !== "created_at" &&
+        key !== "updated_at" &&
+        key !== "bannerImg" &&
       key !== "chapter" &&
       key !== "__v" && (
               <div className="mb-4" key={key}>
@@ -328,52 +329,25 @@ const EditMember = () => {
                       />
                     )}
                   />
-                ) : key === "profileImg" || key === "bannerImg" ? (
-                  <>
+                ) : key === "password" ? (
+                  <div className="mb-4">
                     <input
-                      type="file"
-                      id={key}
-                      name={key}
-                      onChange={
-                        key === "profileImg"
-                          ? handleProfileImgChange
-                          : handleBannerImgChange
-                      }
-                      accept="image/*"
-                      className="w-full p-4 border bg-[#F1F1F1] border-[#131212] rounded focus:outline-none focus:border-black hover:border-black"
+                      type={showPassword ? "text" : "password"}
+                      id="password"
+                      name="password"
+                      value={member.password || ""}
+                      onChange={handleChange}
+                      placeholder="Enter new password"
+                      className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
                     />
-                    {member[key] && (
-                      <div className="mt-2">
-                        <img
-                          src={`/api/image/download/${member[key]}`}
-                          alt=""
-                          className="w-20 h-20 object-cover rounded"
-                        />
-                      </div>
-                    )}
-                  </>
-      //           ) : key === "password" ? (
-      //             <div className="mb-4">
-      //   {/* <label htmlFor="password" className="block font-semibold mb-2">
-      //     Password
-      //   </label> */}
-      //   <input
-      //     type={showPassword ? "text" : "password"} // Toggle between text and password
-      //     id="password"
-      //     name="password"
-      //     value={password} // Controlled input
-      //     onChange={handlePasswordChange}
-      //     placeholder="Enter new password"
-      //     className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
-      //   />
-      //   <button
-      //     type="button"
-      //     onClick={() => setShowPassword(!showPassword)} // Toggle the password visibility
-      //     className="mt-2 text-red-500 hover:text-red-700"
-      //   >
-      //     {showPassword ? "Hide Password" : "Show Password"}
-      //   </button>
-      // </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="mt-2 text-red-500 hover:text-red-700"
+                    >
+                      {showPassword ? "Hide Password" : "Show Password"}
+                    </button>
+                  </div>
                 ) : (
                   <input
                     type="text"
@@ -387,6 +361,8 @@ const EditMember = () => {
               </div>
             )
         )}
+
+        {/* profile image will render after social fields */}
       
         {/* Social media fields */}
         <div className="mb-4">
@@ -437,7 +413,25 @@ const EditMember = () => {
             className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
           />
         </div>
-  
+        {/* Profile image input rendered after social fields */}
+        <div className="mb-4 col-span-2">
+          <label htmlFor="profileImg" className="block font-semibold mb-2">Profile Image</label>
+          <input
+            type="file"
+            id="profileImg"
+            name="profileImg"
+            accept="image/*"
+            onChange={handleProfileImgChange}
+            className="w-full p-2"
+          />
+          {profilePreview && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600 mb-1">Preview:</p>
+              <img src={profilePreview} alt="Profile preview" className="max-w-xs max-h-40 object-cover rounded" />
+            </div>
+          )}
+        </div>
+
         <div className="col-span-2 mb-4">
           <button
             type="submit"

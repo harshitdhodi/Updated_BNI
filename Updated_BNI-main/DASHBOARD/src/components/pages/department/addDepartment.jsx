@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-
+import { toast } from "react-hot-toast";
 const CreateDepartment = () => {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
@@ -34,7 +34,7 @@ const CreateDepartment = () => {
 
       console.log(department); // Log the returned department object
       setMessage(message); // Set the message state
-
+      toast.success(message); // Show success toast
       navigate("/departmentList");
     } catch (error) {
       console.error(
@@ -68,7 +68,7 @@ const CreateDepartment = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
-              Department Name
+              Department Name <span className="text-red-500">*</span>  
             </label>
             <input
               type="text"
@@ -76,6 +76,8 @@ const CreateDepartment = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-1/2 px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
               required
+              minLength={2}
+              maxLength={20}
             />
           </div>
           <button
