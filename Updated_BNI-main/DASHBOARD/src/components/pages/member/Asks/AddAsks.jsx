@@ -127,7 +127,7 @@ const CreateMyAsk = () => {
           >
             My Asks /
           </Link>
-          <Link className="font-bold text-red-500"> Add My Ask</Link>
+          <Link className="font-bold text-gray-600"> Add My Ask</Link>
         </nav>
       </div>
 

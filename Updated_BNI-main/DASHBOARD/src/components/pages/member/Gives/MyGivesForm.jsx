@@ -90,7 +90,7 @@ function MyGivesForm({ mode, initialData, onSubmit, onClose, loading, department
                 placeholder="Enter company name"
               />
               {errors.companyName && (
-                <p className="text-red-500 text-xs mt-1">{errors.companyName}</p>
+                <p className="text-gray-600 text-xs mt-1">{errors.companyName}</p>
               )}
             </div>
 
@@ -108,7 +108,7 @@ function MyGivesForm({ mode, initialData, onSubmit, onClose, loading, department
                 placeholder="Enter email"
               />
               {errors.email && (
-                <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                <p className="text-gray-600 text-xs mt-1">{errors.email}</p>
               )}
             </div>
 
@@ -128,7 +128,7 @@ function MyGivesForm({ mode, initialData, onSubmit, onClose, loading, department
                 placeholder="Enter phone number"
               />
               {errors.phoneNumber && (
-                <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
+                <p className="text-gray-600 text-xs mt-1">{errors.phoneNumber}</p>
               )}
             </div>
 
@@ -146,7 +146,7 @@ function MyGivesForm({ mode, initialData, onSubmit, onClose, loading, department
                 placeholder="Enter web URL"
               />
               {errors.webURL && (
-                <p className="text-red-500 text-xs mt-1">{errors.webURL}</p>
+                <p className="text-gray-600 text-xs mt-1">{errors.webURL}</p>
               )}
             </div>
 
@@ -169,7 +169,7 @@ function MyGivesForm({ mode, initialData, onSubmit, onClose, loading, department
                 ))}
               </select>
               {errors.dept && (
-                <p className="text-red-500 text-xs mt-1">{errors.dept}</p>
+                <p className="text-gray-600 text-xs mt-1">{errors.dept}</p>
               )}
             </div>
           </div>

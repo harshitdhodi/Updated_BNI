@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import { Eye, Edit2, Trash2, Phone, Mail, MapPin, Download, MoreVertical, Gift } from 'lucide-react';
+import { Link, useNavigate } from "react-router-dom";
+import { Eye, Edit2, Trash2, Phone, Mail, MapPin, Download, MoreVertical, Gift, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Toaster, toast } from "react-hot-toast";
 
 const MemberList = () => {
@@ -13,11 +13,7 @@ const MemberList = () => {
   const [searchValue, setSearchValue] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [showAsksModal, setShowAsksModal] = useState(false);
-  const [showGivesModal, setShowGivesModal] = useState(false);
-  const [showMatchesModal, setShowMatchesModal] = useState(false);
   const [showRefMemberModal, setShowRefMemberModal] = useState(false);
-  const [selectedActionMember, setSelectedActionMember] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const pageSize = 5;
 
@@ -135,26 +131,6 @@ const MemberList = () => {
     setShowModal(false);
   };
 
-  const handleAsks = (member) => {
-    setSelectedActionMember(member);
-    setShowAsksModal(true);
-  };
-
-  const handleGives = (member) => {
-    setSelectedActionMember(member);
-    setShowGivesModal(true);
-  };
-
-  const handleMatches = (member) => {
-    setSelectedActionMember(member);
-    setShowMatchesModal(true);
-  };
-
-  const handleRefMember = (member) => {
-    setSelectedActionMember(member);
-    setShowRefMemberModal(true);
-  };
-
   const toggleMenu = (memberId) => {
     setOpenMenuId(openMenuId === memberId ? null : memberId);
   };
@@ -169,35 +145,29 @@ const MemberList = () => {
         } bg-white rounded-lg shadow-lg border border-gray-200 z-50 min-w-max`}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={() => {
-            handleAsks(member);
-            setOpenMenuId(null);
-          }}
-          className="w-full px-4 py-2 text-left hover:bg-purple-50 text-purple-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
+        <Link
+          to={`/myAsks/${member._id}`}
+          onClick={() => setOpenMenuId(null)}
+          className="block w-full px-4 py-2 text-left hover:bg-purple-50 text-purple-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
         >
           ✦ Asks
-        </button>
+        </Link>
 
-        <button
-          onClick={() => {
-            handleGives(member);
-            setOpenMenuId(null);
-          }}
-          className="w-full px-4 py-2 text-left hover:bg-green-50 text-green-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
+        <Link
+          to={`/myGives/${member._id}`}
+          onClick={() => setOpenMenuId(null)}
+          className="block w-full px-4 py-2 text-left hover:bg-green-50 text-green-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
         >
           ✦ Gives
-        </button>
+        </Link>
 
-        <button
-          onClick={() => {
-            handleMatches(member);
-            setOpenMenuId(null);
-          }}
-          className="w-full px-4 py-2 text-left hover:bg-orange-50 text-orange-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
+        <Link
+          to={`/myMatches/${member._id}`}
+          onClick={() => setOpenMenuId(null)}
+          className="block w-full px-4 py-2 text-left hover:bg-orange-50 text-orange-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
         >
           ✦ Matches
-        </button>
+        </Link>
 
         <Link to={`/ref-member/${member?.refral_code}`} className="block">
           <button
@@ -225,24 +195,6 @@ const MemberList = () => {
           <Eye size={16} /> View Details
         </button>
 
-        <Link to={`/editMember/${member._id}`} className="block">
-          <button
-            className="w-full px-4 py-2 text-left hover:bg-blue-50 text-blue-600 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
-            onClick={() => setOpenMenuId(null)}
-          >
-            <Edit2 size={16} /> Edit
-          </button>
-        </Link>
-
-        <button
-          onClick={() => {
-            handleDelete(member._id);
-            setOpenMenuId(null);
-          }}
-          className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 font-medium text-sm flex items-center gap-2 rounded-b-lg"
-        >
-          <Trash2 size={16} /> Delete
-        </button>
       </div>
     );
   };
@@ -326,31 +278,33 @@ const MemberList = () => {
         </h1>
 
         {/* Search and Action Buttons */}
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <input
+        <div className="flex flex-col w-full gap-3  md:flex-row md:items-center justify-between">
+        <div>
+            <input
             type="text"
             value={searchValue}
             onChange={handleSearchChange}
             placeholder="Search members..."
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
           />
+        </div>
 
           <div className="flex flex-col gap-2 md:flex-row md:gap-3">
             <Link to="/pending-member" className="flex-1 md:flex-initial">
-              <button className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+              <button className="w-full md:w-auto px-4 py-2 bg-gray-100 text-black shadow-lg hover:shadow-xl border border-gray-200 rounded-lg font-medium transition">
                 Pending Members
               </button>
             </Link>
 
             <Link to="/createCustomer" className="flex-1 md:flex-initial">
-              <button className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+              <button className="w-full md:w-auto px-4 py-2 bg-gray-100 text-black shadow-lg hover:shadow-xl border border-gray-200 rounded-lg font-medium transition">
                 Add New Member
               </button>
             </Link>
 
-            <button className="flex-1 md:flex-initial px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2">
-              <Download size={18} />
+            <button className="w-full flex gap-3 md:w-auto px-4 py-2 bg-gray-100 text-black shadow-lg hover:shadow-xl border border-gray-200 rounded-lg font-medium transition">
               Export
+              <Download size={18} />
             </button>
           </div>
         </div>
@@ -361,7 +315,7 @@ const MemberList = () => {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <tr className="bg-gradient-to-r from-blue-200 to-blue-100 text-black text-lg">
                 <th className="px-6 py-3 text-left font-semibold text-sm">ID</th>
                 <th className="px-6 py-3 text-left font-semibold text-sm">
                   Member Name
@@ -405,7 +359,21 @@ const MemberList = () => {
                         </p>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-center relative">
+                        <div className="flex items-center justify-center gap-1 relative">
+                          <Link
+                            to={`/editMember/${customer._id}`}
+                            className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
+                            title="Edit"
+                          >
+                            <Edit2 size={18} />
+                          </Link>
+                          <button
+                            onClick={() => handleDelete(customer._id)}
+                            className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
+                            title="Delete"
+                          >
+                            <Trash2 size={18} />
+                          </button>
                           <button
                             onClick={() => toggleMenu(customer._id)}
                             className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
@@ -449,7 +417,21 @@ const MemberList = () => {
                     {customer.name}
                   </h3>
                 </div>
-                <div className="relative">
+                <div className="relative flex items-center">
+                  <Link
+                    to={`/editMember/${customer._id}`}
+                    className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
+                    title="Edit"
+                  >
+                    <Edit2 size={18} />
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(customer._id)}
+                    className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
+                    title="Delete"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                   <button
                     onClick={() => toggleMenu(customer._id)}
                     className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
@@ -488,27 +470,29 @@ const MemberList = () => {
       </div>
 
       {/* Pagination */}
-      <div className="mt-8 flex flex-wrap justify-center items-center gap-3">
-        <button
-          onClick={handlePreviousPage}
-          disabled={pageIndex === 0}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg font-medium transition"
-        >
-          ← Previous
-        </button>
-
-        <div className="px-4 py-2 bg-gray-200 rounded-lg text-gray-800 font-medium">
-          Page <span className="font-bold">{pageIndex + 1}</span> of{" "}
-          <span className="font-bold">{pageCount}</span>
+      <div className="mt-8 flex justify-between items-center bg-white px-4 py-3 rounded-lg shadow-md">
+        <div className="text-sm text-gray-700">
+          Page <span className="font-bold text-gray-900">{pageIndex + 1}</span> of <span className="font-bold text-gray-900">{pageCount}</span>
         </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePreviousPage}
+            disabled={pageIndex === 0}
+            className="flex items-center justify-center px-3 h-8 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={16} className="mr-1" />
+            Previous
+          </button>
 
-        <button
-          onClick={handleNextPage}
-          disabled={pageIndex + 1 >= pageCount}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white rounded-lg font-medium transition"
-        >
-          Next →
-        </button>
+          <button
+            onClick={handleNextPage}
+            disabled={pageIndex + 1 >= pageCount}
+            className="flex items-center justify-center px-3 h-8 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+            <ChevronRight size={16} className="ml-1" />
+          </button>
+        </div>
       </div>
 
       {/* Hidden table for Excel export */}
@@ -539,31 +523,6 @@ const MemberList = () => {
         </tbody>
       </table>
 
-      {/* Modals for action buttons */}
-      {showAsksModal && (
-        <ActionMenu
-          title="Asks"
-          member={selectedActionMember}
-          onClose={() => setShowAsksModal(false)}
-        />
-      )}
-
-      {showGivesModal && (
-        <ActionMenu
-          title="Gives"
-          member={selectedActionMember}
-          onClose={() => setShowGivesModal(false)}
-        />
-      )}
-
-      {showMatchesModal && (
-        <ActionMenu
-          title="Matches"
-          member={selectedActionMember}
-          onClose={() => setShowMatchesModal(false)}
-        />
-      )}
-
       {/* Ref Member Modal */}
       {showRefMemberModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
@@ -580,9 +539,7 @@ const MemberList = () => {
 
             <div className="p-6 space-y-4">
               <div className="text-center">
-                <h3 className="mt-3 text-xl font-semibold text-gray-800">
-                  {selectedActionMember?.name}'s Referrals
-                </h3>
+                <h3 className="mt-3 text-xl font-semibold text-gray-800">Referrals</h3>
               </div>
 
               <div className="space-y-3 border-t border-gray-200 pt-4">

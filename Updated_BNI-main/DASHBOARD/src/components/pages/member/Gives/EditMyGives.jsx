@@ -207,16 +207,16 @@ console.log("Fetched My Gives Data:", myGiveData);
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
             Dashboard /
           </Link>
           <Link
             to={`/myGives/${userId}`}
-            className="mr-2 text-red-300 hover:text-red-500"
+            className="mr-2 text-gray-400 hover:text-gray-500"
           >
             My Gives /
           </Link>
-          <Link className="font-semibold text-red-500"> Edit My Gives</Link>
+          <Link className="font-semibold text-gray-600"> Edit My Gives</Link>
         </nav>
       </div>
       <div className="p-4">

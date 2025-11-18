@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Autocomplete from "@mui/material/Autocomplete";
-import TextField from "@mui/material/TextField";
+import { Autocomplete, TextField } from "@mui/material";
+import { ChevronRight } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 const EditMyAsk = () => {
@@ -125,31 +125,37 @@ const EditMyAsk = () => {
   };
 
   return (
-    <>
-      <div className="w-full p-2">
-        <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
-            Dashboard /
-          </Link>
-          <Link
-            to={`/myAsks/${userId}`}
-            className="mr-2 text-red-300 hover:text-red-500"
-          >
-            My Asks /
-          </Link>
-          <Link className="font-semibold text-red-500"> Edit My Ask</Link>
-        </nav>
-      </div>
-      <div className="p-4">
-        <h1 className="text-xl font-bold mb-4">Edit My Ask</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label htmlFor="companyName" className="block font-semibold mb-2">
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      {/* Breadcrumbs */}
+      <nav className="mb-6 flex items-center text-sm font-medium text-gray-500">
+        <Link to="/" className="hover:text-gray-700">
+          Dashboard
+        </Link>
+        <ChevronRight size={16} className="mx-1" />
+        <Link to={`/myAsks/${userId}`} className="hover:text-gray-700">
+          My Asks
+        </Link>
+        <ChevronRight size={16} className="mx-1" />
+        <span className="text-gray-700">Edit My Ask</span>
+      </nav>
+
+      {/* Form Container */}
+      <div className="max-w-3xl mx-auto bg-white p-6 md:p-8 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">
+          Edit My Ask
+        </h1>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Company Name */}
+          <div>
+            <label
+              htmlFor="companyName"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Company Name
             </label>
             <Autocomplete
               options={companyOptions}
-              getOptionLabel={(option) => option.companyName}
+              getOptionLabel={(option) => option.companyName || ""}
               value={selectedCompany}
               onInputChange={(event, newInputValue) => {
                 fetchCompanyOptions(newInputValue);
@@ -166,16 +172,20 @@ const EditMyAsk = () => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Select Company"
+                  label="Select or type to search company"
                   variant="outlined"
-                  className="w-1/2"
                   required
                 />
               )}
             />
           </div>
-          <div className="mb-4">
-            <label htmlFor="dept" className="block font-semibold mb-2">
+
+          {/* Department */}
+          <div>
+            <label
+              htmlFor="dept"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Department
             </label>
             <select
@@ -183,10 +193,10 @@ const EditMyAsk = () => {
               name="dept"
               value={typeof myAsk.dept === 'object' ? myAsk.dept?._id : myAsk.dept || ''}
               onChange={handleChange}
-              className="w-1/2 p-2 border rounded focus:outline-none focus:border-red-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
             >
-              <option value="">Select Department</option>
+              <option value="">Select a Department</option>
               {departments.map((department) => (
                 <option key={department._id} value={department._id}>
                   {department.name}
@@ -194,8 +204,13 @@ const EditMyAsk = () => {
               ))}
             </select>
           </div>
-          <div className="mb-4">
-            <label htmlFor="message" className="block font-semibold mb-2">
+
+          {/* Message */}
+          <div>
+            <label
+              htmlFor="message"
+              className="block text-sm font-semibold text-gray-700 mb-2"
+            >
               Message
             </label>
             <textarea
@@ -203,20 +218,25 @@ const EditMyAsk = () => {
               name="message"
               value={myAsk.message}
               onChange={handleChange}
-              className="w-1/2 p-2 border rounded focus:outline-none focus:border-red-500"
-              rows="4"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
+              rows="5"
               required
+              placeholder="Enter your ask message here..."
             />
           </div>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-300"
-          >
-            Save
-          </button>
+
+          {/* Submit Button */}
+          <div className="flex justify-end pt-4">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition duration-300"
+            >
+              Update Ask
+            </button>
+          </div>
         </form>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -121,7 +121,7 @@ const AddBusiness = () => {
           >
             My Business /
           </Link>
-          <span className="font-bold text-red-500"> Add Business</span>
+          <span className="font-bold text-gray-600"> Add Business</span>
         </nav>
       </div>
       <div className="p-4">

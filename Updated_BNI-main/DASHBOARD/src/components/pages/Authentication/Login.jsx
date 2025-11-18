@@ -96,7 +96,7 @@ const LoginForm = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
             {errors.email && (
-              <p className="text-red-500 text-xs italic">{errors.email}</p>
+              <p className="text-gray-600 text-xs italic">{errors.email}</p>
             )}
           </div>
           <div className="mb-6">
@@ -111,7 +111,7 @@ const LoginForm = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             {errors.password && (
-              <p className="text-red-500 text-xs italic">{errors.password}</p>
+              <p className="text-gray-600 text-xs italic">{errors.password}</p>
             )}
           </div>
           <button
@@ -124,7 +124,7 @@ const LoginForm = () => {
           <div className="flex justify-between items-center mt-4 mb-2">
             <div>
               <Link
-                className="text-red-500 text-sm hover:underline"
+                className="text-gray-600 text-sm hover:underline"
                 to="/forgotPassword"
               >
                 Forgot Password?
@@ -134,7 +134,7 @@ const LoginForm = () => {
             <div>
               Not a member?
               <Link
-                className="text-red-500 text-sm hover:underline ml-2"
+                className="text-gray-600 text-sm hover:underline ml-2"
                 to="/registration"
               >
                 Signup here

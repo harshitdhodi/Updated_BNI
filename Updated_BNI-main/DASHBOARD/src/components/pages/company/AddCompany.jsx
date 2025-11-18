@@ -73,12 +73,12 @@ const AddCompany = () => {
           >
             CompanyList /
           </Link>
-          <span className="font-bold text-red-500"> Add Business</span>
+          <span className="font-bold text-gray-600"> Add Business</span>
         </nav>
       </div>
       <div className="p-4">
         <h1 className="text-xl font-bold mb-4">Add Business</h1>
-        {error && <p className="text-red-500 mb-4">{error}</p>}{" "}
+        {error && <p className="text-gray-600 mb-4">{error}</p>}{" "}
         {/* Display error message */}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

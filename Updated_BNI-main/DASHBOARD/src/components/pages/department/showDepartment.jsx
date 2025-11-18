@@ -129,7 +129,7 @@ const DepartmentList = () => {
                     </Link>
                   </button>
                   <button onClick={() => handleDelete(department._id)}>
-                    <FaTrashAlt className="text-red-500 text-lg" />
+                    <FaTrashAlt className="text-gray-600 text-lg" />
                   </button>
                 </div>
               </td>

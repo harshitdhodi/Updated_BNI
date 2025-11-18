@@ -209,7 +209,7 @@ const AllAsks = () => {
                   </Link>
                 </button>
                 <button onClick={() => handleDelete(ask._id)}>
-                  <FaTrashAlt className="text-red-500 text-lg" />
+                  <FaTrashAlt className="text-gray-600 text-lg" />
                 </button>
                 <button
                   onClick={() => {

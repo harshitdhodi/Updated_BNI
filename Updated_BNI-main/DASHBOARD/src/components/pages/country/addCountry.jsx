@@ -57,13 +57,13 @@ const CreateCountry = () => {
     <>
       <div className="w-full p-2 rounded-md">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
             Dashboard /
           </Link>
-          <Link to="/country" className="mr-2 text-red-300 hover:text-red-500">
+          <Link to="/country" className="mr-2 text-gray-400 hover:text-gray-500">
             Countries /
           </Link>
-          <span className="font-semibold text-red-500">Insert Country</span>
+          <span className="font-semibold text-gray-600">Insert Country</span>
         </nav>
       </div>
       <div className="p-4">

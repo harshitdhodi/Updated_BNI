@@ -120,13 +120,13 @@ const MyGivesList = () => {
   return (
     <div className="p-4 overflow-x-auto">
       <nav className="mb-4">
-        <Link to="/" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
           Dashboard /
         </Link>
-        <Link to="/memberList" className="mr-2 text-red-300 hover:text-red-500">
+        <Link to="/memberList" className="mr-2 text-gray-400 hover:text-gray-500">
           MemberList /
         </Link>
-        <Link className="font-semibold text-red-500">My Gives</Link>
+        <Link className="font-semibold text-gray-600">My Gives</Link>
       </nav>
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">My Gives List</h1>
@@ -169,7 +169,7 @@ const MyGivesList = () => {
                         </Link>
                       </button>
                       <button onClick={() => handleDelete(myGive._id)}>
-                        <FaTrashAlt className="text-red-500 text-lg" />
+                        <FaTrashAlt className="text-gray-600 text-lg" />
                       </button>
                     </div>
                   </td>

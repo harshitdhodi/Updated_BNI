@@ -89,7 +89,7 @@ const EditCountry = () => {
             {" "}
             Countries /
           </Link>
-          <Link className="font-semibold text-red-500"> Edit Country</Link>
+          <Link className="font-semibold text-gray-600"> Edit Country</Link>
         </nav>
       </div>
       <div className="p-4">
