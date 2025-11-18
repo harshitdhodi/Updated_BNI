@@ -1,27 +1,20 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { FaUserCircle, FaShieldAlt } from "react-icons/fa";
-import { GiHamburgerMenu } from "react-icons/gi";
-import Logout from "@mui/icons-material/Logout";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import PersonAdd from "@mui/icons-material/PersonAdd";
+import { MoreVertical, LogOut, Lock, User, ChevronDown } from 'lucide-react';
 import Cookies from "js-cookie";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import Modal from "./pages/Authentication/modal"; // Adjust the import path as necessary
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Navbar({ toggleSidebar }) {
   const [userData, setUserData] = useState({});
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
+
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-  // Fetch user data function
+
   const fetchUserData = async () => {
     try {
       const token = getCookie("token");
@@ -31,32 +24,24 @@ export default function Navbar({ toggleSidebar }) {
         },
         withCredentials: true,
       });
-      setUserData(response.data.data || {}); // Ensure userData is an object
+      setUserData(response.data.data || {});
     } catch (error) {
       console.error("Error fetching user data:", error);
     }
   };
 
-  // useEffect to fetch user data on component mount
   useEffect(() => {
     fetchUserData();
   }, []);
 
-  // Handle click on user icon to open menu
-  const handleUserIconClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
   };
 
-  // Handle close menu
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  // Handle logout
   const handleLogout = async () => {
     try {
       const token = getCookie("token");
-      await axios.post("/api/user/logout" ,  {
+      await axios.post("/api/user/logout", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -70,90 +55,74 @@ export default function Navbar({ toggleSidebar }) {
     }
   };
 
-  // Handle My Account click to open modal
-  const handleMyAccountClick = async () => {
-    try {
-      await fetchUserData();
-      setIsModalOpen(true);
-      handleClose(); // Close the menu when opening the modal
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
-
-  // Close the modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+  const handleMyAccount = () => {
+    setDropdownOpen(false);
+    navigate("/account");
   };
 
   return (
     <div className="w-full">
-      <nav className="flex justify-between mt-2 mr-2 px-10 h-[1.5cm] shadow-red-300 shadow-md bg-white items-center border border-white rounded-full">
+      <nav className="flex justify-between items-center px-6 py-4 h-16 bg-white border-b border-gray-300 shadow-md">
         <div className="flex gap-6 items-center">
-          <GiHamburgerMenu
+          <MoreVertical
             onClick={toggleSidebar}
-            className="block lg:hidden cursor-pointer text-black"
+            className="block lg:hidden cursor-pointer text-gray-700 hover:text-blue-600 transition-colors duration-200"
+            size={24}
+            strokeWidth={1.5}
           />
         </div>
-        <div className="flex gap-8 items-center">
-          <div
-            className="flex items-center cursor-pointer"
-            onClick={handleUserIconClick}
-          >
-            {userData?.firstName && (
-              <p className="text-black mr-2">
-                {userData.firstName} {userData.lastName}
-              </p>
-            )}
-            {userData?.photo ? (
-              <img
-                src={`/api/image/download/${userData.photo}`}
-                alt="User Profile"
-                className="w-8 h-8 rounded-full"
-              />
-            ) : (
-              <FaUserCircle size={30} className="text-red-500" />
+
+        <div className="flex gap-4 items-center">
+          <div className="relative">
+            <button
+              onClick={toggleDropdown}
+              className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent transition-all duration-200"
+            >
+              {userData?.firstName && (
+                <p className="text-gray-800 font-semibold text-sm hidden sm:block">
+                  {userData.firstName} {userData.lastName}
+                </p>
+              )}
+              {userData?.photo ? (
+                <img
+                  src={`/api/image/download/${userData.photo}`}
+                  alt="User Profile"
+                  className="w-9 h-9 rounded-full object-cover border-2 border-blue-200 shadow-sm"
+                />
+              ) : (
+                <User size={28} className="text-gray-400" strokeWidth={1.5} />
+              )}
+              <ChevronDown size={16} className={`text-gray-600 transition-transform duration-300 ${dropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {dropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-xl shadow-xl z-50 overflow-hidden">
+                <button
+                  onClick={handleMyAccount}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors text-sm font-medium border-b border-gray-100"
+                >
+                  <User size={18} strokeWidth={1.5} />
+                  My Account
+                </button>
+                <Link
+                  to="/forgotPassword"
+                  className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors text-sm font-medium border-b border-gray-100 no-underline"
+                >
+                  <Lock size={18} strokeWidth={1.5} />
+                  Reset Password
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors text-sm font-medium"
+                >
+                  <LogOut size={18} strokeWidth={1.5} />
+                  Logout
+                </button>
+              </div>
             )}
           </div>
-          <Menu
-            anchorEl={anchorEl}
-            id="account-menu"
-            open={Boolean(anchorEl)}
-            onClose={handleClose}
-            onClick={handleClose}
-            transformOrigin={{ horizontal: "right", vertical: "top" }}
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-          >
-            {userData && (
-              <MenuItem onClick={handleMyAccountClick}>
-                <ListItemIcon>
-                  <PersonAdd fontSize="small" />
-                </ListItemIcon>
-                My Account
-              </MenuItem>
-            )}
-            <MenuItem>
-              <ListItemIcon>
-                <FaShieldAlt fontSize="large" />
-              </ListItemIcon>
-              <Link to="/forgotPassword">Reset Password</Link>
-            </MenuItem>
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon>
-                <Logout fontSize="small" className="text-red-500" />
-              </ListItemIcon>
-              <h4 className="text-red-500">Logout</h4>
-            </MenuItem>
-          </Menu>
         </div>
       </nav>
-      <Modal
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        userData={userData}
-        setUserData={setUserData}
-      />
     </div>
   );
 }
-

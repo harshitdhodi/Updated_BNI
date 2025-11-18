@@ -1,15 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, Link, Outlet, useNavigate } from "react-router-dom";
-import { GrChapterAdd } from "react-icons/gr";
 import Navbar from "./Navbar";
-import { FaHome, FaAddressBook, FaDatabase, FaUser } from "react-icons/fa";
-import { GoTriangleUp } from "react-icons/go";
-import { FaTreeCity } from "react-icons/fa6"; // Corrected import to FaTreeCity
+import { LayoutDashboard, Users, Building2, Database, MessageSquare, ChevronUp, Menu, X } from 'lucide-react';
 
 const Sidebar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSubMenuOpen, setIsSubMenuOpen] = useState({});
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const sidebarRef = useRef(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,40 +14,34 @@ const Sidebar = () => {
     {
       title: "Dashboard",
       path: "/dashboard",
-      icon: <FaHome />,
+      icon: <LayoutDashboard size={20} strokeWidth={1.5} />,
       text: "Dashboard",
       submenu: [],
     },
     {
-      title: "Customer",
+      title: "Customers",
       path: "/memberList",
-      icon: <FaUser />,
+      icon: <Users size={20} strokeWidth={1.5} />,
       text: "Members",
       submenu: [],
     },
-    
     {
       title: "Company",
       path: "",
-      icon: <FaAddressBook />,
+      icon: <Building2 size={20} strokeWidth={1.5} />,
       text: "Company",
       submenu: [
         {
           title: "Departments",
           path: "/departmentList",
         },
-        // {
-        //   title: "Company",
-        //   path: "/company",
-        // },
       ],
     },
-   
     {
       title: "Admin Master",
       path: "/master",
-      icon: <FaDatabase />,
-      text: "AdminMaster",
+      icon: <Database size={20} strokeWidth={1.5} />,
+      text: "Admin Master",
       submenu: [
         {
           title: "Countries",
@@ -61,41 +51,23 @@ const Sidebar = () => {
           title: "Cities",
           path: "/cities",
         },
-        // {
-        //   title: "Chapter",
-        //   path: "/ChapterList",
-        //   icon: <GrChapterAdd />,
-        //   text: "Chapters",
-        //   submenu: [],
-        // },
         {
-          title: "Industry ",
+          title: "Industry",
           path: "/industryList",
-          icon: <FaAddressBook />,
-          text: "Industry",
-          submenu: [],
         },
       ],
     },
-    // {
-    //   title: "My Business",
-    //   path: "/business",
-    //   icon: <FaAddressBook />,
-    //   text: "MyBusiness",
-    //   submenu: [],
-    // },
-   
     {
       title: "Total Asks",
       path: "/allAsks",
-      icon: <FaAddressBook />,
+      icon: <MessageSquare size={20} strokeWidth={1.5} />,
       text: "Total Asks",
       submenu: [],
     },
     {
       title: "Total Gives",
       path: "/allGives",
-      icon: <FaAddressBook />,
+      icon: <MessageSquare size={20} strokeWidth={1.5} />,
       text: "Total Gives",
       submenu: [],
     },
@@ -128,88 +100,75 @@ const Sidebar = () => {
   };
 
   const handleItemClick = (path) => {
-    setIsMenuOpen(false); // Close sidebar
-    navigate(path); // Navigate to the selected path
+    setIsMenuOpen(false);
+    navigate(path);
   };
 
   return (
-    <div className="relative flex " >
-      {/* Overlay for closing sidebar */}
+    <div className="relative flex">
       {isMenuOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-50"
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
           onClick={() => setIsMenuOpen(false)}
         />
       )}
 
       <aside
         ref={sidebarRef}
-        className={`bg-[#CF2030] m-3 shadow-red-300 shadow-md rounded-md min-h-[85vh] fixed lg:relative z-50 transition-transform duration-500 ${
-          isMenuOpen
-            ? "translate-x-0 min-h-[95%] m-5 "
-            : "min-h-[95%] -translate-x-80  lg:translate-x-0"
-        } ${isSidebarCollapsed ? "lg:w-16" : "lg:w-52"} w-52`}
+        className={`fixed lg:relative z-50 bg-white border-r border-gray-300 shadow-lg min-h-screen transition-transform duration-300 w-64 ${
+          isMenuOpen ? "translate-x-0" : "-translate-x-64 lg:translate-x-0"
+        }`}
       >
-        <div className="flex justify-between items-center px-4 py-3 bg-gray-200 lg:hidden">
-          <div className="font-bold w-full text-white mt-2 text-xl flex justify-center items-center">
-            <span className="text-[40px] font-BNiFont">B-CONN</span>{" "}
-            {/* Apply custom font here */}
-          </div>
-          <button onClick={toggleSidebar} className="text-white">
-            {/* <IoIosArrowDown className={`transition-transform duration-500 ${isSidebarCollapsed ? "transform rotate-180" : ""}`} /> */}
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-300 lg:justify-center bg-gradient-to-r from-blue-50 to-white">
+          <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800">B-CONN</h1>
+          <button onClick={toggleSidebar} className="lg:hidden text-gray-600 hover:text-blue-600 transition-colors">
+            <X size={24} strokeWidth={1.5} />
           </button>
         </div>
-        <div
-          className="font-bold text-white text-center pt-4 text-2xl lg:block hidden cursor-pointer"
-          // onClick={toggleSidebarCollapse}
-        >
-          <span className="text-[40px] font-BNiFont">B-CONN</span>{" "}
-          {/* Apply custom font here */}
-        </div>
-        <div className="mt-4">
-          <ul className="p-3">
+
+        <nav className="flex-1 overflow-y-auto">
+          <ul className="p-4 space-y-2">
             {sidebarData.map((item, i) => (
-              <div key={i} style={{ marginTop: item.title === "Admin Master" ? "1px" : "0" }}>
+              <div key={i}>
                 {item.submenu.length > 0 ? (
                   <>
-                    {/* Add arrow icon for Master dropdown */}
-                    <div
-                      className={`flex items-center gap-2 hover:bg-red-200 py-2 rounded-md pl-4 pr-16 hover:cursor-pointer ${
-                        location.pathname === item.path ? "bg-red-300" : ""
-                      }`}
+                    <button
                       onClick={(e) => toggleSubMenu(e, i)}
+                      className={`flex items-center justify-between w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                        location.pathname === item.path
+                          ? "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 shadow-sm"
+                          : "text-gray-700 hover:bg-gray-100"
+                      }`}
                     >
-                      <p className="text-white">{item.icon}</p>
-                      {!isSidebarCollapsed && (
-                        <p className="text-white font-semibold">
-                          {isSidebarCollapsed ? "" : item.text}
-                        </p>
-                      )}
-                      <span className="ml-auto">
-                        {isSubMenuOpen[i] ? (
-                          <GoTriangleUp className="text-white" /> // Up arrow when submenu is open
-                        ) : (
-                          <GoTriangleUp className="text-white transform rotate-180" /> // Down arrow when submenu is closed
-                        )}
-                      </span>
-                    </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-blue-600 hover:text-blue-700">{item.icon}</span>
+                        <span>{item.text}</span>
+                      </div>
+                      <ChevronUp
+                        size={16}
+                        strokeWidth={1.5}
+                        className={`transition-transform duration-300 ${
+                          isSubMenuOpen[i] ? "rotate-0" : "rotate-180"
+                        }`}
+                      />
+                    </button>
+
                     {isSubMenuOpen[i] && (
-                      <ul>
+                      <ul className="mt-1 ml-2 space-y-1 border-l-2 border-blue-300 pl-3">
                         {item.submenu.map((subItem, j) => (
-                          <Link
-                            key={j}
-                            to={subItem.path}
-                            className={`flex items-center gap-2 hover:bg-red-200 py-2 rounded-md pl-4 pr-16 hover:cursor-pointer ${
-                              location.pathname === subItem.path
-                                ? "bg-red-300"
-                                : ""
-                            }`}
-                            onClick={() => handleItemClick(subItem.path)}
-                          >
-                            {!isSidebarCollapsed && (
-                              <p className="text-white">{subItem.title}</p>
-                            )}
-                          </Link>
+                          <li key={j}>
+                            <Link
+                              to={subItem.path}
+                              className={`flex items-center px-4 py-2 rounded-lg text-sm transition-all duration-200 ${
+                                location.pathname === subItem.path
+                                  ? "bg-blue-100 text-blue-700 font-semibold shadow-sm"
+                                  : "text-gray-600 hover:text-blue-600 hover:bg-gray-50"
+                              }`}
+                              onClick={() => handleItemClick(subItem.path)}
+                            >
+                              {subItem.title}
+                            </Link>
+                          </li>
                         ))}
                       </ul>
                     )}
@@ -217,30 +176,28 @@ const Sidebar = () => {
                 ) : (
                   <Link
                     to={item.path}
-                    className={`flex items-center gap-2 hover:bg-red-200 py-2 rounded-md pl-4 pr-16 hover:cursor-pointer ${
-                      location.pathname === item.path ? "bg-red-300" : ""
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                      location.pathname === item.path
+                        ? "bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 shadow-sm"
+                        : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
                     }`}
                     onClick={() => handleItemClick(item.path)}
                   >
-                    <p className="text-white">{item.icon}</p>
-                    {!isSidebarCollapsed && (
-                      <p className="text-white font-semibold">
-                        {isSidebarCollapsed ? "" : item.text}
-                      </p>
-                    )}
+                    <span className="text-blue-600">{item.icon}</span>
+                    <span>{item.text}</span>
                   </Link>
                 )}
               </div>
             ))}
           </ul>
-        </div>
+        </nav>
       </aside>
 
-      <div className="flex flex-col h-screen w-full bg-gray-200">
-        <Navbar className="fixed w-full bg-gray-200 z-50" toggleSidebar={toggleSidebar} />
-        <div className="flex-1 overflow-y-auto ">
+      <div className="flex flex-col flex-1 min-h-screen bg-gradient-to-br from-gray-50 to-white">
+        <Navbar toggleSidebar={toggleSidebar} />
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
-        </div>
+        </main>
       </div>
     </div>
   );
