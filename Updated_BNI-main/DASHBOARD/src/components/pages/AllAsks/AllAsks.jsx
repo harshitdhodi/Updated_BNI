@@ -5,6 +5,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import debounce from "lodash/debounce";
 import * as XLSX from "xlsx";
 import Swal from 'sweetalert2';
+import { EyeIcon } from "lucide-react";
 const AllAsks = () => {
   const [data, setData] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
@@ -156,18 +157,18 @@ const AllAsks = () => {
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Ask List</h1>
 
-        <div>
+        <div className="flex space-x-2">
           <input
             type="text"
             onChange={debouncedFilterData}
             placeholder="Search Company..."
-            className="p-2 border border-gray-300 rounded"
+            className="px-2 border border-gray-300 rounded"
           />
-          <button className="px-4 py-2 mt-3 bg-[#CF2030] text-white rounded hover:bg-red-600 transition duration-300">
+          <button className="px-4 py-2 mt-3 bg-gradient-to-r shadow-md hover:shadow-lg from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
             <Link to="/addAsksbyEmail">Add Members Asks</Link>
           </button>
           <button
-            className="px-4 py-2 ml-3 mt-3 bg-[#0fc29e] text-white rounded hover:bg-slate-900 transition duration-300"
+            className="px-4 py-2 ml-3 mt-3 bg-gradient-to-r shadow-md hover:shadow-lg from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition duration-300"
             onClick={exportToExcel}
           >
             Export to Excel
@@ -180,7 +181,7 @@ const AllAsks = () => {
         className="w-full mt-4 border-collapse shadow-lg"
       >
         <thead>
-          <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+          <tr className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
             <th className="py-2 px-6">ID</th>
             <th className="py-2 px-6">Company Name</th>
             <th className="py-2 px-6">Department</th>
@@ -203,23 +204,24 @@ const AllAsks = () => {
                   : ask.message}
               </td>
               <td className="py-2 px-6 flex space-x-2">
-                <button>
-                  <Link to={`/editAllMyAsks/${ask._id}`}>
-                    <FaEdit className="text-blue-500 text-lg" />
-                  </Link>
-                </button>
-                <button onClick={() => handleDelete(ask._id)}>
-                  <FaTrashAlt className="text-gray-600 text-lg" />
-                </button>
                 <button
                   onClick={() => {
                     setModalData(ask);
                     setIsModalOpen(true);
                   }}
-                  className="px-4 py-2 bg-[#0fc29e] text-white rounded hover:bg-slate-900 transition duration-300"
+                  className=""
                 >
-                  View
+                  <EyeIcon className="text-gray-500 text-md" />
                 </button>
+                <button>
+                  <Link to={`/editAllMyAsks/${ask._id}`}>
+                    <FaEdit className="text-gray-500 text-lg" />
+                  </Link>
+                </button>
+                <button onClick={() => handleDelete(ask._id)}>
+                  <FaTrashAlt className="text-red-600 text-lg" />
+                </button>
+                
               </td>
             </tr>
           ))}
@@ -230,14 +232,14 @@ const AllAsks = () => {
         <button
           onClick={handlePreviousPage}
           disabled={currentPage === 1}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded hover:bg-slate-900 transition"
+          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition"
         >
           {"<"}
         </button>
         <button
           onClick={handleNextPage}
           disabled={!hasNextPage}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded hover:bg-slate-900 transition"
+          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition"
         >
           {">"}
         </button>

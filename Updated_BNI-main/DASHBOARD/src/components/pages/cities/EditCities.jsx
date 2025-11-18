@@ -96,10 +96,10 @@ const EditCity = () => {
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-600">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-600">
             Dashboard /
           </Link>
-          <Link to="/cities" className="mr-2 text-red-300 hover:text-red-600">
+          <Link to="/cities" className="mr-2 text-gray-400 hover:text-gray-600">
             {" "}
             Cities /
           </Link>
@@ -141,7 +141,7 @@ const EditCity = () => {
           </div>
           <button
             type="submit"
-            className="px-4 py-2 bg-[#CF2030] text-white rounded hover:bg-red-900 transition duration-300"
+            className="px-4 py-2 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 font-medium rounded hover:shadow-lg shadow-md border border-gray-300 transition duration-300"
           >
             Save
           </button>

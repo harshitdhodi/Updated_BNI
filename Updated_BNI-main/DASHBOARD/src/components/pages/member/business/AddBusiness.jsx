@@ -90,7 +90,7 @@ const AddBusiness = () => {
       );
       console.log("Business profile created:", response.data);
 
-      if (window.location.href === "http://localhost:5173/business_form") {
+      if (window.location.href === "/business_form") {
         navigate(`/business`);
       } else {
         navigate(`/myBusiness/${userId}`);
@@ -108,7 +108,7 @@ const AddBusiness = () => {
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-600">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
             Dashboard /
           </Link>
           <Link
@@ -117,7 +117,7 @@ const AddBusiness = () => {
                 ? `/business`
                 : `/myBusiness/${userId}`
             }
-            className="mr-2 text-red-300 hover:text-red-600"
+            className="mr-2 text-gray-400 hover:text-gray-500"
           >
             My Business /
           </Link>
@@ -126,189 +126,194 @@ const AddBusiness = () => {
       </div>
       <div className="p-4">
         <h1 className="text-xl font-bold mb-4">Add Business</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Company Name
-            </label>
-            <input
-              type="text"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
+    <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
+  {/* 2x2 Grid Layout */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    
+    {/* Column 1 */}
+    <div className="space-y-6">
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Company Name *</label>
+        <input
+          type="text"
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="Enter company name"
+        />
+      </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Email *</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="company@example.com"
+        />
+      </div>
 
-          {/* Mobile Field */}
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Mobile
-            </label>
-            <input
-              type="text"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              WhatsApp
-            </label>
-            <input
-              type="text"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Facebook
-            </label>
-            <input
-              type="text"
-              value={facebook}
-              onChange={(e) => setFacebook(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              LinkedIn
-            </label>
-            <input
-              type="text"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Twitter
-            </label>
-            <input
-              type="text"
-              value={twitter}
-              onChange={(e) => setTwitter(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-  <label className="block text-gray-700 font-bold mb-2">
-    Industry Name
-  </label>
-  <select
-    value={industryName}
-    onChange={(e) => setIndustryName(e.target.value)}
-    className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-    required
-  >
-    <option value="" disabled>
-      Select Industry
-    </option>
-    {industries && industries.length > 0 ? (
-      industries.map((industry) => (
-        <option key={industry._id} value={industry.name}>
-          {industry.name}
-        </option>
-      ))
-    ) : (
-      <option disabled>No industries available</option>
-    )}
-  </select>
-</div>
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Mobile *</label>
+        <input
+          type="text"
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="+91 98765 43210"
+        />
+      </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Designation
-            </label>
-            <input
-              type="text"
-              value={designation}
-              onChange={(e) => setDesignation(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              About Company
-            </label>
-            <textarea
-              value={aboutCompany}
-              onChange={(e) => setAboutCompany(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Company Address
-            </label>
-            <input
-              type="text"
-              value={companyAddress}
-              onChange={(e) => setCompanyAddress(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Banner Image
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setBannerImg(e.target.files[0])}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Profile Image
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setProfileImg(e.target.files[0])}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Catalog (PDF)
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setCatalog(e.target.files[0])}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-red-500 text-white font-bold rounded-md hover:bg-red-600 transition duration-300"
-            >
-              Submit
-            </button>
-          </div>
-        </form>
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">WhatsApp</label>
+        <input
+          type="text"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="+91 98765 43210"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Facebook</label>
+        <input
+          type="url"
+          value={facebook}
+          onChange={(e) => setFacebook(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="https://facebook.com/yourpage"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">LinkedIn</label>
+        <input
+          type="url"
+          value={linkedin}
+          onChange={(e) => setLinkedin(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="https://linkedin.com/company/yourcompany"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Twitter</label>
+        <input
+          type="url"
+          value={twitter}
+          onChange={(e) => setTwitter(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="https://twitter.com/yourhandle"
+        />
+      </div>
+    </div>
+
+    {/* Column 2 */}
+    <div className="space-y-6">
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Industry Name *</label>
+        <select
+          value={industryName}
+          onChange={(e) => setIndustryName(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+        >
+          <option value="" disabled>Select Industry</option>
+          {industries.length > 0 ? (
+            industries.map((industry) => (
+              <option key={industry._id} value={industry.name}>
+                {industry.name}
+              </option>
+            ))
+          ) : (
+            <option disabled>Loading industries...</option>
+          )}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Designation *</label>
+        <input
+          type="text"
+          value={designation}
+          onChange={(e) => setDesignation(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="CEO, Manager, etc."
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">About Company *</label>
+        <textarea
+          value={aboutCompany}
+          onChange={(e) => setAboutCompany(e.target.value)}
+          rows="5"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
+          required
+          placeholder="Tell us about your company..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Company Address *</label>
+        <input
+          type="text"
+          value={companyAddress}
+          onChange={(e) => setCompanyAddress(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="123 Business St, City, Country"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Banner Image</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setBannerImg(e.target.files[0])}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Profile Image (Logo)</label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setProfileImg(e.target.files[0])}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"
+        />
+      </div>
+
+    </div>
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Catalog (PDF)</label>
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={(e) => setCatalog(e.target.files[0])}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"
+        />
+      </div>
+  </div>
+
+  {/* Submit Button - Full width below grid */}
+  <div className="mt-10 flex justify-center">
+    <button
+      type="submit"
+      className="w-full md:w-1/3 px-8 py-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-600 font-medium text-lg rounded-lg shadow-lg hover:from-blue-50 hover:to-blue-700 transform hover:scale-105 transition duration-300" 
+    >
+      Create Business Profile
+    </button>
+  </div>
+</form>
       </div>
     </>
   );

@@ -107,7 +107,7 @@ const ChapterList = () => {
 
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
         <thead>
-          <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+          <tr className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
             <th className="py-2 px-6 ">ID</th>
             <th className="py-2 px-6 ">Chapter Title</th>
             <th className="py-2 px-6 ">Country</th>

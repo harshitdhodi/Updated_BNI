@@ -8,10 +8,10 @@ import Swal from 'sweetalert2';
 import { Eye, EyeIcon } from "lucide-react";
 const CompanyList = () => {
   const [companies, setCompanies] = useState([]);
+  const [allCompanies, setAllCompanies] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
-  const pageSize = 5;
-  const { userId } = useParams();
+  const [pageSize, setPageSize] = useState(10);
+  const [pageCount, setPageCount] = useState(0);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [companyNames, setCompanyNames] = useState([]);
@@ -23,56 +23,31 @@ const CompanyList = () => {
   };
   useEffect(() => {
     fetchCompanies();
-  }, [pageIndex, userId]);
+  }, []);
 
-  const getPagination = (pageIndex, pageCount) => {
-    const delta = 2;
-    const left = pageIndex - delta;
-    const right = pageIndex + delta + 1;
-    const range = [];
-    const rangeWithDots = [];
-    let l;
-
-    for (let i = 1; i <= pageCount; i++) {
-      if (i === 1 || i === pageCount || (i >= left && i < right)) {
-        range.push(i);
-      }
+  useEffect(() => {
+    if (allCompanies.length > 0) {
+      const offset = pageIndex * pageSize;
+      const pagedData = allCompanies.slice(offset, offset + pageSize);
+      setCompanies(pagedData);
+      setPageCount(Math.ceil(allCompanies.length / pageSize));
     }
-
-    for (const i of range) {
-      if (l) {
-        if (i - l === 2) {
-          rangeWithDots.push(l + 1);
-        } else if (i - l > 2) {
-          rangeWithDots.push('...');
-        }
-      }
-      rangeWithDots.push(i);
-      l = i;
-    }
-    return rangeWithDots;
-  };
+  }, [pageIndex, pageSize, allCompanies]);
 
   const fetchCompanies = async () => {
     try {
       const token = getCookie("token");
       const response = await axios.get(
-        `/api/company/getAllCompany?page=${pageIndex + 1}`,
+        `/api/company/getAllCompany`,
         {   headers: {
           Authorization: `Bearer ${token}`,
         }, withCredentials: true, timeout: 5000 }
       );
-      console.log(response.data.data);
-      if (response.data && response.data.data) {
-        const dataWithIds = response.data.data.map((company, index) => ({
-          ...company,
-          id: pageIndex * pageSize + index + 1,
-        }));
-        setCompanies(dataWithIds);
-        setPageCount(Math.ceil(response.data.total / pageSize));
-      } else {
-        console.error("Unexpected response structure:", response.data);
-      }
+      const dataWithIds = response.data.data.map((company, index) => ({
+        ...company,
+        id: index + 1,
+      }));
+      setAllCompanies(dataWithIds);
     } catch (error) {
       console.error("Error fetching companies:", error);
     }
@@ -261,7 +236,7 @@ const CompanyList = () => {
 
   const FindCompanyModal = ({ companies, onClose }) => {
     const [currentPage, setCurrentPage] = useState(0);
-    const itemsPerPage = 9; // 3 columns * 3 rows
+    const itemsPerPage = 4; // 2 columns * 2 rows
     const totalPages = Math.ceil(companies.length / itemsPerPage);
     const navigate = useNavigate();
 
@@ -292,7 +267,7 @@ const CompanyList = () => {
       <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
         <div className="bg-white p-6 rounded shadow-lg max-w-full mx-auto overflow-y-auto">
           <h2 className="text-xl font-bold mb-4">Company Names</h2>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
       {paginatedCompanies.map((company, index) => (
         <div
           key={index}
@@ -356,7 +331,7 @@ const CompanyList = () => {
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Company List</h1>
         <div className="flex">
-          {/* <button className="px-4 py-2 mt-3 bg-[#CF2030] text-white rounded hover:bg-red-600 transition duration-300">
+          {/* <button className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
             <Link to={`/add_company`}>Add Company</Link>
           </button> */}
           <button
@@ -370,10 +345,10 @@ const CompanyList = () => {
 
       {companies.length > 0 && (
         <>
-          <div className="w-full overflow-x-auto lg:overflow-x-scroll mt-4 shadow-lg">
-            <table className="min-w-full border-collapse">
+          <div className="w-full overflow-x-auto mt-4 shadow-lg">
+            <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left text-sm  tracking-wider">
+                <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px]">
                   <th className="py-2 px-4 lg:px-6">Profile Image</th>
                  <th className="py-2 px-4 lg:px-6">Company Name</th>
                   <th className="py-2 px-4 lg:px-6">Contact Links</th>
@@ -390,12 +365,13 @@ const CompanyList = () => {
                       <img
                         src={`/api/image/download/${company.profileImg}`}
                         alt="Profile"
-                        className="w-16 h-16 object-cover"
+                        className="h-20 object-cover w-[200px] lg:w-[150px] lg:h-[100px]"
                       />
                     </td>
                   
                     <td className="py-2 px-6">{company.companyName}</td>
-                    <td className="py-2 px-6 mt-5 flex gap-2 items-center ">
+                    <td className="py-2 px-6">
+                      <div className="flex items-center gap-2">
                       <a
                         href={company.whatsapp || "#"}
                         target="_blank"
@@ -428,6 +404,7 @@ const CompanyList = () => {
                       >
                         <FaLinkedin className="w-[20px] h-[20px] text-blue-500" />
                       </a>
+                      </div>
                     </td>
                     <td className=" px-6">
                       <div className="flex items-center justify-start gap-4 text-xl">  
@@ -457,53 +434,135 @@ const CompanyList = () => {
             </table>
           </div>
 
-          <div className="mt-4 flex justify-between items-center">
-            <div>
-              <span className="text-sm text-gray-700">
-                Page <span className="font-semibold">{pageIndex + 1}</span> of <span className="font-semibold">{pageCount}</span>
-              </span>
-            </div>
-            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-              <button
-                onClick={handlePreviousPage}
-                disabled={pageIndex === 0}
-                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-              >
-                <span className="sr-only">Previous</span>
-                &lt;
-              </button>
-              
-              {getPagination(pageIndex, pageCount).map((page, index) => (
-                page === '...' ? (
-                  <span key={index} className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300">
-                    ...
-                  </span>
-                ) : (
-                  <button
-                    key={index}
-                    onClick={() => setPageIndex(page - 1)}
-                    aria-current={pageIndex === page - 1 ? 'page' : undefined}
-                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                      pageIndex === page - 1
-                        ? 'bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50'
-                    } focus:z-20 focus:outline-offset-0`}
-                  >
-                    {page}
-                  </button>
-                )
-              ))}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+  {/* Rows per page selector */}
+  <div className="flex items-center gap-3 text-sm text-gray-700">
+    <span>Show</span>
+    <select
+      value={pageSize}
+      onChange={(e) => {
+        setPageSize(Number(e.target.value));
+        setPageIndex(0);
+      }}
+      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {[5, 10, 20, 50].map((size) => (
+        <option key={size} value={size}>
+          {size}
+        </option>
+      ))}
+    </select>
+    <span>entries</span>
+  </div>
 
-              <button
-                onClick={handleNextPage}
-                disabled={pageIndex + 1 >= pageCount}
-                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
-              >
-                <span className="sr-only">Next</span>
-                &gt;
-              </button>
-            </nav>
-          </div>
+  {/* Page info */}
+  <span className="text-sm text-gray-600">
+    Showing {(pageIndex * pageSize) + 1} to{" "}
+    {Math.min((pageIndex + 1) * pageSize, allCompanies.length)} of{" "}
+    {allCompanies.length} entries
+  </span>
+
+  {/* Pagination Controls */}
+  <nav className="flex items-center gap-1" aria-label="Pagination">
+    {/* First Page */}
+    <button
+      onClick={() => setPageIndex(0)}
+      disabled={pageIndex === 0}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex === 0
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      First
+    </button>
+
+    {/* Previous */}
+    <button
+      onClick={handlePreviousPage}
+      disabled={pageIndex === 0}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex === 0
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Previous
+    </button>
+
+    {/* Page Numbers (with ellipsis logic) */}
+    <div className="flex items-center gap-1">
+      {(() => {
+        const pages = [];
+        const totalPages = pageCount;
+        const current = pageIndex + 1;
+        const delta = 2;
+
+        if (totalPages <= 7) {
+          for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else if (current <= delta + 2) {
+          for (let i = 1; i <= 5; i++) pages.push(i);
+          pages.push("...");
+          pages.push(totalPages);
+        } else if (current >= totalPages - delta - 1) {
+          pages.push(1);
+          pages.push("...");
+          for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+        } else {
+          pages.push(1);
+          pages.push("...");
+          for (let i = current - delta; i <= current + delta; i++) pages.push(i);
+          pages.push("...");
+          pages.push(totalPages);
+        }
+
+        return pages.map((page, idx) =>
+          page === "..." ? (
+            <span key={idx} className="px-3 py-2 text-gray-500">...</span>
+          ) : (
+            <button
+              key={idx}
+              onClick={() => setPageIndex(page - 1)}
+              className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                current === page
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-white hover:bg-blue-50 text-gray-700 border border-gray-300"
+              }`}
+            >
+              {page}
+            </button>
+          )
+        );
+      })()}
+    </div>
+
+    {/* Next */}
+    <button
+      onClick={handleNextPage}
+      disabled={pageIndex >= pageCount - 1}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex >= pageCount - 1
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Next
+    </button>
+
+    {/* Last Page */}
+    <button
+      onClick={() => setPageIndex(pageCount - 1)}
+      disabled={pageIndex >= pageCount - 1}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex >= pageCount - 1
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Last
+    </button>
+  </nav>
+</div>
         </>
       )}
 
