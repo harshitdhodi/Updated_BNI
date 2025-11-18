@@ -136,7 +136,7 @@ formData.append("mobile", mobile);
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-600">
+          <Link to="/" className="mr-2 text-gray-400 hover:text-gray-600">
             Dashboard /
           </Link>
           <Link
@@ -147,7 +147,7 @@ formData.append("mobile", mobile);
                 ? `/business`
                 : `/myBusiness/${userId}`
             }
-            className="mr-2 text-red-300 hover:text-red-600"
+            className="mr-2 text-gray-400 hover:text-gray-600"
           >
             My Business /
           </Link>
@@ -156,228 +156,212 @@ formData.append("mobile", mobile);
       </div>
       <div className="p-4">
         <h1 className="text-xl font-bold mb-4">Edit Business</h1>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Company Name
-            </label>
-            <input
-              type="text"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="max-w-6xl mx-auto">
+  {/* 2×2 Grid Layout */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          <div className="mb-4">
-  <label className="block text-gray-700 font-bold mb-2">
-    Email
-  </label>
-  <input
-    type="email"
-    value={email}
-    onChange={(e) => setEmail(e.target.value)}
-    className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-    required
-  />
-</div>
+    {/* Left Column */}
+    <div className="space-y-6">
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Company Name *</label>
+        <input
+          type="text"
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="Enter company name"
+        />
+      </div>
 
-<div className="mb-4">
-  <label className="block text-gray-700 font-bold mb-2">
-    Mobile
-  </label>
-  <input
-    type="text"
-    value={mobile}
-    onChange={(e) => setMobile(e.target.value)}
-    className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-    required
-  />
-</div>
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Email *</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="company@example.com"
+        />
+      </div>
 
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              WhatsApp
-            </label>
-            <input
-              type="text"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Facebook
-            </label>
-            <input
-              type="text"
-              value={facebook}
-              onChange={(e) => setFacebook(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              LinkedIn
-            </label>
-            <input
-              type="text"
-              value={linkedin}
-              onChange={(e) => setLinkedin(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Twitter
-            </label>
-            <input
-              type="text"
-              value={twitter}
-              onChange={(e) => setTwitter(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Industry Name
-            </label>
-            <select
-              value={industryName}
-              onChange={(e) => setIndustryName(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Mobile *</label>
+        <input
+          type="text"
+          value={mobile}
+          onChange={(e) => setMobile(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="+91 98765 43210"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">WhatsApp</label>
+        <input
+          type="text"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="+91 98765 43210"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Facebook</label>
+        <input
+          type="url"
+          value={facebook}
+          onChange={(e) => setFacebook(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="https://facebook.com/yourpage"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">LinkedIn</label>
+        <input
+          type="url"
+          value={linkedin}
+          onChange={(e) => setLinkedin(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="https://linkedin.com/company/yourcompany"
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Twitter</label>
+        <input
+          type="url"
+          value={twitter}
+          onChange={(e) => setTwitter(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          placeholder="https://twitter.com/yourhandle"
+        />
+      </div>
+        {/* Catalog */}
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Catalog (PDF)</label>
+        {catalogUrl && (
+          <div className="mb-3">
+            <a
+              href={catalogUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
-              <option value="" disabled>
-                Select Industry
-              </option>
-              {industries.map((industry) => (
-                <option key={industry._id} value={industry.name}>
-                  {industry.name}
-                </option>
-              ))}
-            </select>
+              Download Current Catalog
+            </a>
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Designation
-            </label>
-            <input
-              type="text"
-              value={designation}
-              onChange={(e) => setDesignation(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
+        )}
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={(e) => setCatalog(e.target.files[0])}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"
+        />
+      </div>
+    </div>
+
+    {/* Right Column */}
+    <div className="space-y-6">
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Industry Name *</label>
+        <select
+          value={industryName}
+          onChange={(e) => setIndustryName(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+        >
+          <option value="" disabled>Select Industry</option>
+          {industries.map((industry) => (
+            <option key={industry._id} value={industry.name}>
+              {industry.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Designation *</label>
+        <input
+          type="text"
+          value={designation}
+          onChange={(e) => setDesignation(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="CEO, Manager, etc."
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">About Company *</label>
+        <textarea
+          value={aboutCompany}
+          onChange={(e) => setAboutCompany(e.target.value)}
+          rows="5"
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition resize-none"
+          required
+          placeholder="Tell us about your company..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Company Address *</label>
+        <input
+          type="text"
+          value={companyAddress}
+          onChange={(e) => setCompanyAddress(e.target.value)}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition"
+          required
+          placeholder="123 Business St, City, Country"
+        />
+      </div>
+
+    
+
+      {/* Profile Image */}
+      <div>
+        <label className="block text-gray-700 font-semibold mb-2">Profile Image (Logo)</label>
+        {profileImgUrl && (
+          <div className="mb-3">
+            <img
+              src={profileImgUrl}
+              alt="Current Logo"
+              className="w-32 h-32 object-cover rounded-full shadow-md border-4 border-white"
             />
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              About Company
-            </label>
-            <textarea
-              value={aboutCompany}
-              onChange={(e) => setAboutCompany(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Company Address
-            </label>
-            <input
-              type="text"
-              value={companyAddress}
-              onChange={(e) => setCompanyAddress(e.target.value)}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Banner Image
-            </label>
-            {bannerImgUrl && (
-              <div className="mb-2">
-                <img src={bannerImgUrl} alt="Banner" className="max-w-xs" />
-                <a
-                  href={bannerImgUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 text-blue-500"
-                >
-                  View
-                </a>
-              </div>
-            )}
-            <input
-              type="file"
-              onChange={(e) => setBannerImg(e.target.files[0])}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Profile Image
-            </label>
-            {profileImgUrl && (
-              <div className="mb-2">
-                <img src={profileImgUrl} alt="Profile" className="max-w-xs" />
-                <a
-                  href={profileImgUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-2 text-blue-500"
-                >
-                  View
-                </a>
-              </div>
-            )}
-            <input
-              type="file"
-              onChange={(e) => setProfileImg(e.target.files[0])}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 font-bold mb-2">
-              Catalog
-            </label>
-            {catalogUrl && (
-              <div className="mb-2">
-                <a
-                  href={catalogUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500"
-                >
-                  Download Catalog
-                </a>
-              </div>
-            )}
-            <input
-              type="file"
-              onChange={(e) => setCatalog(e.target.files[0])}
-              className="lg:w-1/2 w-full px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-            />
-          </div>
-          <div className="mt-6">
-            <button
-              type="submit"
-              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:bg-red-600 transition duration-300"
-            >
-              Save Changes
-            </button>
-            <Link
-              to={`/myBusiness/${id}`}
-              className="ml-4 px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none focus:bg-gray-400 transition duration-300"
-            >
-              Cancel
-            </Link>
-          </div>
-        </form>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setProfileImg(e.target.files[0])}
+          className="w-full px-4 py-2.5 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 transition"
+        />
+      </div>
+
+    
+    </div>
+  </div>
+
+  {/* Action Buttons */}
+  <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+    <button
+      type="submit"
+      className="px-8 py-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 font-medium text-lg rounded-lg shadow-lg hover:from-blue-50 hover:to-blue-700 transform hover:scale-105 transition duration-300"
+    >
+      Save Changes
+    </button>
+    <Link
+      to={window.location.href.includes("editMyBusiness") ? `/business` : `/myBusiness/${userId}`}
+      className="px-8 py-3 bg-gray-300 border border-gray-300 text-gray-700 font-medium text-lg rounded-lg hover:bg-gray-300 transition text-center"
+    >
+      Cancel
+    </Link>
+  </div>
+</form>
       </div>
     </>
   );

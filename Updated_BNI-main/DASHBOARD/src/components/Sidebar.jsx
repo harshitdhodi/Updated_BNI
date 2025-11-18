@@ -42,6 +42,22 @@ const Sidebar = () => {
       ],
     },
     {
+      title: "Business",
+      path: "/business",
+      icon: <Building2 size={20} strokeWidth={1.5} />,
+      text: "Business",
+      submenu: [
+        {
+          title: "Business",
+          path: "/business",
+        },
+        {
+          title: "Business Form",
+          path: "/business_form",
+        },
+      ],
+    },
+    {
       title: "Admin Master",
       path: "/master",
       icon: <Database size={20} strokeWidth={1.5} />,
@@ -198,7 +214,7 @@ const Sidebar = () => {
         </nav>
       </aside>
 
-      <div className="flex flex-col flex-1 min-h-screen bg-gradient-to-br from-gray-50 to-white">
+      <div className="flex flex-col flex-1 h-screen overflow-hidden bg-gradient-to-br from-gray-50 to-white">
         <Navbar toggleSidebar={toggleSidebar} />
         <main className="flex-1 overflow-y-auto">
           <Outlet />

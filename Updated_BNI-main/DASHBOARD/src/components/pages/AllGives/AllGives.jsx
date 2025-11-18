@@ -7,71 +7,66 @@ import debounce from "lodash/debounce";
 import Swal from 'sweetalert2';
 
 const AllGives = () => {
-  const [companies, setCompanies] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [value, setValue] = useState("");
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isSearching, setIsSearching] = useState(false);
-  const pageSize = 5;
+  const [gives, setGives] = useState([]);
+  const [allGives, setAllGives] = useState([]);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageCount, setPageCount] = useState(0);
+  const [searchValue, setSearchValue] = useState("");
+
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-  const fetchCompanies = async (searchValue = "", page = 1) => {
+
+  const fetchGives = async () => {
     try {
       const token = getCookie("token");
-      setIsSearching(!!searchValue);
-      const url = searchValue
-        ? `/api/myGives/getFilteredGives?companyName=${searchValue}`
-        : `/api/myGives/getMyAllGives?page=${page}`;
-      const response = await axios.get(url, { 
+      const response = await axios.get(`/api/myGives/getMyAllGives`, { 
         headers: {
           Authorization: `Bearer ${token}`,
         },
         withCredentials: true });
 
-      console.log("API Response:", response.data);
-
-      if (searchValue) {
-        setFilteredData(response.data.data || []);
-        setHasNextPage(false);
-        setTotalPages(1);
-      } else {
-        setCompanies(response.data.data || []);
-        setFilteredData(response.data.data || []);
-        setHasNextPage(response.data.hasNextPage || false);
-        setTotalPages(Math.ceil(response.data.total / pageSize) || 1);
-      }
+      const dataWithIds = (response.data.data || []).map((give, index) => ({
+        ...give,
+        id: index + 1,
+      }));
+      setAllGives(dataWithIds);
     } catch (error) {
-      console.error("Error fetching companies:", error);
+      console.error("Error fetching gives:", error);
     }
   };
 
   useEffect(() => {
-    fetchCompanies();
+    fetchGives();
   }, []);
 
-  const debouncedFilterData = debounce((e) => {
-    const searchValue = e.target.value;
-    setValue(searchValue);
-    setCurrentPage(1);
-    fetchCompanies(searchValue, 1);
+  useEffect(() => {
+    const filtered = allGives.filter(give => 
+      give.companyName.toLowerCase().includes(searchValue.toLowerCase())
+    );
+    setPageCount(Math.ceil(filtered.length / pageSize));
+    const pagedData = filtered.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
+    setGives(pagedData);
+  }, [pageIndex, pageSize, allGives, searchValue]);
+
+
+  const handleSearchChange = debounce((e) => {
+    setSearchValue(e.target.value);
+    setPageIndex(0);
   }, 300);
 
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prevPage) => prevPage + 1);
-      fetchCompanies(value, currentPage + 1);
+    if (pageIndex < pageCount - 1) {
+      setPageIndex(pageIndex + 1);
     }
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1);
-      fetchCompanies(value, currentPage - 1);
+    if (pageIndex > 0) {
+      setPageIndex(pageIndex - 1);
     }
   };
 
@@ -106,7 +101,7 @@ const AllGives = () => {
             });
 
             // Refresh data after deletion
-            fetchCompanies(value, currentPage); // Fetch data after deletion
+            fetchGives(); // Fetch data after deletion
         } catch (error) {
             console.error("Error deleting company:", error);
             // Show error alert
@@ -120,10 +115,6 @@ const AllGives = () => {
     }
 };
 
-  const getItemId = (index) => {
-    return (currentPage - 1) * pageSize + index + 1;
-  };
-
   return (
     <div className="p-4 ">
       <div className="lg:flex lg:flex-wrap lg:justify-between items-center mb-4">
@@ -131,15 +122,15 @@ const AllGives = () => {
         <div className="lg:flex">
           <input
             type="text"
-            onChange={debouncedFilterData}
+            onChange={handleSearchChange}
             placeholder="Search Company..."
             className="p-2 mr-3 mt-3 border border-gray-300 rounded w-full"
           />
           <div className="flex gap-2">
-            <button className="px-4 w-1/2 lg:w-[200px] py-1 mt-3 bg-[#CF2030] text-white rounded hover:bg-red-600 transition duration-300">
+            <button className="px-4 w-1/2 lg:w-[200px] py-1 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300 border border-gray-300 ">
               <Link to="/addGivesbyEmail">Add Members Gives</Link>
             </button>
-            <button className="px-4 py-2 w-1/2 lg:w-[200px] mt-3 bg-[#0fc29e] text-white rounded hover:bg-slate-900 transition duration-300">
+            <button className="px-4 py-2 w-1/2 lg:w-[200px] mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition duration-300 border border-gray-300 ">
               <ReactHTMLTableToExcel
                 id="test-table-xls-button"
                 className="btn btn-success"
@@ -158,46 +149,46 @@ const AllGives = () => {
           className="w-full mt-4 border-collapse shadow-lg overflow-x-auto"
         >
           <thead>
-            <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+            <tr className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
               <th className="py-2 px-6">ID</th>
               <th className="py-2 px-6">Company Name</th>
               <th className="py-2 px-6">Email</th>
               <th className="py-2 px-6">URL</th>
               <th className="py-2 px-6">Phone</th>
-              <th className="py-2 px-6">Department</th>
+              {/* <th className="py-2 px-6">Department</th> */}
               <th className="py-2 px-6">Actions</th>
             </tr>
           </thead>
           <tbody className="overflow-x-auto">
-            {filteredData.length > 0 ? (
-              filteredData.map((company, index) => (
+            {gives.length > 0 ? (
+              gives.map((give, index) => (
                 <tr
-                  key={company._id}
+                  key={give._id}
                   className="bg-gray-50 border-b border-gray-300 hover:bg-gray-100 transition duration-150"
                 >
-                  <td className="py-2 px-6">{getItemId(index)}</td>
-                  <td className="py-2 px-6">{company.companyName}</td>
-                  <td className="py-2 px-6">{company.email}</td>
+                  <td className="py-2 px-6">{give.id}</td>
+                  <td className="py-2 px-6">{give.companyName}</td>
+                  <td className="py-2 px-6">{give.email}</td>
                   <td className="py-2 px-6">
                     <a
-                      href={company.webURL}
+                      href={give.webURL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-500"
+                      className="text-gray-500"
                     >
-                      {company.webURL}
+                      {give.webURL}
                     </a>
                   </td>
-                  <td className="py-2 px-6">{company.phoneNumber}</td>
-                  <td className="py-2 px-6">{company.dept}</td>
+                  <td className="py-2 px-6">{give.phoneNumber}</td>
+                  {/* <td className="py-2 px-6">{company.dept}</td> */}
                   <td className="py-2 px-6 flex space-x-2">
                     <button>
-                      <Link to={`/editAllMyGives/${company._id}`}>
-                        <FaEdit className="text-blue-500 text-lg" />
+                      <Link to={`/editAllMyGives/${give._id}`}>
+                        <FaEdit className="text-gray-500 text-lg" />
                       </Link>
                     </button>
-                    <button onClick={() => handleDelete(company._id)}>
-                      <FaTrashAlt className="text-gray-600 text-lg" />
+                    <button onClick={() => handleDelete(give._id)}>
+                      <FaTrashAlt className="text-red-600 text-lg" />
                     </button>
                   </td>
                 </tr>
@@ -213,30 +204,106 @@ const AllGives = () => {
         </table>
       </div>
 
-      {!isSearching && (
-        <div className="mt-4 flex justify-center items-center space-x-2">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1}
-            className="px-3 py-1 bg-[#CF2030] text-white rounded hover:bg-slate-900 transition"
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+        {/* Rows per page selector */}
+        <div className="flex items-center gap-3 text-sm text-gray-700">
+          <span>Show</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPageIndex(0);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {"<"}
-          </button>
+            {[5, 10, 20, 50].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+          <span>entries</span>
+        </div>
+
+        {/* Page info */}
+        <span className="text-sm text-gray-600">
+          Showing {(pageIndex * pageSize) + 1} to{" "}
+          {Math.min((pageIndex + 1) * pageSize, allGives.filter(g => g.companyName.toLowerCase().includes(searchValue.toLowerCase())).length)} of{" "}
+          {allGives.filter(g => g.companyName.toLowerCase().includes(searchValue.toLowerCase())).length} entries
+        </span>
+
+        {/* Pagination Controls */}
+        <nav className="flex items-center gap-1" aria-label="Pagination">
+          <button onClick={() => setPageIndex(0)} disabled={pageIndex === 0} className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex === 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}>First</button>
+          <button onClick={handlePreviousPage} disabled={pageIndex === 0} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex === 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}>Previous</button>
+          <div className="flex items-center gap-1">
+            {(() => {
+              const pages = [];
+              const totalPages = pageCount;
+              const current = pageIndex + 1;
+              const delta = 2;
+
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+              } else if (current <= delta + 2) {
+                for (let i = 1; i <= 5; i++) pages.push(i);
+                pages.push("...");
+                pages.push(totalPages);
+              } else if (current >= totalPages - delta - 1) {
+                pages.push(1);
+                pages.push("...");
+                for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+              } else {
+                pages.push(1);
+                pages.push("...");
+                for (let i = current - delta; i <= current + delta; i++) pages.push(i);
+                pages.push("...");
+                pages.push(totalPages);
+              }
+
+              return pages.map((page, idx) =>
+                page === "..." ? (
+                  <span key={idx} className="px-3 py-2 text-gray-500">...</span>
+                ) : (
+                  <button
+                    key={idx}
+                    onClick={() => setPageIndex(page - 1)}
+                    className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                      current === page
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-white hover:bg-blue-50 text-gray-700 border border-gray-300"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              );
+            })()}
+          </div>
           <button
             onClick={handleNextPage}
-            disabled={!hasNextPage}
-            className="px-3 py-1 bg-[#CF2030] text-white rounded hover:bg-slate-900 transition"
+            disabled={pageIndex >= pageCount - 1}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              pageIndex >= pageCount - 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+            }`}
           >
-            {">"}
+            Next
           </button>
-          <span>
-            Page{" "}
-            <strong>
-              {currentPage} of {totalPages}
-            </strong>
-          </span>
-        </div>
-      )}
+          <button
+            onClick={() => setPageIndex(pageCount - 1)}
+            disabled={pageIndex >= pageCount - 1}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+              pageIndex >= pageCount - 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+            }`}
+          >
+            Last
+          </button>
+        </nav>
+      </div>
     </div>
   );
 };

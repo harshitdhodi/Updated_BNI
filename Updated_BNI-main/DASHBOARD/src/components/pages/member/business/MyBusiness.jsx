@@ -265,7 +265,7 @@ const MyBusinessList = () => {
 
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Business List</h1>
-        <button className="px-4 py-2 mt-3 bg-[#CF2030] text-white rounded hover:bg-red-600 transition duration-300">
+        <button className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
           <Link to={`/business_form/${userId}`}>Add Business</Link>
         </button>
       </div>
@@ -278,7 +278,7 @@ const MyBusinessList = () => {
         <>
           <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
             <thead>
-              <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+              <tr className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
                 <th className="py-2 px-6">ID</th>
                 {/* <th className="py-2 px-6">Owner</th> */}
                 <th className="py-2 px-6">Company Name</th>

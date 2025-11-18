@@ -23,7 +23,7 @@ const addCity = async (req, res) => {
 const getCity = async (req, res) => {
     try {
         const { page = 1 } = req.query;
-        const limit = 5;
+        const limit = parseInt(req.query.limit) || 10;
         const count = await City.countDocuments();
         const city = await City.find()
         .skip((page - 1) * limit) // Skip records for previous pages

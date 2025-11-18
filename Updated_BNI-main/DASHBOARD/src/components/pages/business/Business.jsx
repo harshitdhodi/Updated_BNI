@@ -12,27 +12,38 @@ import {
   FaEye,
 } from "react-icons/fa";
 import Swal from 'sweetalert2';
+
 const BusinessList = () => {
   const [businesses, setBusinesses] = useState([]);
+  const [allBusinesses, setAllBusinesses] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageCount, setPageCount] = useState(0);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const pageSize = 5;
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
+
   };
   useEffect(() => {
     fetchBusinesses();
-  }, [pageIndex]);
+  }, []);
+
+  useEffect(() => {
+    if (allBusinesses.length > 0) {
+      const offset = pageIndex * pageSize;
+      const pagedData = allBusinesses.slice(offset, offset + pageSize);
+      setBusinesses(pagedData);
+      setPageCount(Math.ceil(allBusinesses.length / pageSize));
+    }
+  }, [pageIndex, pageSize, allBusinesses]);
 
   const fetchBusinesses = async () => {
-    try {
       const token = getCookie("token");
       const response = await axios.get(
-        `/api/business/getbusiness?page=${pageIndex + 1}&limit=${pageSize}`,
+        `/api/business/getbusiness`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -40,11 +51,11 @@ const BusinessList = () => {
           withCredentials: true,
         }
       );
-      setBusinesses(response.data.data);
-      setPageCount(Math.ceil(response.data.total / pageSize));
-    } catch (error) {
-      console.error("There was an error fetching the businesses!", error);
-    }
+      const dataWithIds = response.data.data.map((business, index) => ({
+        ...business,
+        id: index + 1,
+      }));
+      setAllBusinesses(dataWithIds);
   };
 
   const handleNextPage = () => {
@@ -202,7 +213,7 @@ const BusinessList = () => {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <FaFacebook className="w-[25px] h-[25px] text-blue-800" />
+                    <FaFacebook className="w-[25px] h-[25px] text-gray-800" />
                   </a>
                 </li>
               )}
@@ -257,15 +268,15 @@ const BusinessList = () => {
 
   return (
     <div className={`p-4 overflow-x-auto ${showModal ? "modal-open" : ""}`}>
-      <div className="lg:flex flex-wrap justify-between items-center mb-4">
+      <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Business List</h1>
-        <button className="px-4 py-2 mt-3 bg-[#CF2030] text-white rounded hover:bg-red-600 transition duration-300">
+        <button className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
           <Link to={`/business_form`}>Add Business</Link>
         </button>
       </div>
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
         <thead>
-          <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+          <tr className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
             <th className="py-2 px-6">ID</th>
             <th className="py-2 px-6">Owner</th>
             <th className="py-2 px-6">Company Name</th>
@@ -283,7 +294,7 @@ const BusinessList = () => {
               key={business._id}
               className="bg-gray-50 border-b border-gray-300 hover:bg-gray-100 transition duration-150"
             >
-              <td className="py-2 px-6">{pageIndex * pageSize + index + 1}</td>
+              <td className="py-2 px-6">{business.id}</td>
               <td className="py-2 px-6">
                 {business.user?.name}
                 {/* <img src={`/image/download/${business.bannerImg}`} alt="Banner" width="50" height="50" /> */}
@@ -334,7 +345,7 @@ const BusinessList = () => {
               <td className="py-2 px-6">
                 {business.catalog ? (
                   <a href={`/pdf/download/${business.catalog}`} download>
-                    <button className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition">
+                    <button className="bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400 transition">
                       Download
                     </button>
                   </a>
@@ -351,18 +362,18 @@ const BusinessList = () => {
               <td className="py-2 px-6 flex gap-2">
                 <button
                   onClick={() => handleViewDetails(business)}
-                  className="text-blue-500 hover:text-blue-700"
+                  className="text-gray-500 hover:text-gray-700"
                 >
                   <FaEye />
                 </button>
                 <button>
                   <Link to={`/editMyBusiness/${business._id}`}>
-                    <FaEdit className="text-blue-500 text-lg" />
+                    <FaEdit className="text-gray-500 text-lg" />
                   </Link>
                 </button>
                 <button
                   onClick={() => handleDelete(business._id)}
-                  className="text-gray-600 hover:text-red-700"
+                  className="text-red-500 hover:text-red-600"
                 >
                   <FaTrash />
                 </button>
@@ -371,27 +382,134 @@ const BusinessList = () => {
           ))}
         </tbody>
       </table>
-      <div className="mt-4 flex justify-center items-center space-x-2">
-        <button
-          onClick={handlePreviousPage}
-          disabled={pageIndex === 0}
-          className="px-3 py-1 bg-[#CF2030] text-white flex justify-center rounded transition"
-        >
-          {"<"}
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={pageIndex + 1 >= pageCount}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded transition"
-        >
-          {">"}
-        </button>
-        <span>
-          Page{" "}
-          <strong>
-            {pageIndex + 1} of {pageCount}
-          </strong>{" "}
-        </span>
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+  {/* Rows per page selector */}
+  <div className="flex items-center gap-3 text-sm text-gray-700">
+    <span>Show</span>
+    <select
+      value={pageSize}
+      onChange={(e) => {
+        setPageSize(Number(e.target.value));
+        setPageIndex(0);
+      }}
+      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {[5, 10, 20, 50].map((size) => (
+        <option key={size} value={size}>
+          {size}
+        </option>
+      ))}
+    </select>
+    <span>entries</span>
+  </div>
+
+  {/* Page info */}
+  <span className="text-sm text-gray-600">
+    Showing {(pageIndex * pageSize) + 1} to{" "}
+    {Math.min((pageIndex + 1) * pageSize, allBusinesses.length)} of{" "}
+    {allBusinesses.length} entries
+  </span>
+
+  {/* Pagination Controls */}
+  <nav className="flex items-center gap-1" aria-label="Pagination">
+    {/* First Page */}
+    <button
+      onClick={() => setPageIndex(0)}
+      disabled={pageIndex === 0}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex === 0
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      First
+    </button>
+
+    {/* Previous */}
+    <button
+      onClick={handlePreviousPage}
+      disabled={pageIndex === 0}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex === 0
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Previous
+    </button>
+
+    {/* Page Numbers (with ellipsis logic) */}
+    <div className="flex items-center gap-1">
+      {(() => {
+        const pages = [];
+        const totalPages = pageCount;
+        const current = pageIndex + 1;
+        const delta = 2;
+
+        if (totalPages <= 7) {
+          for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else if (current <= delta + 2) {
+          for (let i = 1; i <= 5; i++) pages.push(i);
+          pages.push("...");
+          pages.push(totalPages);
+        } else if (current >= totalPages - delta - 1) {
+          pages.push(1);
+          pages.push("...");
+          for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+        } else {
+          pages.push(1);
+          pages.push("...");
+          for (let i = current - delta; i <= current + delta; i++) pages.push(i);
+          pages.push("...");
+          pages.push(totalPages);
+        }
+
+        return pages.map((page, idx) =>
+          page === "..." ? (
+            <span key={idx} className="px-3 py-2 text-gray-500">...</span>
+          ) : (
+            <button
+              key={idx}
+              onClick={() => setPageIndex(page - 1)}
+              className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                current === page
+                  ? "bg-gray-600 text-white shadow-md"
+                  : "bg-white hover:bg-blue-50 text-gray-700 border border-gray-300"
+              }`}
+            >
+              {page}
+            </button>
+          )
+        );
+      })()}
+    </div>
+
+    {/* Next */}
+    <button
+      onClick={handleNextPage}
+      disabled={pageIndex >= pageCount - 1}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex >= pageCount - 1
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Next
+    </button>
+
+    {/* Last Page */}
+    <button
+      onClick={() => setPageIndex(pageCount - 1)}
+      disabled={pageIndex >= pageCount - 1}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex >= pageCount - 1
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Last
+    </button>
+  </nav>
       </div>
       {showModal && (
         <BusinessModal business={selectedBusiness} onClose={closeModal} />

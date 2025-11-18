@@ -5,35 +5,44 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Swal from 'sweetalert2';
 const CountryList = () => {
   const [countries, setCountries] = useState([]);
+  const [allCountries, setAllCountries] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
-  const pageSize = 5;
-  const getCookie = (name) => {
+  const [pageSize, setPageSize] = useState(10); // Default to 10
+  const [pageCount, setPageCount] = useState(0);
+  const getCookie = (name) => { 
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
   useEffect(() => {
     fetchCountries();
-  }, [pageIndex]);
+  }, []);
+
+  useEffect(() => {
+    if (allCountries.length > 0) {
+      const offset = pageIndex * pageSize;
+      const pagedData = allCountries.slice(offset, offset + pageSize);
+      setCountries(pagedData);
+      setPageCount(Math.ceil(allCountries.length / pageSize));
+    }
+  }, [pageIndex, pageSize, allCountries]);
 
   const fetchCountries = async () => {
     try {
       const token = getCookie("token");
       const response = await axios.get(
-        `/api/country/getCountry?page=${pageIndex + 1}`, {
+        `/api/country/getCountry`, { // Fetch all countries
           headers: {
             Authorization: `Bearer ${token}`,
           },
           withCredentials: true,
         }
       );
-      const dataWithIds = response.data.data.map((country, index) => ({
+      const dataWithIds = response.data.data.map((country, index) => ({ // Assign a stable ID
         ...country,
-        id: pageIndex * pageSize + index + 1,
+        id: index + 1,
       }));
-      setCountries(dataWithIds);
-      setPageCount(Math.ceil(response.data.total / pageSize));
+      setAllCountries(dataWithIds);
     } catch (error) {
       console.error("There was an error fetching the countries!", error);
     }
@@ -100,14 +109,14 @@ const CountryList = () => {
     <div className="p-4 overflow-x-auto">
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Country List</h1>
-        <button className="px-4 py-2 mt-3 bg-gradient-to-r from-[#FF7979] to-[#F76C6C] text-white text-xl font-bold rounded-full">Add New Country</button>
-          <Link to="/addCountry">Add New Country</Link>
-        </button>
+        {/* <Link to="/addCountry" className="ml-auto">
+          <button className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-md font-medium rounded-full">Add New Country</button>
+        </Link> */}
       </div>
 
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
         <thead>
-          <tr className="bg-[#CF2030] text-white text-left uppercase font-serif text-[14px]">
+          <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px]">
             <th className="py-2 px-6 ">ID</th>
             <th className="py-2 px-6 ">Country Name</th>
             <th className="py-2 px-6 ">Photo</th>
@@ -138,9 +147,9 @@ const CountryList = () => {
                       <FaEdit className="text-blue-500 text-lg" />
                     </Link>
                   </button>
-                  <button onClick={() => handleDelete(country._id)}>
+                  {/* <button onClick={() => handleDelete(country._id)}>
                     <FaTrashAlt className="text-gray-600 text-lg" />
-                  </button>
+                  </button> */}
                 </div>
               </td>
             </tr>
@@ -148,28 +157,140 @@ const CountryList = () => {
         </tbody>
       </table>
 
-      <div className="mt-4 flex justify-center items-center space-x-2">
-        <button
-          onClick={handlePreviousPage}
-          disabled={pageIndex === 0}
-          className="px-3 py-1 bg-[#CF2030] text-white flex justify-center rounded hover:bg-slate-900 transition"
-        >
-          {"<"}
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={pageIndex + 1 >= pageCount}
-          className="px-3 py-1 bg-[#CF2030] text-white rounded hover:bg-slate-900 transition"
-        >
-          {">"}
-        </button>
-        <span>
-          Page{" "}
-          <strong>
-            {pageIndex + 1} of {pageCount}
-          </strong>{" "}
-        </span>
-      </div>
+      {/* === IMPROVED PAGINATION UI === */}
+<div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+  {/* Rows per page selector */}
+  <div className="flex items-center gap-3 text-sm text-gray-700">
+    <span>Show</span>
+    <select
+      value={pageSize}
+      onChange={(e) => {
+        setPageSize(Number(e.target.value));
+        setPageIndex(0);
+      }}
+      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      {[5, 10, 20, 50].map((size) => (
+        <option key={size} value={size}>
+          {size}
+        </option>
+      ))}
+    </select>
+    <span>entries</span>
+  </div>
+
+  {/* Page info */}
+  <span className="text-sm text-gray-600">
+    Showing {(pageIndex * pageSize) + 1} to{" "}
+    {Math.min((pageIndex + 1) * pageSize, allCountries.length)} of{" "}
+    {allCountries.length} entries
+  </span>
+
+  {/* Pagination Controls */}
+  <nav className="flex items-center gap-1" aria-label="Pagination">
+    {/* First Page */}
+    <button
+      onClick={() => setPageIndex(0)}
+      disabled={pageIndex === 0}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex === 0
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      First
+    </button>
+
+    {/* Previous */}
+    <button
+      onClick={handlePreviousPage}
+      disabled={pageIndex === 0}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex === 0
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Previous
+    </button>
+
+    {/* Page Numbers (with ellipsis logic) */}
+    <div className="flex items-center gap-1">
+      {(() => {
+        const pages = [];
+        const totalPages = pageCount;
+        const current = pageIndex + 1;
+        const delta = 2;
+
+        if (totalPages <= 7) {
+          for (let i = 1; i <= totalPages; i++) {
+            pages.push(i);
+          }
+        } else {
+          if (current <= delta + 2) {
+            for (let i = 1; i <= 5; i++) pages.push(i);
+            pages.push("...");
+            pages.push(totalPages);
+          } else if (current >= totalPages - delta - 1) {
+            pages.push(1);
+            pages.push("...");
+            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+          } else {
+            pages.push(1);
+            pages.push("...");
+            for (let i = current - delta; i <= current + delta; i++) pages.push(i);
+            pages.push("...");
+            pages.push(totalPages);
+          }
+        }
+
+        return pages.map((page, idx) =>
+          page === "..." ? (
+            <span key={idx} className="px-3 py-2 text-gray-500">...</span>
+          ) : (
+            <button
+              key={idx}
+              onClick={() => setPageIndex(page - 1)}
+              className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                current === page
+                  ? "bg-blue-600 text-white shadow-md"
+                  : "bg-white hover:bg-blue-50 text-gray-700 border border-gray-300"
+              }`}
+            >
+              {page}
+            </button>
+          )
+        );
+      })()}
+    </div>
+
+    {/* Next */}
+    <button
+      onClick={handleNextPage}
+      disabled={pageIndex >= pageCount - 1}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex >= pageCount - 1
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Next
+    </button>
+
+    {/* Last Page */}
+    <button
+      onClick={() => setPageIndex(pageCount - 1)}
+      disabled={pageIndex >= pageCount - 1}
+      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+        pageIndex >= pageCount - 1
+          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+          : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"
+      }`}
+    >
+      Last
+    </button>
+  </nav>
+</div>
     </div>
   );
 };
