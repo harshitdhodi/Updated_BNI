@@ -4,6 +4,7 @@ import axios from "axios";
 import { Country } from "country-state-city";
 import Autocomplete from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
+import { Toaster, toast } from "react-hot-toast";
 
 const CreateUser = () => {
   const [loading, setLoading] = useState(false);
@@ -17,11 +18,11 @@ const CreateUser = () => {
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
   const [profileImg, setProfileImg] = useState(null);
-  const [bannerImg, setBannerImg] = useState(null);
   const [whatsapp, setWhatsapp] = useState("");
   const [facebook, setFacebook] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [twitter, setTwitter] = useState("");
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -61,11 +62,8 @@ const CreateUser = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (password !== confirmPassword) {
-      alert("Passwords do not match.");
-      return;
-    }
+    // validate all fields
+    if (!validate()) return;
 
     const formData = new FormData();
     formData.append("name", name);
@@ -80,7 +78,6 @@ const CreateUser = () => {
     formData.append("linkedin", linkedin);
     formData.append("twitter", twitter);
     if (profileImg) formData.append("profileImg", profileImg);
-    if (bannerImg) formData.append("bannerImg", bannerImg);
 
     try {
       const token = getCookie("token");
@@ -93,20 +90,63 @@ const CreateUser = () => {
       });
 
       console.log(response.data);
-
-      navigate("/memberList");
+      toast.success("Member created successfully");
+      setTimeout(() => navigate("/memberList"), 900);
     } catch (error) {
       console.error(
         "Failed to create user:",
         error.response ? error.response.data : error.message
       );
+      const msg = error?.response?.data?.message || "Failed to create member";
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!name.trim()) newErrors.name = "Name is required";
+
+    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!email.trim()) newErrors.email = "Email is required";
+    else if (!emailPattern.test(email)) newErrors.email = "Invalid email format";
+    else {
+      const domain = email.split("@")[1] || "";
+      const labels = domain.split(".");
+      if (labels.length < 2) newErrors.email = "Invalid email domain";
+      else {
+        const secondLevel = labels[labels.length - 2] || "";
+        // Ensure second-level domain contains a letter (avoid emails like abc@2.com)
+        if (!/[A-Za-z]/.test(secondLevel)) newErrors.email = "Email domain seems invalid";
+      }
+    }
+
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+
+    if (!confirmPassword) newErrors.confirmPassword = "Confirm password is required";
+    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+
+    if (!country) newErrors.country = "Country is required";
+    if (!city) newErrors.city = "City is required";
+
+    const phonePattern = /^\+?\d{7,15}$/;
+    if (!mobile) newErrors.mobile = "Mobile number is required";
+    else if (!phonePattern.test(mobile)) newErrors.mobile = "Enter a valid mobile number (7-15 digits)";
+
+    setErrors(newErrors);
+    // show first error as toast as well
+    const firstKey = Object.keys(newErrors)[0];
+    if (firstKey) {
+      toast.error(newErrors[firstKey]);
+    }
+    return Object.keys(newErrors).length === 0;
+  };
+
   return (
     <>
+      <Toaster />
       <div className="w-full p-2">
         <nav>
           <Link to="/" className="mr-2 text-red-300 hover:text-red-600">
@@ -125,24 +165,26 @@ const CreateUser = () => {
         <h1 className="text-xl font-bold mb-4">Create User</h1>
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Name</label>
+            <label className="block text-gray-700 font-bold mb-2">Name <span className="text-red-500">*</span></label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
-              required
+              aria-invalid={errors.name ? "true" : "false"}
             />
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Email</label>
+            <label className="block text-gray-700 font-bold mb-2">Email <span className="text-red-500">*</span></label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
-              required
+              aria-invalid={errors.email ? "true" : "false"}
             />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -189,29 +231,29 @@ const CreateUser = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Password</label>
+            <label className="block text-gray-700 font-bold mb-2">Password <span className="text-red-500">*</span></label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
-              required
+              aria-invalid={errors.password ? "true" : "false"}
             />
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">
-              Confirm Password
-            </label>
+            <label className="block text-gray-700 font-bold mb-2">Confirm Password <span className="text-red-500">*</span></label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
-              required
+              aria-invalid={errors.confirmPassword ? "true" : "false"}
             />
+            {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">Country</label>
+            <label className="block text-gray-700 font-bold mb-2">Country <span className="text-red-500">*</span></label>
             <Autocomplete
               options={countries}
               getOptionLabel={(option) => option.name}
@@ -224,12 +266,15 @@ const CreateUser = () => {
                   variant="outlined"
                   className="w-full"
                   required
+                  error={!!errors.country}
+                  helperText={errors.country || ""}
                 />
               )}
             />
+            {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">City</label>
+            <label className="block text-gray-700 font-bold mb-2">City <span className="text-red-500">*</span></label>
             <Autocomplete
               options={cities}
               getOptionLabel={(option) => option.name}
@@ -243,21 +288,25 @@ const CreateUser = () => {
                   className="w-full"
                   required
                   disabled={!country}
+                  error={!!errors.city}
+                  helperText={errors.city || ""}
                 />
               )}
             />
+            {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
           </div>
           <div>
-            <label className="block text-gray-700 font-bold mb-2">
-              Mobile Number
-            </label>
+            <label className="block text-gray-700 font-bold mb-2">Mobile Number <span className="text-red-500">*</span></label>
             <input
               type="text"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
-              required
+              aria-invalid={errors.mobile ? "true" : "false"}
+              minLength={10}
+              maxLength={10}
             />
+            {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">Profile Image</label>
@@ -267,14 +316,7 @@ const CreateUser = () => {
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
             />
           </div>
-          <div>
-            <label className="block text-gray-700 font-bold mb-2">Banner Image</label>
-            <input
-              type="file"
-              onChange={(e) => setBannerImg(e.target.files[0])}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
-            />
-          </div>
+        
           <div className="col-span-2">
             <button
               type="submit"

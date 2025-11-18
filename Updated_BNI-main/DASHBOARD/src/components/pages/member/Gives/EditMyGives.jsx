@@ -13,6 +13,13 @@ const EditMyGives = () => {
     webURL: "",
     dept: "",
   });
+  const [errors, setErrors] = useState({
+    companyName: "",
+    email: "",
+    phoneNumber: "",
+    webURL: "",
+    dept: "",
+  });
   const [departments, setDepartments] = useState([]);
   const [companyOptions, setCompanyOptions] = useState([]);
   const navigate = useNavigate();
@@ -26,6 +33,53 @@ const EditMyGives = () => {
     fetchDepartments();
   }, [id]);
 
+  // Validators
+  const validateCompanyName = (val) => {
+    if (!val || String(val).trim() === "") return "Company name is required";
+    return "";
+  };
+  const validateEmail = (val) => {
+    if (!val) return "Email is required";
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!re.test(val)) return "Enter a valid email";
+    return "";
+  };
+  const validatePhone = (val) => {
+    if (!val) return "Phone number is required";
+    const digits = String(val).replace(/\D/g, "");
+    if (digits.length !== 10) return "Phone number must be 10 digits";
+    return "";
+  };
+  const validateURL = (val) => {
+    if (!val) return "Website URL is required";
+    const trimmedVal = String(val).trim();
+    if (!trimmedVal) return "Website URL is required";
+    try {
+      // Accept without protocol by adding http when missing
+      /* eslint-disable no-new */
+      new URL(trimmedVal.startsWith("http://") || trimmedVal.startsWith("https://") ? trimmedVal : `http://${trimmedVal}`);
+      return "";
+    } catch {
+      return "Enter a valid URL";
+    }
+  };
+  const validateDept = (val) => {
+    if (!val || (typeof val === 'object' && !val._id) || (typeof val === 'string' && val.trim() === "")) return "Department is required";
+    return "";
+  };
+
+  const isFormValid = () => {
+    if (!myGive) return false;
+    const e1 = validateCompanyName(myGive.companyName);
+    const e2 = validateEmail(myGive.email);
+    const e3 = validatePhone(myGive.phoneNumber);
+    const e4 = validateURL(myGive.webURL);
+    const e5 = validateDept(myGive.dept);
+    // Also check for any existing errors in state
+    const hasErrors = Object.values(errors).some(e => e);
+    return !(e1 || e2 || e3 || e4 || e5 || hasErrors);
+  };
+
   const fetchMyGive = async () => {
     try {
       const token = getCookie("token");
@@ -36,7 +90,7 @@ const EditMyGives = () => {
         withCredentials: true,
       });
       const myGiveData = response.data.data;
-
+console.log("Fetched My Gives Data:", myGiveData);  
       if (myGiveData) {
         setMyGive(myGiveData);
         // Fetch company options with the initially selected company
@@ -71,20 +125,50 @@ const EditMyGives = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    let error = "";
+    switch (name) {
+      case "companyName":
+        error = validateCompanyName(value);
+        break;
+      case "email":
+        error = validateEmail(value);
+        break;
+      case "phoneNumber":
+        error = validatePhone(value);
+        break;
+      case "webURL":
+        error = validateURL(value);
+        break;
+      case "dept":
+        error = validateDept(value);
+        break;
+      default:
+        break;
+    }
     setMyGive((prevMyGive) => ({
       ...prevMyGive,
       [name]: value,
     }));
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isFormValid()) {
+      return; // Prevent submission if form is invalid
+    }
+    // Prepare the data for submission, ensuring dept is an ID
+    const submissionData = {
+      ...myGive,
+      dept: myGive.dept._id || myGive.dept, // Send ID if dept is an object, otherwise send original value
+    };
 
     try {
       const token = getCookie("token");
-      await axios.put(`/api/myGives/updateMyGives?id=${id}`, myGive, { headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      await axios.put(`/api/myGives/updateMyGives?id=${id}`, submissionData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         withCredentials: true,
       });
       navigate(`/myGives/${userId}`);
@@ -105,7 +189,12 @@ const EditMyGives = () => {
           Authorization: `Bearer ${token}`,
         }, withCredentials: true }
       );
-      setCompanyOptions(response.data.companies || []);
+      const companies = response.data.companies || [];
+      // Ensure the current company name is in the options if it's not already
+      if (myGive.companyName && !companies.some(c => c.companyName === myGive.companyName)) {
+        companies.unshift({ companyName: myGive.companyName });
+      }
+      setCompanyOptions(companies);
     } catch (error) {
       console.error(
         "Failed to fetch company options:",
@@ -149,71 +238,92 @@ const EditMyGives = () => {
                       key.slice(1).replace("_", " ")}
                   </label>
                   {key === "dept" ? (
-                    <Autocomplete
-                      options={departments}
-                      getOptionLabel={(option) => option.name}
-                      value={
-                        departments.find((dept) => dept.name === myGive[key]) ||
-                        null
-                      }
-                      onChange={(event, newValue) => {
-                        handleChange({
-                          target: {
-                            name: "dept",
-                            value: newValue ? newValue.name : "",
-                          },
-                        });
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Select Department"
-                          variant="outlined"
-                          className="w-full"
-                          required
-                        />
-                      )}
-                    />
+                    <>
+                      <Autocomplete
+                        options={departments}
+                        getOptionLabel={(option) => option.name || ""}
+                        value={
+                          departments.find((dept) => dept._id === myGive.dept?._id) ||
+                          null
+                        }
+                        onChange={(event, newValue) => {
+                          handleChange({
+                            target: {
+                              name: "dept",
+                              value: newValue,
+                            },
+                          });
+                        }}
+                        onBlur={() => setErrors(prev => ({...prev, dept: validateDept(myGive.dept)}))}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Select Department"
+                            variant="outlined"
+                            className="w-full"
+                            required
+                          />
+                        )}
+                      />
+                      {errors.dept && <p className="text-sm text-red-600 mt-1">{errors.dept}</p>}
+                    </>
                   ) : key === "companyName" ? (
-                    <Autocomplete
-                      options={companyOptions}
-                      getOptionLabel={(option) => option.companyName}
-                      value={
-                        companyOptions.find(
-                          (option) => option.companyName === myGive[key]
-                        ) || null
-                      }
-                      onInputChange={(event, newInputValue) => {
-                        fetchCompanyOptions(newInputValue);
-                      }}
-                      onChange={(event, newValue) => {
-                        handleChange({
-                          target: {
-                            name: "companyName",
-                            value: newValue ? newValue.companyName : "",
-                          },
-                        });
-                      }}
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Select Company"
-                          variant="outlined"
-                          className="w-full"
-                          required
-                        />
-                      )}
-                    />
+                    <>
+                      <Autocomplete
+                        freeSolo
+                        options={companyOptions}
+                        getOptionLabel={(option) => (typeof option === 'string' ? option : option.companyName)}
+                        value={myGive[key] || ""}
+                        onInputChange={(event, newInputValue) => {
+                          handleChange({ target: { name: "companyName", value: newInputValue } });
+                          fetchCompanyOptions(newInputValue);
+                        }}
+                        onChange={(event, newValue) => {
+                          handleChange({
+                            target: {
+                              name: "companyName",
+                              value: newValue ? (typeof newValue === 'string' ? newValue : newValue.companyName) : "",
+                            },
+                          });
+                        }}
+                        onBlur={() => setErrors(prev => ({...prev, companyName: validateCompanyName(myGive.companyName)}))}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label="Select Company"
+                            variant="outlined"
+                            className="w-full"
+                            required
+                          />
+                        )}
+                      />
+                      {errors.companyName && <p className="text-sm text-red-600 mt-1">{errors.companyName}</p>}
+                    </>
                   ) : (
-                    <input
-                      type="text"
-                      id={key}
-                      name={key}
-                      value={myGive[key]}
-                      onChange={handleChange}
-                      className="w-full p-4 border bg-[#F1F1F1] border-[#aeabab] rounded focus:outline-none focus:border-red-500 transition duration-300"
-                      required
-                    />
+                    <>
+                      <input
+                        type={key === 'email' ? 'email' : key === 'phoneNumber' ? 'tel' : 'text'}
+                        id={key}
+                        name={key}
+                        value={myGive[key] || ''}
+                        onChange={handleChange}
+                        onBlur={(e) => {
+                          if (key === 'webURL') {
+                            const trimmedValue = e.target.value.trim();
+                            if (trimmedValue && !trimmedValue.startsWith("http://") && !trimmedValue.startsWith("https://")) {
+                              handleChange({ target: { name: 'webURL', value: `http://${trimmedValue}` } });
+                            } else if (trimmedValue !== myGive.webURL) {
+                              handleChange({ target: { name: 'webURL', value: trimmedValue } });
+                            }
+                          }
+                        }}
+                        className="w-full p-4 border bg-[#F1F1F1] border-[#aeabab] rounded focus:outline-none focus:border-red-500 transition duration-300"
+                        required
+                        minLength={key === 'phoneNumber' ? 10 : undefined}
+                        maxLength={key === 'phoneNumber' ? 10 : undefined}
+                      />
+                      {errors[key] && <p className="text-sm text-red-600 mt-1">{errors[key]}</p>}
+                    </>
                   )}
                 </div>
               )
@@ -221,7 +331,8 @@ const EditMyGives = () => {
           <div className="col-span-2">
             <button
               type="submit"
-              className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-300"
+              className="bg-red-500 text-white px-6 py-3 rounded-md hover:bg-red-600 transition duration-300 disabled:opacity-50"
+              disabled={!isFormValid()}
             >
               Save
             </button>

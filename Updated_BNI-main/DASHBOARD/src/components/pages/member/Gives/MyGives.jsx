@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router-dom";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
@@ -33,23 +33,24 @@ const MyGivesList = () => {
 
       console.log("My Gives Response:", response.data); // Check response data structure
 
-      if (response.data && response.data.data) {
-        const dataWithIds = response.data.data.map((myGive, index) => ({
+      // Normalize response shape to handle: { data: [...], total, currentPage } etc.
+      const resp = response.data || {};
+      const items = Array.isArray(resp.data) ? resp.data : Array.isArray(resp) ? resp : [];
+      const currentPage = resp.currentPage ?? resp.page ?? (pageIndex + 1);
+      const total = resp.total ?? items.length;
+
+      if (Array.isArray(items)) {
+        const dataWithIds = items.map((myGive, index) => ({
           ...myGive,
-          id: pageIndex * pageSize + index + 1,
+          id: (currentPage - 1) * pageSize + index + 1,
         }));
         setMyGives(dataWithIds);
 
-        // Calculate pageCount based on the total count
-        if (response.data.total != null) {
-          setPageCount(Math.ceil(response.data.total / pageSize));
-        } else {
-          // Fallback: Calculate pageCount based on the length of the data
-          setPageCount(Math.ceil(response.data.data.length / pageSize));
-        }
+        // Calculate pageCount based on the total count (fallback to items length)
+        setPageCount(Math.max(1, Math.ceil(total / pageSize)));
 
         // If data on the last page is deleted and becomes empty, adjust pageIndex
-        if (pageIndex > 0 && response.data.data.length === 0) {
+        if (pageIndex > 0 && items.length === 0) {
           setPageIndex(pageIndex - 1);
         }
       } else {
@@ -157,7 +158,7 @@ const MyGivesList = () => {
                   <td className="py-2 px-4">{myGive.id}</td>
                   <td className="py-2 px-4">{myGive.companyName}</td>
                   <td className="py-2 px-4">{myGive.email}</td>
-                  <td className="py-2 px-4">{myGive.dept}</td>
+                  <td className="py-2 px-4">{myGive.dept?.name || myGive.dept}</td>
                   <td className="py-2 px-4">{myGive.phoneNumber}</td>
                   <td className="py-2 px-4">{myGive.webURL}</td>
                   <td className="py-2 px-4">
