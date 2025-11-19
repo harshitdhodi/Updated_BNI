@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { IoLogoWhatsapp } from "react-icons/io";
 import {
   FaFacebook,
@@ -16,11 +16,13 @@ import Swal from 'sweetalert2';
 const BusinessList = () => {
   const [businesses, setBusinesses] = useState([]);
   const [allBusinesses, setAllBusinesses] = useState([]);
+  const [totalBusinesses, setTotalBusinesses] = useState(0);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [pageCount, setPageCount] = useState(0);
   const [selectedBusiness, setSelectedBusiness] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const id = useParams().id;
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -32,13 +34,14 @@ const BusinessList = () => {
   }, []);
 
   useEffect(() => {
+    // Paginate using the loaded items and total count
     if (allBusinesses.length > 0) {
       const offset = pageIndex * pageSize;
       const pagedData = allBusinesses.slice(offset, offset + pageSize);
       setBusinesses(pagedData);
-      setPageCount(Math.ceil(allBusinesses.length / pageSize));
+      setPageCount(Math.ceil(totalBusinesses / pageSize));
     }
-  }, [pageIndex, pageSize, allBusinesses]);
+  }, [pageIndex, pageSize, allBusinesses, totalBusinesses]);
 
   const fetchBusinesses = async () => {
       const token = getCookie("token");
@@ -51,11 +54,22 @@ const BusinessList = () => {
           withCredentials: true,
         }
       );
-      const dataWithIds = response.data.data.map((business, index) => ({
+      // Support API response formats:
+      // 1) { total: X, data: [...] }
+      // 2) { data: [...] }
+      // 3) [...] (direct array)
+      const payload = response.data || {};
+      const items = Array.isArray(payload) ? payload : payload.data || [];
+      const total = payload.total ?? (items.length || 0);
+
+      const dataWithIds = (items || []).map((business, index) => ({
         ...business,
         id: index + 1,
       }));
+
       setAllBusinesses(dataWithIds);
+      setTotalBusinesses(total);
+      setPageCount(Math.ceil(total / pageSize));
   };
 
   const handleNextPage = () => {
@@ -165,7 +179,7 @@ const BusinessList = () => {
               <strong>Email:</strong> {business.user?.email}
             </p>
             <p>
-              <strong>Industry Name:</strong> {business.industryName}
+              <strong>Industry Name:</strong> {business.industryName?.name || business.industryName}
             </p>
             <div className="flex">
               <div>
@@ -271,7 +285,7 @@ const BusinessList = () => {
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Business List</h1>
         <button className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
-          <Link to={`/business_form`}>Add Business</Link>
+          <Link to={`/business_form/${id}`}>Add Business</Link>
         </button>
       </div>
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
@@ -341,21 +355,17 @@ const BusinessList = () => {
                   </a>
                 )}
               </td>
-              <td className="py-2 px-6">{business.industryName}</td>
+              <td className="py-2 px-6">{business.industryName?.name || business.industryName}</td>
               <td className="py-2 px-6">
                 {business.catalog ? (
-                  <a href={`/pdf/download/${business.catalog}`} download>
+                  <a href={`/api/pdf/download/${business.catalog}`} download>
                     <button className="bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400 transition">
                       Download
                     </button>
                   </a>
                 ) : (
                   <div>
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      onChange={(e) => handleFileChange(e, business._id)}
-                    />
+                   none
                   </div>
                 )}
               </td>
@@ -406,8 +416,8 @@ const BusinessList = () => {
   {/* Page info */}
   <span className="text-sm text-gray-600">
     Showing {(pageIndex * pageSize) + 1} to{" "}
-    {Math.min((pageIndex + 1) * pageSize, allBusinesses.length)} of{" "}
-    {allBusinesses.length} entries
+    {Math.min((pageIndex + 1) * pageSize, totalBusinesses)} of{" "}
+    {totalBusinesses} entries
   </span>
 
   {/* Pagination Controls */}

@@ -3,10 +3,10 @@ import axios from "axios";
 import ReactHTMLTableToExcel from "react-html-table-to-excel";
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import debounce from "lodash/debounce";
 import Swal from 'sweetalert2';
 
 const AllGives = () => {
+  const [allData, setAllData] = useState([]);
   const [gives, setGives] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -20,48 +20,74 @@ const AllGives = () => {
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
 
-  const fetchGives = async () => {
+  // Fetch all data once
+  const fetchAllGives = async () => {
     try {
       const token = getCookie("token");
-      // Pass pagination and search parameters to the API
       const response = await axios.get(`/api/myGives/getMyAllGives`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
         params: {
-          page: pageIndex + 1, // API is likely 1-based, component is 0-based
-          limit: pageSize,
-          search: searchValue,
+          page: 1,
+          limit: 10000, // Fetch a large limit to get all data
         },
         withCredentials: true,
       });
 
-      const responseData = response.data.data; // Assuming the array is in response.data.data
-      const total = response.data.total; // Assuming total count is in response.data.total
-
-      // Add a sequential ID for display purposes
-      const dataWithIds = (responseData || []).map((give, index) => ({
-        ...give,
-        id: pageIndex * pageSize + index + 1,
-      }));
-
-      setGives(dataWithIds);
-      setTotalGives(total);
-      setPageCount(Math.ceil(total / pageSize));
+      const responseData = response.data.data || [];
+      setAllData(responseData);
     } catch (error) {
-      console.error("Error fetching gives:", error);
+      console.error("Error fetching all gives:", error);
     }
   };
 
+  // Filter and paginate data based on search value
+  const filterAndPaginateData = () => {
+    let filteredData = allData;
+
+    // Client-side filtering based on search value
+    if (searchValue.trim()) {
+      filteredData = allData.filter((give) =>
+        give.companyName?.toLowerCase().includes(searchValue.toLowerCase()) ||
+        give.email?.toLowerCase().includes(searchValue.toLowerCase()) ||
+        give.webURL?.toLowerCase().includes(searchValue.toLowerCase()) ||
+        give.phoneNumber?.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+
+    const total = filteredData.length;
+    const pageCount = Math.ceil(total / pageSize);
+
+    // Paginate the filtered data
+    const startIndex = pageIndex * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedData = filteredData.slice(startIndex, endIndex);
+
+    const dataWithIds = paginatedData.map((give, index) => ({
+      ...give,
+      id: startIndex + index + 1,
+    }));
+
+    setGives(dataWithIds);
+    setTotalGives(total);
+    setPageCount(pageCount);
+  };
+
+  // Fetch all data on component mount
   useEffect(() => {
-    fetchGives();
-  }, [pageIndex, pageSize, searchValue]); // Refetch when page, size, or search changes
+    fetchAllGives();
+  }, []);
 
+  // Filter and paginate whenever search value, page index, or page size changes
+  useEffect(() => {
+    filterAndPaginateData();
+  }, [searchValue, pageIndex, pageSize, allData]);
 
-  const handleSearchChange = debounce((e) => {
+  const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
     setPageIndex(0);
-  }, 300);
+  };
 
   const handleNextPage = () => {
     if (pageIndex < pageCount - 1) {
@@ -105,8 +131,9 @@ const AllGives = () => {
                 confirmButtonText: 'Ok',
             });
 
-            // Refresh data after deletion
-            fetchGives(); // Fetch data after deletion
+            // Refresh all data after deletion
+            fetchAllGives();
+            setPageIndex(0);
         } catch (error) {
             console.error("Error deleting company:", error);
             // Show error alert

@@ -2,11 +2,11 @@ import  { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import debounce from "lodash/debounce";
 import * as XLSX from "xlsx";
 import Swal from 'sweetalert2';
 import { EyeIcon } from "lucide-react";
 const AllAsks = () => {
+  const [allData, setAllData] = useState([]);
   const [data, setData] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -21,8 +21,9 @@ const AllAsks = () => {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-  // Fetch data based on search value or page number
-  const fetchAsks = async () => {
+
+  // Fetch all data once
+  const fetchAllAsks = async () => {
     try {
       const token = getCookie("token");
       const response = await axios.get(`/api/myAsk/getAllAsks`, {
@@ -30,38 +31,65 @@ const AllAsks = () => {
             Authorization: `Bearer ${token}`,
         },
         params: {
-          page: pageIndex + 1,
-          limit: pageSize,
-          search: searchValue,
+          page: 1,
+          limit: 10000, // Fetch a large limit to get all data
         },
         withCredentials: true,
       });
 
-      const responseData = response.data.data;
-      const total = response.data.total;
-
-      const dataWithIds = (responseData || []).map((ask, index) => ({
-        ...ask,
-        id: pageIndex * pageSize + index + 1,
-      }));
-
-      setData(dataWithIds);
-      setTotalAsks(total);
-      setPageCount(Math.ceil(total / pageSize));
+      const responseData = response.data.data || [];
+      setAllData(responseData);
     } catch (error) {
-      console.error("Error fetching asks:", error);
+      console.error("Error fetching all asks:", error);
     }
   };
 
+  // Filter and paginate data based on search value
+  const filterAndPaginateData = () => {
+    let filteredData = allData;
+
+    // Client-side filtering based on search value
+    if (searchValue.trim()) {
+      filteredData = allData.filter((ask) =>
+        ask.companyName?.toLowerCase().includes(searchValue.toLowerCase()) ||
+        ask.dept?.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
+        ask.message?.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+
+    const total = filteredData.length;
+    const pageCount = Math.ceil(total / pageSize);
+
+    // Paginate the filtered data
+    const startIndex = pageIndex * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedData = filteredData.slice(startIndex, endIndex);
+
+    const dataWithIds = paginatedData.map((ask, index) => ({
+      ...ask,
+      id: startIndex + index + 1,
+    }));
+
+    setData(dataWithIds);
+    setTotalAsks(total);
+    setPageCount(pageCount);
+  };
+
+  // Fetch all data on component mount
   useEffect(() => {
-    fetchAsks();
-  }, [pageIndex, pageSize, searchValue]);
+    fetchAllAsks();
+  }, []);
+
+  // Filter and paginate whenever search value, page index, or page size changes
+  useEffect(() => {
+    filterAndPaginateData();
+  }, [searchValue, pageIndex, pageSize, allData]);
 
   // Debounced search handler
-  const handleSearchChange = debounce((e) => {
+  const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
     setPageIndex(0);
-  }, 300);
+  };
 
   // Handle page changes
   const handleNextPage = () => {
@@ -107,8 +135,9 @@ const AllAsks = () => {
                 confirmButtonText: 'Ok',
             });
 
-            // Refresh data after deletion
-            fetchAsks(); // Fetch data after deletion
+            // Refresh all data after deletion
+            fetchAllAsks(); 
+            setPageIndex(0);
         } catch (error) {
             console.error("Error deleting My Ask:", error);
             // Show error alert
@@ -321,3 +350,4 @@ const AllAsks = () => {
 };
 
 export default AllAsks;
+

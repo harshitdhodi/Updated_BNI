@@ -111,18 +111,18 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
         </div>
       </div>
 
-      {/* Change Password Section - Only in Edit Mode */}
-      {isEditing && (
-        <div className="space-y-6 pt-8 border-t border-gray-200">
-          <div className="flex items-center gap-3">
-            <Lock className="w-6 h-6 text-gray-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Change Password (Optional)</h3>
-          </div>
+      {/* Change Password Section */}
+      <div className="space-y-6 pt-8 border-t border-gray-200">
+        <div className="flex items-center gap-3">
+          <Lock className="w-6 h-6 text-gray-600" />
+          <h3 className="text-lg font-semibold text-gray-900">{isEditing ? "Change Password (Optional)" : "Password"}</h3>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* New Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* New Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+            {isEditing ? (
               <>
                 <div className="relative">
                   <input
@@ -136,11 +136,20 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
                 </div>
                 {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
               </>
-            </div>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="text-gray-900">••••••••</span>
+              </div>
+            )}
+          </div>
 
-            {/* Confirm New Password */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+          {/* Confirm New Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+            {isEditing ? (
               <>
                 <div className="relative">
                   <input
@@ -156,9 +165,18 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
                   <p className="text-red-500 text-sm mt-1">{errors.confirmNewPassword}</p>
                 )}
               </>
-            </div>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <span className="text-gray-900">••••••••</span>
+              </div>
+            )}
           </div>
+        </div>
 
+        {isEditing && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex gap-3">
               <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,8 +189,8 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
@@ -567,7 +585,7 @@ export default function UserProfile() {
                   )}
                 </div>
 
-                <div className="text-center sm:text-left ml-5 relative -top-20">
+                <div className="text-center sm:text-left ml-5 relative sm:-top-20">
                   <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{userData.name || "User"}</h2>
                   <p className="text-gray-600 mt-1">{userData.email || "—"}</p>
                   <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">

@@ -153,7 +153,7 @@ function App() {
             <Route path="/editIndustry/:id" element={<EditIndustry />} />
             <Route path="/myMatches/:userId" element={<MyAllMatches />} />
             <Route path="/editMember/:id" element={<EditMember />} />
-            <Route path="/business" element={<BusinessList />} />
+            <Route path="/business/:id" element={<BusinessList />} />
             <Route path="/business_form/:userId" element={<BusinessForm />} />
             <Route path="/business_form" element={<BusinessForm />} />
             <Route path="/myBusiness/:userId" element={<MyBusinessList />} />

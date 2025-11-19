@@ -50,7 +50,11 @@ function MyGivesTable({ data, onEdit, onDelete, loading, departments = [] }) {
                 index={index}
                 onEdit={onEdit}
                 onDelete={onDelete}
-                departmentName={departmentMap.get(item.dept) || item.dept}
+                departmentName={
+                  typeof item.dept === 'object' && item.dept?.name 
+                    ? item.dept.name 
+                    : departmentMap.get(item.dept) || item.dept || '—'
+                }
               />
             ))
           )}

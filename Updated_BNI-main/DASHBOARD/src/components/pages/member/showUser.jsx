@@ -160,7 +160,13 @@ const MemberList = () => {
         >
           ✦ Gives
         </Link>
-
+        <Link
+          to={`/business/${member._id}`}
+          onClick={() => setOpenMenuId(null)}
+          className="block w-full px-4 py-2 text-left hover:bg-yellow-50 text-yellow-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
+        >
+          ✦ Business
+        </Link>
         <Link
           to={`/myMatches/${member._id}`}
           onClick={() => setOpenMenuId(null)}
@@ -290,11 +296,11 @@ const MemberList = () => {
         </div>
 
           <div className="flex flex-col gap-2 md:flex-row md:gap-3">
-            <Link to="/pending-member" className="flex-1 md:flex-initial">
+            {/* <Link to="/pending-member" className="flex-1 md:flex-initial">
               <button className="w-full md:w-auto px-4 py-2 bg-gray-100 text-black shadow-lg hover:shadow-xl border border-gray-200 rounded-lg font-medium transition">
                 Pending Members
               </button>
-            </Link>
+            </Link> */}
 
             <Link to="/createCustomer" className="flex-1 md:flex-initial">
               <button className="w-full md:w-auto px-4 py-2 bg-gray-100 text-black shadow-lg hover:shadow-xl border border-gray-200 rounded-lg font-medium transition">
