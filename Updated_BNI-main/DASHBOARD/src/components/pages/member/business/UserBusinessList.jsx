@@ -148,7 +148,11 @@ export default function UserBusinessList() {
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {business.companyName || '-'}
                         </td>
-                        <td className="px-6 py-4">{business.industryName || '-'}</td>
+                        <td className="px-6 py-4">
+                          {typeof business.industryName === 'object' 
+                            ? business.industryName?.name || '-' 
+                            : business.industryName || '-'}
+                        </td>
                         <td className="px-6 py-4">{business.designation || '-'}</td>
                         <td className="px-6 py-4">
                           {business.mobile ? (

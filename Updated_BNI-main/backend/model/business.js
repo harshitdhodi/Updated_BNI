@@ -10,7 +10,8 @@ const ProfileSchema = new Schema({
   
   },
    industryName: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Industry',
     required: true,
   },
   mobile: {

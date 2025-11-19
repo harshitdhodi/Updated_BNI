@@ -173,6 +173,7 @@ const getbusinessByuserId = async (req, res) => {
     const myBusiness = await Business.find({ user: userId })
       .skip((page - 1) * limit) // Skip records for previous pages
       .limit(limit)
+      .populate('industryName')
       .populate('user'); // Populate the user details
 
     const count = await Business.countDocuments({ user: userId });
