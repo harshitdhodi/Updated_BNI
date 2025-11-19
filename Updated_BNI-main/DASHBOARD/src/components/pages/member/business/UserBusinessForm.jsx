@@ -15,6 +15,7 @@ const BusinessFormModal = ({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [profileImgPreview, setProfileImgPreview] = useState(null);
+  const [profileImgFile, setProfileImgFile] = useState(null);
 
   // Industry dropdown
   const [industries, setIndustries] = useState([]);
@@ -92,6 +93,7 @@ const BusinessFormModal = ({
     } else if (mode === 'add' && isOpen) {
       setFormData(prev => ({ ...prev, industryName: '' }));
       setProfileImgPreview(null);
+      setProfileImgFile(null);
     }
   }, [mode, businessId, isOpen]);
 
@@ -103,12 +105,11 @@ const BusinessFormModal = ({
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImgPreview(reader.result);
-        setFormData(prev => ({ ...prev, profileImg: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      // Store the file for upload
+      setProfileImgFile(file);
+      // Create preview URL using blob URL
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImgPreview(previewUrl);
     }
   };
 
@@ -117,16 +118,40 @@ const BusinessFormModal = ({
     setSubmitting(true);
 
     try {
+      // Create FormData for multipart/form-data submission
+      const submitData = new FormData();
+      submitData.append('companyName', formData.companyName);
+      submitData.append('industryName', formData.industryName);
+      submitData.append('designation', formData.designation);
+      submitData.append('aboutCompany', formData.aboutCompany);
+      submitData.append('companyAddress', formData.companyAddress);
+      submitData.append('mobile', formData.mobile);
+      submitData.append('email', formData.email);
+      submitData.append('whatsapp', formData.whatsapp);
+      submitData.append('facebook', formData.facebook);
+      submitData.append('linkedin', formData.linkedin);
+      submitData.append('twitter', formData.twitter);
+      submitData.append('catalog', formData.catalog);
+      
+      // Append file only if a new file was selected
+      if (profileImgFile) {
+        submitData.append('profileImg', profileImgFile);
+      }
+
       if (mode === 'add') {
-        await axios.post(`/api/business/createProfile`, formData, {
-          params: { userId }
+        await axios.post(`/api/business/createProfile`, submitData, {
+          params: { userId },
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
         toast.success('Business profile created successfully!');
       } else {
-        await axios.put(`/api/business/updateBusinessDetails`,
-            formData, {
-                withCredentials: true,
-          params: { id: businessId }
+        await axios.put(`/api/business/updateBusinessDetails`, submitData, {
+          params: { id: businessId },
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         });
         toast.success('Business profile updated successfully!');
       }

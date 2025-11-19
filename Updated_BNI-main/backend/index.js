@@ -91,6 +91,7 @@ const business = require("./route/business");
 const pdf = require("./route/pdf");
 const profile = require("./route/profile");
 const company = require("./route/company");
+const dashboard = require("./route/dashboard");
 
 // Serve static files from the 'dist' directory
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -129,6 +130,7 @@ app.use("/api/business", business);
 app.use("/api/pdf", pdf);
 app.use("/api/profile", profile);
 app.use("/api/company", company);
+app.use("/api/dashboard", dashboard);
 
 // Test route
 app.get("/test", (req, res) => {
