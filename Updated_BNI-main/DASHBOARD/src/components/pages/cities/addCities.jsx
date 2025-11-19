@@ -3,16 +3,16 @@ import axios from "axios";
 import countryList from "country-list";
 import { Link, useNavigate } from "react-router-dom";
 import Select from "react-select";
+import toast, { Toaster } from "react-hot-toast";
 
 const CityForm = () => {
   const [formData, setFormData] = useState({
     name: "",
     countryName: "",
-    cityName: "",
   });
   const [countryOptions, setCountryOptions] = useState([]);
-  const [cityOptions, setCityOptions] = useState([]);
   const navigate = useNavigate();
+  
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -27,43 +27,6 @@ const CityForm = () => {
     }));
     setCountryOptions(formattedCountries);
   }, []);
-
-  // Fetch cities based on selected country
-  useEffect(() => {
-    const fetchCities = async (countryName) => {
-      if (countryName) {
-        try {
-          const token = getCookie("token");
-          const response = await axios.get(
-            `/api/city/getAllCity?countryName=${countryName}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              withCredentials: true,
-            }
-          );
-          const cityData = response.data.data;
-          const formattedCities = cityData.map((city) => ({
-            value: city.name,
-            label: city.name,
-          }));
-          setCityOptions(formattedCities);
-        } catch (error) {
-          console.error(
-            "Failed to fetch cities:",
-            error.response ? error.response.data : error.message
-          );
-        }
-      } else {
-        setCityOptions([]);
-      }
-    };
-
-    if (formData.countryName) {
-      fetchCities(formData.countryName);
-    }
-  }, [formData.countryName]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -80,27 +43,39 @@ const CityForm = () => {
     }));
   };
 
-  const handleCityChange = (selectedOption) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      cityName: selectedOption.label,
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.name.trim() || !formData.countryName.trim()) {
+      toast.error("Both country and city name are required.");
+      return;
+    }
+
+    const loadingToast = toast.loading("Saving city...");
+
     try {
-      const response = await axios.post("/city/addCity", formData);
-      console.log("City added successfully:", response.data);
-      // Redirect to city list page after successful submission
-      navigate("/cities");
+      const token = getCookie("token");
+      await axios.post("/api/city/addCity", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
+
+      toast.success("City added successfully!", { id: loadingToast });
+
+      setTimeout(() => {
+        navigate("/cities");
+      }, 1500); // Delay navigation to allow user to see the success message
     } catch (error) {
-      console.error("Error adding city:", error);
+      const errorMessage =
+        error.response?.data?.message || "Failed to add city. Please try again.";
+      toast.error(errorMessage, { id: loadingToast });
     }
   };
 
   return (
     <>
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="w-full p-2 rounded-md">
         <nav>
           <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
@@ -130,16 +105,15 @@ const CityForm = () => {
           </div>
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
-              Select City
+              City Name
             </label>
-            <Select
-              options={cityOptions}
-              onChange={handleCityChange}
-              value={cityOptions.find(
-                (option) => option.label === formData.cityName
-              )}
-              className="w-1/2"
-              isDisabled={!formData.countryName} // Disable if no country is selected
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-1/2 p-2 border rounded focus:outline-none focus:border-blue-500"
+              placeholder="Enter city name"
             />
           </div>
 

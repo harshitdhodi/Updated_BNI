@@ -8,9 +8,9 @@ import Swal from 'sweetalert2';
 
 const AllGives = () => {
   const [gives, setGives] = useState([]);
-  const [allGives, setAllGives] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+  const [totalGives, setTotalGives] = useState(0);
   const [pageCount, setPageCount] = useState(0);
   const [searchValue, setSearchValue] = useState("");
 
@@ -23,17 +23,31 @@ const AllGives = () => {
   const fetchGives = async () => {
     try {
       const token = getCookie("token");
-      const response = await axios.get(`/api/myGives/getMyAllGives`, { 
+      // Pass pagination and search parameters to the API
+      const response = await axios.get(`/api/myGives/getMyAllGives`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        withCredentials: true });
+        params: {
+          page: pageIndex + 1, // API is likely 1-based, component is 0-based
+          limit: pageSize,
+          search: searchValue,
+        },
+        withCredentials: true,
+      });
 
-      const dataWithIds = (response.data.data || []).map((give, index) => ({
+      const responseData = response.data.data; // Assuming the array is in response.data.data
+      const total = response.data.total; // Assuming total count is in response.data.total
+
+      // Add a sequential ID for display purposes
+      const dataWithIds = (responseData || []).map((give, index) => ({
         ...give,
-        id: index + 1,
+        id: pageIndex * pageSize + index + 1,
       }));
-      setAllGives(dataWithIds);
+
+      setGives(dataWithIds);
+      setTotalGives(total);
+      setPageCount(Math.ceil(total / pageSize));
     } catch (error) {
       console.error("Error fetching gives:", error);
     }
@@ -41,16 +55,7 @@ const AllGives = () => {
 
   useEffect(() => {
     fetchGives();
-  }, []);
-
-  useEffect(() => {
-    const filtered = allGives.filter(give => 
-      give.companyName.toLowerCase().includes(searchValue.toLowerCase())
-    );
-    setPageCount(Math.ceil(filtered.length / pageSize));
-    const pagedData = filtered.slice(pageIndex * pageSize, (pageIndex + 1) * pageSize);
-    setGives(pagedData);
-  }, [pageIndex, pageSize, allGives, searchValue]);
+  }, [pageIndex, pageSize, searchValue]); // Refetch when page, size, or search changes
 
 
   const handleSearchChange = debounce((e) => {
@@ -67,7 +72,7 @@ const AllGives = () => {
   const handlePreviousPage = () => {
     if (pageIndex > 0) {
       setPageIndex(pageIndex - 1);
-    }
+    }``
   };
 
   const handleDelete = async (id) => {
@@ -228,8 +233,8 @@ const AllGives = () => {
         {/* Page info */}
         <span className="text-sm text-gray-600">
           Showing {(pageIndex * pageSize) + 1} to{" "}
-          {Math.min((pageIndex + 1) * pageSize, allGives.filter(g => g.companyName.toLowerCase().includes(searchValue.toLowerCase())).length)} of{" "}
-          {allGives.filter(g => g.companyName.toLowerCase().includes(searchValue.toLowerCase())).length} entries
+          {Math.min((pageIndex + 1) * pageSize, totalGives)} of{" "}
+          {totalGives} entries
         </span>
 
         {/* Pagination Controls */}

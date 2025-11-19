@@ -25,11 +25,12 @@ const EditMember = () => {
   const [facebook, setFacebook] = useState("");
   const [linkedin, setLinkedin] = useState("");
   const [twitter, setTwitter] = useState("");
-  const [password, setPassword] = useState(""); // Store the password value
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false); // Toggle password visibility
 
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
+  const [errors, setErrors] = useState({});
   const [chapters, setChapters] = useState([]);
   const [profilePreview, setProfilePreview] = useState("");
   const navigate = useNavigate();
@@ -135,9 +136,7 @@ const EditMember = () => {
       [name]: value,
     }));
   };
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
+
   const handleCountryChange = (event, newValue) => {
     const selectedCountry = newValue ? newValue.name : "";
     setMember((prevMember) => ({
@@ -171,6 +170,13 @@ const EditMember = () => {
   const handleProfileImgChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check if the file is an image
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image type file only.");
+        e.target.value = null; // Reset the file input
+        return;
+      }
+
       setMember((prevMember) => ({
         ...prevMember,
         profileImg: file,
@@ -186,9 +192,42 @@ const EditMember = () => {
     }
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!member.name.trim()) newErrors.name = "Name is required";
+
+    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!member.email.trim()) newErrors.email = "Email is required";
+    else if (!emailPattern.test(member.email)) newErrors.email = "Invalid email format";
+
+    // Password is optional on edit, but if entered, it must be valid and confirmed
+    if (member.password) {
+      if (member.password.length < 6) {
+        newErrors.password = "Password must be at least 6 characters";
+      } else if (member.password !== confirmPassword) {
+        newErrors.confirm_password = "Passwords do not match";
+      }
+    }
+
+    if (!member.country) newErrors.country = "Country is required";
+    if (!member.city) newErrors.city = "City is required";
+
+    const phonePattern = /^\+?\d{7,15}$/;
+    if (!member.mobile) newErrors.mobile = "Mobile number is required";
+    else if (!phonePattern.test(member.mobile)) newErrors.mobile = "Enter a valid mobile number (7-15 digits)";
+
+    setErrors(newErrors);
+    const firstKey = Object.keys(newErrors)[0];
+    if (firstKey) {
+      toast.error(newErrors[firstKey]);
+    }
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!validate()) return;
 
     try {
       const token = getCookie("token");
@@ -198,9 +237,11 @@ const EditMember = () => {
       formData.append("mobile", member.mobile);
       formData.append("country", member.country);
       formData.append("city", member.city);
-      formData.append("chapter", member.chapter);
-      formData.append("password", member.password);
-      formData.append("confirm_password", member.confirm_password);
+      formData.append("chapter", member.chapter || "");
+      if (member.password) {
+        formData.append("password", member.password);
+        formData.append("confirm_password", confirmPassword);
+      }
       formData.append("keyword", member.keyword);
       // only append profileImg if a File was selected (avoid sending existing filename string)
       if (member.profileImg instanceof File) {
@@ -262,6 +303,7 @@ const EditMember = () => {
       key !== "refral_code" &&
       key !== "whatsapp" &&
       key !== "facebook" &&
+      key !== "confirm_password" &&
       key !== "linkedin" &&
       key !== "twitter" && 
       key !== "profileImg" &&
@@ -274,7 +316,7 @@ const EditMember = () => {
       key !== "__v" && (
               <div className="mb-4" key={key}>
                 <label htmlFor={key} className="block font-semibold mb-2">
-                  {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")}
+                  {key.charAt(0).toUpperCase() + key.slice(1).replace("_", " ")} {["name", "email", "mobile", "country", "city"].includes(key) && <span className="text-gray-600">*</span>}
                 </label>
                 {key === "country" ? (
                   <Autocomplete
@@ -285,12 +327,14 @@ const EditMember = () => {
                       countries.find((country) => country.name === member.country) ||
                       null
                     }
-                    onChange={(_, value) => handleCountryChange(value)}
+                    onChange={handleCountryChange}
                     renderInput={(params) => (
                       <TextField
                         {...params}
                         variant="outlined"
-                        className="w-full p-2 border rounded focus:outline-none  focus:border-black-500"
+                        className="w-full "
+                        error={!!errors.country}
+                        helperText={errors.country}
                       />
                     )}
                   />
@@ -307,7 +351,9 @@ const EditMember = () => {
                       <TextField
                         {...params}
                         variant="outlined"
-                        className="w-full p-2 border rounded focus:outline-none focus:border-red-500"
+                        className="w-full "
+                        error={!!errors.city}
+                        helperText={errors.city}
                       />
                     )}
                   />
@@ -332,21 +378,15 @@ const EditMember = () => {
                 ) : key === "password" ? (
                   <div className="mb-4">
                     <input
-                      type={showPassword ? "text" : "password"}
+                      type="password"
                       id="password"
                       name="password"
                       value={member.password || ""}
                       onChange={handleChange}
                       placeholder="Enter new password"
-                      className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
+                      className={`w-full p-4 border rounded focus:outline-none focus:border-red-500  border-[#aeabab] ${errors.password ? 'border-red-500' : ''}`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="mt-2 text-gray-600 hover:text-red-700"
-                    >
-                      {showPassword ? "Hide Password" : "Show Password"}
-                    </button>
+                    {errors.password && <p className="text-gray-600 text-sm mt-1">{errors.password}</p>}
                   </div>
                 ) : (
                   <input
@@ -355,13 +395,30 @@ const EditMember = () => {
                     name={key}
                     value={member[key]}
                     onChange={handleChange}
-                    className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
+                    className={`w-full p-4 border rounded focus:outline-none focus:border-red-500  border-[#aeabab] ${errors[key] ? 'border-red-500' : ''}`}
                   />
+                )}
+                {errors[key] && (
+                  <p className="text-gray-600 text-sm mt-1">{errors[key]}</p>
                 )}
               </div>
             )
         )}
 
+        <div className="mb-4">
+          <label htmlFor="confirm_password" className="block font-semibold mb-2">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            id="confirm_password"
+            name="confirm_password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className={`w-full p-4 border rounded focus:outline-none focus:border-red-500  border-[#aeabab] ${errors.confirm_password ? 'border-red-500' : ''}`}
+          />
+          {errors.confirm_password && <p className="text-gray-600 text-sm mt-1">{errors.confirm_password}</p>}
+        </div>
         {/* profile image will render after social fields */}
       
         {/* Social media fields */}
@@ -374,7 +431,7 @@ const EditMember = () => {
             id="whatsapp"
             value={whatsapp}
             onChange={(e) => setWhatsapp(e.target.value)}
-            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
+            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
         </div>
         <div className="mb-4">
@@ -386,7 +443,7 @@ const EditMember = () => {
             id="facebook"
             value={facebook}
             onChange={(e) => setFacebook(e.target.value)}
-            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
+            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
         </div>
         <div className="mb-4">
@@ -398,7 +455,7 @@ const EditMember = () => {
             id="linkedin"
             value={linkedin}
             onChange={(e) => setLinkedin(e.target.value)}
-            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
+            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
         </div>
         <div className="mb-4">
@@ -410,7 +467,7 @@ const EditMember = () => {
             id="twitter"
             value={twitter}
             onChange={(e) => setTwitter(e.target.value)}
-            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500"
+            className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
         </div>
         {/* Profile image input rendered after social fields */}

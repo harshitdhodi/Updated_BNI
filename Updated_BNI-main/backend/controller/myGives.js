@@ -36,7 +36,7 @@ const addMyGives = async (req, res) => {
 const MyAllGives = async (req, res) => {
   try {
     const { page = 1 } = req.query;
-    const limit = 5;
+    const limit = req.query.limit || 5;
     const count = await myGives.countDocuments();
     const mygives = await myGives
       .find()
@@ -214,6 +214,7 @@ const AddGivesByEmail = async (req, res) => {
     const savedMyGives = await newMyGives.save();
     res.status(201).json(savedMyGives);
   } catch (error) {
+    console.log(error)
     res.status(500).json({ error: 'Server error' });
   }
 }

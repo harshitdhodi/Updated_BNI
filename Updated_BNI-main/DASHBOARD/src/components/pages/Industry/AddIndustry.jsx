@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
 const CreateIndustry = () => {
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
+  const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -13,33 +15,56 @@ const CreateIndustry = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validate()) {
+      return;
+    }
+
+    const loadingToast = toast.loading("Creating industry...");
+
     const industryData = { name };
 
     try {
       const token = getCookie("token");
-      const response = await axios.post("/api/industry/addIndustry", industryData, {
+      await axios.post("/api/industry/addIndustry", industryData, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         withCredentials: true,
       });
-
-      const { industry, message } = response.data; // Destructure industry and message from response.data
-
-      console.log(industry); // Log the returned industry object
-
+      toast.success("Industry created successfully!", { id: loadingToast });
+      setTimeout(() => {
       navigate("/industryList");
+      }, 1500);
     } catch (error) {
-      console.error(
-        "Failed to create industry:",
-        error.response ? error.response.data : error.message
-      );
+       const errorMessage =
+        error.response?.data?.message || "Failed to create industry.";
+      toast.error(errorMessage, { id: loadingToast });
     }
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    const nameTrimmed = name.trim();
+    const invalidCharPattern = /[<>"'{}]/g; // Block potentially harmful characters
+
+    if (!nameTrimmed) {
+      newErrors.name = "Industry name is required.";
+    } else if (nameTrimmed.length < 2 || nameTrimmed.length > 100) {
+      newErrors.name = "Industry name must be between 2 and 100 characters.";
+    } else if (invalidCharPattern.test(nameTrimmed)) {
+      newErrors.name = "Industry name contains invalid characters (e.g., <, >, {, }).";
+    } else if (/^\d+$/.test(nameTrimmed)) {
+      newErrors.name = "Industry name cannot be only numbers.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   return (
     <>
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="w-full p-2">
         <nav>
           <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">
@@ -65,9 +90,11 @@ const CreateIndustry = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-1/2 px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300"
-              required
+              className={`w-1/2 px-4 py-2 border rounded-md focus:outline-none focus:border-red-500 transition duration-300 ${
+                errors.name ? "border-red-500" : "border-gray-300"
+              }`}
             />
+            {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
           <button
             type="submit"

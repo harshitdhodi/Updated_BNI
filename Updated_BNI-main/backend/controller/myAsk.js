@@ -70,9 +70,10 @@ console.log('myASk',userId)
 const MyAllAsks= async (req, res) => {
   try {
     const { page = 1 } = req.query;
-    const limit = 5;
+    const limit = req.query.limit || 5;
     const count = await MyAsk.countDocuments()
     const myAllAsks= await MyAsk.find()  
+    .populate('dept')
     .skip((page - 1) * limit) // Skip records for previous pages
     .limit(limit);
     res.status(200).json({
@@ -83,6 +84,7 @@ const MyAllAsks= async (req, res) => {
       message: "All Asks fetched successfully",
   });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 }

@@ -131,6 +131,7 @@ app.use("/api/pdf", pdf);
 app.use("/api/profile", profile);
 app.use("/api/company", company);
 app.use("/api/dashboard", dashboard);
+app.use("/api/calendar", require("./route/calender"));
 
 // Test route
 app.get("/test", (req, res) => {

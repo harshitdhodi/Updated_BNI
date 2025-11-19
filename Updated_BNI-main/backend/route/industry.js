@@ -7,7 +7,7 @@ router.post('/addIndustry',authMiddleware,createIndustry);
 router.get('/getAllIndustry' , getAllIndustries);
 router.get('/getIndustries' ,authMiddleware , getIndustries);
 router.get('/getIndustryById' ,authMiddleware , getIndustryById);
-router.put('/updateIndustry',authMiddleware , updateIndustry);
+router.put('/updateIndustry' , updateIndustry);
 router.delete('/deleteIndustry',authMiddleware , deleteIndustry);
 
 module.exports = router;

@@ -9,7 +9,7 @@ const companySchema = new Schema({
   email: {
     type: String,
     required: true,
-    unique: true,
+   
   },
   phoneNumber: {
     type: String,
@@ -17,7 +17,6 @@ const companySchema = new Schema({
   },
   webURL: {
     type: String,
-    required: true,
   },
   dept: {
     type: mongoose.Schema.Types.ObjectId,

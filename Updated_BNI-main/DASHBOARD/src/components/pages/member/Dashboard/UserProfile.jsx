@@ -1,121 +1,214 @@
-import { useState, useEffect } from "react"
-import axios from "axios" // Import axios
+import { useState, useEffect, Fragment } from "react"
+import { User, Phone, Link as LinkIcon, Lock } from 'lucide-react';
+import axios from "axios"
 import { useParams } from "react-router-dom"
+import { toast, Toaster } from "react-hot-toast";
 
 // Personal Info Component
-function PersonalInfoTab({ userData, isEditing, onInputChange }) {
+// Personal Info Component - UPDATED with Password Fields
+function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNewPassword, onConfirmPasswordChange }) {
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={userData.name || ""}
-              onChange={(e) => onInputChange("name", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-            />
-          ) : (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              <span className="text-gray-900 font-medium">{userData.name || "—"}</span>
-            </div>
-          )}
-        </div>
+    <div className="space-y-8">
+      {/* Personal Details Grid */}
+      <div className="space-y-6">
+        <h3 className="text-lg font-semibold text-gray-900">Personal Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Full Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+            {isEditing ? (
+              <>
+                <input
+                  type="text"
+                  value={userData.name || ""}
+                  onChange={(e) => onInputChange("name", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  aria-invalid={errors.name ? "true" : "false"}
+                />
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+              </>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="text-gray-900 font-medium">{userData.name || "—"}</span>
+              </div>
+            )}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-          {isEditing ? (
-            <input
-              type="email"
-              value={userData.email || ""}
-              onChange={(e) => onInputChange("email", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-            />
-          ) : (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <span className="text-gray-900">{userData.email || "—"}</span>
-            </div>
-          )}
-        </div>
+          {/* Email Address */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+            {isEditing ? (
+              <>
+                <input
+                  type="email"
+                  value={userData.email || ""}
+                  onChange={(e) => onInputChange("email", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  aria-invalid={errors.email ? "true" : "false"}
+                />
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+              </>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                <span className="text-gray-900">{userData.email || "—"}</span>
+              </div>
+            )}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={userData.country || ""}
-              onChange={(e) => onInputChange("country", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-            />
-          ) : (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-gray-900">{userData.country || "—"}</span>
-            </div>
-          )}
-        </div>
+          {/* Country */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
+            {isEditing ? (
+              <>
+                <input
+                  type="text"
+                  value={userData.country || ""}
+                  onChange={(e) => onInputChange("country", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  aria-invalid={errors.country ? "true" : "false"}
+                />
+                {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+              </>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-gray-900">{userData.country || "—"}</span>
+              </div>
+            )}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={userData.city || ""}
-              onChange={(e) => onInputChange("city", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-            />
-          ) : (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <span className="text-gray-900">{userData.city || "—"}</span>
-            </div>
-          )}
+          {/* City */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+            {isEditing ? (
+              <>
+                <input
+                  type="text"
+                  value={userData.city || ""}
+                  onChange={(e) => onInputChange("city", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  aria-invalid={errors.city ? "true" : "false"}
+                />
+                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+              </>
+            ) : (
+              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <span className="text-gray-900">{userData.city || "—"}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Change Password Section - Only in Edit Mode */}
+      {isEditing && (
+        <div className="space-y-6 pt-8 border-t border-gray-200">
+          <div className="flex items-center gap-3">
+            <Lock className="w-6 h-6 text-gray-600" />
+            <h3 className="text-lg font-semibold text-gray-900">Change Password (Optional)</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* New Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+              <>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={userData.password || ""}
+                    onChange={(e) => onInputChange("password", e.target.value)}
+                    placeholder="Enter new password (min 6 characters)"
+                    className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                </div>
+                {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
+              </>
+            </div>
+
+            {/* Confirm New Password */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+              <>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => onConfirmPasswordChange(e.target.value)}
+                    placeholder="Re-type new password"
+                    className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                </div>
+                {errors.confirmNewPassword && (
+                  <p className="text-red-500 text-sm mt-1">{errors.confirmNewPassword}</p>
+                )}
+              </>
+            </div>
+          </div>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <div className="flex gap-3">
+              <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-2.964 0L6.772 15c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div>
+                <p className="text-sm text-amber-800">
+                  Leave password fields empty if you <strong>don't want to change</strong> your current password.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 // Contact Details Component
-function ContactDetailsTab({ userData, isEditing, onInputChange }) {
+function ContactDetailsTab({ userData, isEditing, onInputChange, errors }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Mobile Number */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Mobile Number
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
           {isEditing ? (
-            <input
-              type="tel"
-              value={userData.mobile || ""}
-              onChange={(e) => onInputChange("mobile", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-            />
+            <>
+              <input
+                type="tel"
+                value={userData.mobile || ""}
+                onChange={(e) => onInputChange("mobile", e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                aria-invalid={errors.mobile ? "true" : "false"}
+              />
+              {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
+            </>
           ) : (
             <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              <span className="text-gray-900">{userData.mobile}</span>
+              <span className="text-gray-900">{userData.mobile || "—"}</span>
             </div>
           )}
         </div>
 
+        {/* WhatsApp Number */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            WhatsApp Number
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp Number</label>
           {isEditing ? (
             <input
               type="tel"
@@ -153,9 +246,9 @@ function ContactDetailsTab({ userData, isEditing, onInputChange }) {
 // Social Links Component
 function SocialLinksTab({ userData, isEditing, onInputChange }) {
   const socialLinks = [
-    { field: "facebook", label: "Facebook", icon: "📘", placeholder: "https://facebook.com/username" },
-    { field: "linkedin", label: "LinkedIn", icon: "💼", placeholder: "https://linkedin.com/in/username" },
-    { field: "twitter", label: "Twitter", icon: "🐦", placeholder: "https://twitter.com/username" }
+    { field: "facebook", label: "Facebook", icon: "Facebook", placeholder: "https://facebook.com/username" },
+    { field: "linkedin", label: "LinkedIn", icon: "LinkedIn", placeholder: "https://linkedin.com/in/username" },
+    { field: "twitter", label: "Twitter", icon: "Twitter", placeholder: "https://twitter.com/username" }
   ]
 
   return (
@@ -209,79 +302,17 @@ function SocialLinksTab({ userData, isEditing, onInputChange }) {
   )
 }
 
-// Security Component
-function SecurityTab() {
-  return (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-br from-red-50 to-orange-50 border border-red-200 rounded-lg p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Password Security</h3>
-            <p className="text-sm text-gray-700 mb-4">Your password is encrypted and securely stored. For security reasons, we cannot display your actual password.</p>
-            <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-              Change Password
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Recent Activity
-        </h3>
-        <div className="space-y-3">
-          {[
-            { action: "Login from Chrome", location: "Vapi, India", time: "2 hours ago", icon: "💻" },
-            { action: "Password changed", location: "Vapi, India", time: "1 week ago", icon: "🔑" },
-            { action: "Profile updated", location: "Vapi, India", time: "2 weeks ago", icon: "✏️" }
-          ].map((activity, i) => (
-            <div key={i} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-              <div className="flex items-center gap-3">
-                <span className="text-2xl">{activity.icon}</span>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-xs text-gray-500">{activity.location}</p>
-                </div>
-              </div>
-              <span className="text-xs text-gray-500">{activity.time}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-        <div className="flex gap-3">
-          <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <div>
-            <h4 className="text-sm font-semibold text-yellow-900 mb-1">Security Recommendation</h4>
-            <p className="text-sm text-yellow-700">We recommend enabling two-factor authentication and regularly updating your password to keep your account secure.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profileImageFile, setProfileImageFile] = useState(null);
+  const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const { id: userId } = useParams();
 
-  // Safe initial state
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -290,10 +321,15 @@ export default function UserProfile() {
     profileImg: "",
     approvedByadmin: "pending",
     approvedBymember: "pending",
+    password: "",
     refral_code: "",
+    mobile: "",
+    whatsapp: "",
+    facebook: "",
+    linkedin: "",
+    twitter: "",
   });
 
-  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId) {
@@ -306,7 +342,6 @@ export default function UserProfile() {
         const response = await axios.get(`/api/member/getUserById?id=${userId}`);
         const data = response.data?.data || {};
 
-        // Ensure all fields exist
         setUserData(prev => ({
           ...prev,
           ...data,
@@ -325,7 +360,11 @@ export default function UserProfile() {
   }, [userId]);
 
   const handleInputChange = (field, value) => {
-    setUserData(prev => ({ ...prev, [field]: value }));
+    setUserData(prev => ({
+      ...prev,
+      [field]: value,
+      ...(field === "password" && !value && { confirmNewPassword: "" })
+    }));
   };
 
   const handleImageUpload = (e) => {
@@ -341,8 +380,51 @@ export default function UserProfile() {
     reader.readAsDataURL(file);
   };
 
+  const validate = () => {
+    const newErrors = {};
+
+    if (!/^[a-zA-Z\s]+$/.test(userData.name)) {
+      newErrors.name = "Name must contain only letters and spaces.";
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(userData.email)) {
+      newErrors.email = "Please enter a valid email address (e.g., user@example.com).";
+    }
+
+    if (!/^[a-zA-Z\s]+$/.test(userData.country)) {
+      newErrors.country = "Country name must contain only letters.";
+    }
+
+    if (!/^[a-zA-Z\s]+$/.test(userData.city)) {
+      newErrors.city = "City name must contain only letters.";
+    }
+
+    if (userData.mobile && !/^\d{10}$/.test(userData.mobile)) {
+      newErrors.mobile = "Please enter a valid 10-digit phone number.";
+    }
+
+    if (userData.password) {
+      if (userData.password.length < 6) newErrors.password = "Password must be at least 6 characters.";
+      if (userData.password !== confirmNewPassword) newErrors.confirmNewPassword = "Passwords do not match.";
+    } else if (confirmNewPassword) {
+      newErrors.confirmNewPassword = "Please enter a new password first.";
+    }
+
+    setErrors(newErrors);
+
+    const firstError = Object.values(newErrors)[0];
+    if (firstError) {
+      toast.error(firstError);
+    }
+
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
+    if (!validate()) return;
+
     try {
+      toast.loading("Saving changes...", { id: "saveToast" });
       setSaving(true);
       let requestBody;
       let config = {};
@@ -351,42 +433,46 @@ export default function UserProfile() {
         const formData = new FormData();
         for (const key in userData) {
           if (key === "profileImg" && typeof userData[key] === "string" && userData[key].startsWith("data:image")) {
-            continue; // Skip base64 preview
+            continue;
           }
-          formData.append(key, userData[key]);
+          if (userData[key] !== undefined && userData[key] !== null && userData[key] !== "") {
+            formData.append(key, userData[key]);
+          }
         }
         formData.append("profileImg", profileImageFile);
+        if (userData.password) formData.append("password", userData.password);
+        if (confirmNewPassword) formData.append("confirm_password", confirmNewPassword);
         requestBody = formData;
       } else {
         requestBody = { ...userData };
         if (requestBody.profileImg?.startsWith?.("data:image")) {
-          delete requestBody.profileImg; // Don't send base64 if no new file
+          delete requestBody.profileImg;
         }
         config.headers = { "Content-Type": "application/json" };
       }
 
       const response = await axios.put(`/api/member/updatememberById?id=${userId}`, requestBody, config);
 
-      if (response.status !== 200) throw new Error("Failed to update");
+      if (response.status !== 200) throw new Error(response.data?.message || "Failed to update");
 
       const updatedData = response.data.data || {};
 
-      // Preserve preview if file was uploaded, otherwise use server value
       const finalData = {
         ...userData,
         ...updatedData,
-        profileImg:
-          profileImageFile && userData.profileImg?.startsWith("data:image")
-            ? userData.profileImg // Keep preview
-            : updatedData.profileImg || userData.profileImg || "",
+        profileImg: profileImageFile && userData.profileImg?.startsWith("data:image")
+          ? userData.profileImg
+          : updatedData.profileImg || userData.profileImg || "",
       };
 
-      setUserData(finalData);
+      setUserData({ ...finalData, password: "" });
+      setConfirmNewPassword("");
       setIsEditing(false);
       setProfileImageFile(null);
       setError(null);
+      toast.success("Profile updated successfully!", { id: "saveToast" });
     } catch (err) {
-      console.error("Error updating user data:", err);
+      toast.error(err.response?.data?.message || err.message || "Failed to update profile.", { id: "saveToast" });
       setError(err.response?.data?.message || err.message);
     } finally {
       setSaving(false);
@@ -395,13 +481,7 @@ export default function UserProfile() {
 
   const getInitials = (name) => {
     if (!name) return "U";
-    return name
-      .trim()
-      .split(" ")
-      .map(n => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
+    return name.trim().split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
   const getStatusBadge = (status) => {
@@ -443,6 +523,7 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -456,17 +537,12 @@ export default function UserProfile() {
 
           <div className="relative px-4 sm:px-6 lg:px-8 pb-6">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between">
-              {/* Profile Picture */}
               <div className="flex flex-col sm:flex-row items-center sm:items-end gap-4 -mt-16 sm:-mt-20">
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-xl overflow-hidden">
                     {userData.profileImg ? (
                       <img
-                        src={
-                          userData.profileImg.startsWith("data:image")
-                            ? userData.profileImg
-                            : `/api/image/download/${userData.profileImg}`
-                        }
+                        src={userData.profileImg.startsWith("data:image") ? userData.profileImg : `/api/image/download/${userData.profileImg}`}
                         alt="Profile"
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -475,9 +551,7 @@ export default function UserProfile() {
                         }}
                       />
                     ) : null}
-                    <div
-                      className={`w-full h-full items-center justify-center ${userData.profileImg ? "hidden" : "flex"}`}
-                    >
+                    <div className={`w-full h-full items-center justify-center ${userData.profileImg ? "hidden" : "flex"}`}>
                       {getInitials(userData.name)}
                     </div>
                   </div>
@@ -493,7 +567,7 @@ export default function UserProfile() {
                   )}
                 </div>
 
-                <div className="text-center sm:text-left ml-5 relative  -top-20">
+                <div className="text-center sm:text-left ml-5 relative -top-20">
                   <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">{userData.name || "User"}</h2>
                   <p className="text-gray-600 mt-1">{userData.email || "—"}</p>
                   <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
@@ -508,13 +582,9 @@ export default function UserProfile() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center gap-3 mt-4 sm:mt-0 justify-center sm:justify-end w-full sm:w-auto">
                 {!isEditing ? (
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
-                  >
+                  <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
@@ -522,21 +592,10 @@ export default function UserProfile() {
                   </button>
                 ) : (
                   <>
-                    <button
-                      onClick={() => {
-                        setIsEditing(false);
-                        setProfileImageFile(null);
-                      }}
-                      className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                      disabled={saving}
-                    >
+                    <button onClick={() => { setIsEditing(false); setProfileImageFile(null); }} className="px-6 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors" disabled={saving}>
                       Cancel
                     </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
+                    <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                       {saving ? (
                         <>
                           <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -559,7 +618,6 @@ export default function UserProfile() {
               </div>
             </div>
 
-            {/* Status Badges */}
             <div className="flex flex-wrap gap-3 mt-6">
               <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusBadge(userData.approvedByadmin)}`}>
                 <span className="flex items-center gap-2">
@@ -588,14 +646,12 @@ export default function UserProfile() {
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="border-t border-gray-200">
             <div className="flex overflow-x-auto">
               {[
-                { id: "personal", label: "Personal Info", icon: "User" },
-                { id: "contact", label: "Contact Details", icon: "Phone" },
-                { id: "social", label: "Social Links", icon: "Link" },
-                { id: "security", label: "Security", icon: "Lock" },
+                { id: "personal", label: "Personal Info", icon: User },
+                { id: "contact", label: "Contact Details", icon: Phone },
+                { id: "social", label: "Social Links", icon: LinkIcon },
               ].map(tab => (
                 <button
                   key={tab.id}
@@ -606,56 +662,30 @@ export default function UserProfile() {
                       : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                 >
-                  <span className="text-lg">{tab.icon}</span>
+                  <tab.icon className="text-lg"/>
                   {tab.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Tab Content */}
           <div className="p-6 sm:p-8">
             {activeTab === "personal" && (
-              <PersonalInfoTab userData={userData} isEditing={isEditing} onInputChange={handleInputChange} />
-            )}
+  <PersonalInfoTab 
+    userData={userData} 
+    isEditing={isEditing} 
+    onInputChange={handleInputChange} 
+    errors={errors}
+    confirmNewPassword={confirmNewPassword}
+    onConfirmPasswordChange={setConfirmNewPassword}
+  />
+)}
             {activeTab === "contact" && (
-              <ContactDetailsTab userData={userData} isEditing={isEditing} onInputChange={handleInputChange} />
+              <ContactDetailsTab userData={userData} isEditing={isEditing} onInputChange={handleInputChange} errors={errors} />
             )}
             {activeTab === "social" && (
               <SocialLinksTab userData={userData} isEditing={isEditing} onInputChange={handleInputChange} />
             )}
-            {activeTab === "security" && <SecurityTab />}
-          </div>
-        </div>
-
-        {/* Referral Code Card */}
-        <div className="mt-6 bg-[#fff5f0] border border-red-500/40 rounded-2xl shadow-lg p-6 sm:p-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-            <div className="text-center sm:text-left">
-              <h3 className="text-2xl text-black font-bold mb-2">Your Referral Code</h3>
-              <p className="text-black mb-4">Share this code with friends and earn rewards!</p>
-              <div className="inline-flex items-center gap-3 bg-white bg-opacity-20 backdrop-blur-sm rounded-lg px-6 py-3 border border-white border-opacity-30">
-                <span className="text-3xl font-bold text-gray-600 tracking-wider">
-                  {userData.refral_code || "—"}
-                </span>
-                <button
-                  onClick={() => navigator.clipboard.writeText(userData.refral_code || "")}
-                  className="p-2 bg-red-500 bg-opacity-70 rounded-lg hover:bg-opacity-30 transition-all"
-                  disabled={!userData.refral_code}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div className="flex-shrink-0">
-              <div className="w-32 h-32 bg-red-500/90 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white border-opacity-30">
-                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-            </div>
           </div>
         </div>
       </div>

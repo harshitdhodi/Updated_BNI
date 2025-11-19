@@ -8,14 +8,13 @@ import Swal from 'sweetalert2';
 import { EyeIcon } from "lucide-react";
 const AllAsks = () => {
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [value, setValue] = useState("");
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pageIndex, setPageIndex] = useState(0);
+  const [pageSize, setPageSize] = useState(5);
+  const [totalAsks, setTotalAsks] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
+  const [searchValue, setSearchValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalData, setModalData] = useState({});
-  const pageSize = 5;
 
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -23,74 +22,57 @@ const AllAsks = () => {
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
   // Fetch data based on search value or page number
-  const fetchAsks = async (searchValue = "", page = 1) => {
+  const fetchAsks = async () => {
     try {
       const token = getCookie("token");
-      const url = searchValue
-        ? `/api/myAsk/getFilteredAsks?companyName=${searchValue}`
-        : `/api/myAsk/getAllAsks?page=${page}`;
-
-      const response = await axios.get(url, { headers: {
+      const response = await axios.get(`/api/myAsk/getAllAsks`, {
+        headers: {
             Authorization: `Bearer ${token}`,
-          }, withCredentials: true });
+        },
+        params: {
+          page: pageIndex + 1,
+          limit: pageSize,
+          search: searchValue,
+        },
+        withCredentials: true,
+      });
 
-      // Log the API response to understand its structure
-      console.log("API Response:", response);
+      const responseData = response.data.data;
+      const total = response.data.total;
 
-      const responseData = response.data;
+      const dataWithIds = (responseData || []).map((ask, index) => ({
+        ...ask,
+        id: pageIndex * pageSize + index + 1,
+      }));
 
-      // Check if the response data has a 'result' field or 'data' field
-      if (responseData.result && Array.isArray(responseData.result)) {
-        // Handle the filtered search response format
-        setFilteredData(responseData.result);
-        setData(responseData.result);
-      } else if (responseData.data && Array.isArray(responseData.data)) {
-        // Handle the all asks response format
-        setFilteredData(responseData.data);
-        setData(responseData.data);
-        // Update pagination state if necessary
-        setHasNextPage(responseData.hasNextPage);
-        setTotalPages(Math.ceil(responseData.total / pageSize)); // Adjust pageSize as needed
-      } else {
-        console.error(
-          "Invalid response format - expected an array in response.data.result or response.data.data:",
-          responseData
-        );
-      }
+      setData(dataWithIds);
+      setTotalAsks(total);
+      setPageCount(Math.ceil(total / pageSize));
     } catch (error) {
       console.error("Error fetching asks:", error);
     }
   };
 
   useEffect(() => {
-    fetchAsks(); // Fetch initial data
-  }, []); // Empty dependency array means this runs once on mount
-
-  useEffect(() => {
-    console.log("Filtered Data:", filteredData);
-    console.log("Data:", data);
-  }, [filteredData, data]);
+    fetchAsks();
+  }, [pageIndex, pageSize, searchValue]);
 
   // Debounced search handler
-  const debouncedFilterData = debounce((e) => {
-    const searchValue = e.target.value;
-    setValue(searchValue);
-    setCurrentPage(1); // Reset to first page on search
-    fetchAsks(searchValue, 1); // Fetch filtered data
+  const handleSearchChange = debounce((e) => {
+    setSearchValue(e.target.value);
+    setPageIndex(0);
   }, 300);
 
   // Handle page changes
   const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prevPage) => prevPage + 1);
-      fetchAsks(value, currentPage + 1); // Fetch data for the next page
+    if (pageIndex < pageCount - 1) {
+      setPageIndex(pageIndex + 1);
     }
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1);
-      fetchAsks(value, currentPage - 1); // Fetch data for the previous page
+    if (pageIndex > 0) {
+      setPageIndex(pageIndex - 1);
     }
   };
 
@@ -126,7 +108,7 @@ const AllAsks = () => {
             });
 
             // Refresh data after deletion
-            fetchAsks(value, currentPage); // Fetch data after deletion
+            fetchAsks(); // Fetch data after deletion
         } catch (error) {
             console.error("Error deleting My Ask:", error);
             // Show error alert
@@ -139,10 +121,6 @@ const AllAsks = () => {
         }
     }
 };
-
-  const getItemId = (index) => {
-    return (currentPage - 1) * pageSize + index + 1;
-  };
 
   // Export to Excel
   const exportToExcel = () => {
@@ -160,7 +138,7 @@ const AllAsks = () => {
         <div className="flex space-x-2">
           <input
             type="text"
-            onChange={debouncedFilterData}
+            onChange={handleSearchChange}
             placeholder="Search Company..."
             className="px-2 border border-gray-300 rounded"
           />
@@ -190,14 +168,14 @@ const AllAsks = () => {
           </tr>
         </thead>
         <tbody>
-          {(value.length > 0 ? filteredData : data).map((ask, index) => (
+          {data.map((ask) => (
             <tr
               key={ask._id}
               className="bg-gray-50 border-b border-gray-300 hover:bg-gray-100 transition duration-150"
             >
-              <td className="py-2 px-6">{getItemId(index)}</td>
+              <td className="py-2 px-6">{ask.id}</td>
               <td className="py-2 px-6">{ask.companyName}</td>
-              <td className="py-2 px-6">{ask.dept}</td>
+              <td className="py-2 px-6">{ask.dept?.name || "No Department"} </td>
               <td className="py-2 px-6">
                 {ask.message.length > 30
                   ? `${ask.message.substring(0, 60)}...`
@@ -228,27 +206,97 @@ const AllAsks = () => {
         </tbody>
       </table>
 
-      <div className="mt-4 flex justify-center items-center space-x-2">
-        <button
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition"
-        >
-          {"<"}
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={!hasNextPage}
-          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition"
-        >
-          {">"}
-        </button>
-        <span>
-          Page{" "}
-          <strong>
-            {currentPage} of {totalPages}
-          </strong>
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+        {/* Rows per page selector */}
+        <div className="flex items-center gap-3 text-sm text-gray-700">
+          <span>Show</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPageIndex(0);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {[5, 10, 20, 50].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+          <span>entries</span>
+        </div>
+
+        {/* Page info */}
+        <span className="text-sm text-gray-600">
+          Showing {(pageIndex * pageSize) + 1} to{" "}
+          {Math.min((pageIndex + 1) * pageSize, totalAsks)} of{" "}
+          {totalAsks} entries
         </span>
+
+        {/* Pagination Controls */}
+        <nav className="flex items-center gap-1" aria-label="Pagination">
+          <button onClick={() => setPageIndex(0)} disabled={pageIndex === 0} className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex === 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}>First</button>
+          <button onClick={handlePreviousPage} disabled={pageIndex === 0} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex === 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}>Previous</button>
+          <div className="flex items-center gap-1">
+            {(() => {
+              const pages = [];
+              const totalPages = pageCount;
+              const current = pageIndex + 1;
+              const delta = 2;
+
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+              } else if (current <= delta + 2) {
+                for (let i = 1; i <= 5; i++) pages.push(i);
+                pages.push("...");
+                pages.push(totalPages);
+              } else if (current >= totalPages - delta - 1) {
+                pages.push(1);
+                pages.push("...");
+                for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+              } else {
+                pages.push(1);
+                pages.push("...");
+                for (let i = current - delta; i <= current + delta; i++) pages.push(i);
+                pages.push("...");
+                pages.push(totalPages);
+              }
+
+              return pages.map((page, idx) =>
+                page === "..." ? (
+                  <span key={idx} className="px-3 py-2 text-gray-500">...</span>
+                ) : (
+                  <button
+                    key={idx}
+                    onClick={() => setPageIndex(page - 1)}
+                    className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                      current === page
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-white hover:bg-blue-50 text-gray-700 border border-gray-300"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              );
+            })()}
+          </div>
+          <button
+            onClick={handleNextPage}
+            disabled={pageIndex >= pageCount - 1}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex >= pageCount - 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}
+          >
+            Next
+          </button>
+          <button
+            onClick={() => setPageIndex(pageCount - 1)}
+            disabled={pageIndex >= pageCount - 1}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex >= pageCount - 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}
+          >
+            Last
+          </button>
+        </nav>
       </div>
 
       {/* Modal for Viewing Details */}

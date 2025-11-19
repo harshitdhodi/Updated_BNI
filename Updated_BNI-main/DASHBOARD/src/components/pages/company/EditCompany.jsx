@@ -14,6 +14,8 @@ const EditCompany = () => {
     twitter: "",
     companyAddress: "",
   });
+  const [bannerImgPreview, setBannerImgPreview] = useState(null);
+  const [profileImgPreview, setProfileImgPreview] = useState(null);
   const navigate = useNavigate();
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -22,6 +24,12 @@ const EditCompany = () => {
   };
   useEffect(() => {
     fetchCompany();
+
+    // Cleanup object URLs on component unmount
+    return () => {
+      if (bannerImgPreview) URL.revokeObjectURL(bannerImgPreview);
+      if (profileImgPreview) URL.revokeObjectURL(profileImgPreview);
+    };
   }, [id]);
 
   const fetchCompany = async () => {
@@ -65,10 +73,30 @@ const EditCompany = () => {
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    setCompany((prevCompany) => ({
-      ...prevCompany,
-      [name]: files[0],
-    }));
+    const file = files[0];
+
+    if (file) {
+      // Check if the file is an image
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image type file only.");
+        e.target.value = null; // Reset the file input
+        return;
+      }
+
+      // If it's an image, proceed
+      setCompany((prevCompany) => ({
+        ...prevCompany,
+        [name]: file,
+      }));
+
+      if (name === "bannerImg") {
+        if (bannerImgPreview) URL.revokeObjectURL(bannerImgPreview); // Clean up previous preview
+        setBannerImgPreview(URL.createObjectURL(file)); 
+      } else if (name === "profileImg") {
+        if (profileImgPreview) URL.revokeObjectURL(profileImgPreview); // Clean up previous preview
+        setProfileImgPreview(URL.createObjectURL(file));
+      }
+    }
   };
 
   const handleResetFile = (fieldName) => {
@@ -150,11 +178,12 @@ const EditCompany = () => {
               id="bannerImg"
               name="bannerImg"
               onChange={handleFileChange}
+              accept="image/*"
               className="w-full p-2 border rounded focus:outline-none focus:border-red-500"
             />
-            {company.bannerImg && (
+            {(bannerImgPreview || company.bannerImg) && (
               <img
-                src={`/api/image/download/${company.bannerImg}`}
+                src={bannerImgPreview || `/api/image/download/${company.bannerImg}`}
                 alt="Banner"
                 width="100"
                 height="100"
@@ -181,11 +210,12 @@ const EditCompany = () => {
               id="profileImg"
               name="profileImg"
               onChange={handleFileChange}
+              accept="image/*"
               className="w-full p-2 border rounded focus:outline-none focus:border-red-500"
             />
-            {company.profileImg && (
+            {(profileImgPreview || company.profileImg) && (
               <img
-                src={`/api/image/download/${company.profileImg}`}
+                src={profileImgPreview || `/api/image/download/${company.profileImg}`}
                 alt="Profile"
                 width="100"
                 height="100"

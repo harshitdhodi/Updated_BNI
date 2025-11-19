@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import  { useEffect, useState } from "react";
 import { MoreVertical, LogOut, Lock, User, ChevronDown } from 'lucide-react';
 import Cookies from "js-cookie";
 import { Link, useNavigate } from "react-router-dom";
@@ -24,6 +24,7 @@ export default function Navbar({ toggleSidebar }) {
         },
         withCredentials: true,
       });
+      console.log(response.data.data)
       setUserData(response.data.data || {});
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -79,9 +80,12 @@ export default function Navbar({ toggleSidebar }) {
               className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-transparent transition-all duration-200"
             >
               {userData?.firstName && (
-                <p className="text-gray-800 font-semibold text-sm hidden sm:block">
-                  {userData.firstName} {userData.lastName}
-                </p>
+                <div className="text-right">
+                  <p className="text-gray-800 font-semibold text-sm">
+                    {userData.firstName} {userData.lastName}
+                  </p>
+                  <p className="text-xs text-gray-500">{userData.email}</p>
+                </div>
               )}
               {userData?.photo ? (
                 <img

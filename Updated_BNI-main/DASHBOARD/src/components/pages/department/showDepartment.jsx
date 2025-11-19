@@ -6,8 +6,9 @@ import Swal from 'sweetalert2';
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
-  const [pageCount, setPageCount] = useState(1);
-  const pageSize = 5;
+  const [pageSize, setPageSize] = useState(5); // Default page size
+  const [totalDepartments, setTotalDepartments] = useState(0);
+  const [pageCount, setPageCount] = useState(0);
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -15,25 +16,32 @@ const DepartmentList = () => {
   };
   useEffect(() => {
     fetchDepartments();
-  }, [pageIndex]);
+  }, [pageIndex, pageSize]); // Refetch when page or page size changes
 
   const fetchDepartments = async () => {
     try {
       const token = getCookie("token");
       const response = await axios.get(
-        `/api/department/getDepartment?page=${pageIndex + 1}`, {
+        `/api/department/getDepartment`, {
           headers: {
             Authorization: `Bearer ${token}`,
+          },
+          params: {
+            page: pageIndex + 1, // API is likely 1-based, component is 0-based
+            limit: pageSize,
           },
           withCredentials: true,
         }
       );
-      const dataWithIds = response.data.data.map((department, index) => ({
+      const responseData = response.data.data;
+      const total = response.data.total;
+      const dataWithIds = (responseData || []).map((department, index) => ({
         ...department,
         id: pageIndex * pageSize + index + 1,
       }));
       setDepartments(dataWithIds);
-      setPageCount(Math.ceil(response.data.total / pageSize));
+      setTotalDepartments(total);
+      setPageCount(Math.ceil(total / pageSize));
     } catch (error) {
       console.error("There was an error fetching the departments!", error);
     }
@@ -138,27 +146,97 @@ const DepartmentList = () => {
         </tbody>
       </table>
 
-      <div className="mt-4 flex justify-center items-center space-x-2">
-        <button
-          onClick={handlePreviousPage}
-          disabled={pageIndex === 0}
-          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 flex justify-center rounded transition"
-        >
-          {"<"}
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={pageIndex + 1 >= pageCount}
-          className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded transition"
-        >
-          {">"}
-        </button>
-        <span>
-          Page{" "}
-          <strong>
-            {pageIndex + 1} of {pageCount}
-          </strong>{" "}
+      <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
+        {/* Rows per page selector */}
+        <div className="flex items-center gap-3 text-sm text-gray-700">
+          <span>Show</span>
+          <select
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPageIndex(0);
+            }}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {[5, 10, 20, 50].map((size) => (
+              <option key={size} value={size}>
+                {size}
+              </option>
+            ))}
+          </select>
+          <span>entries</span>
+        </div>
+
+        {/* Page info */}
+        <span className="text-sm text-gray-600">
+          Showing {(pageIndex * pageSize) + 1} to{" "}
+          {Math.min((pageIndex + 1) * pageSize, totalDepartments)} of{" "}
+          {totalDepartments} entries
         </span>
+
+        {/* Pagination Controls */}
+        <nav className="flex items-center gap-1" aria-label="Pagination">
+          <button onClick={() => setPageIndex(0)} disabled={pageIndex === 0} className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex === 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}>First</button>
+          <button onClick={handlePreviousPage} disabled={pageIndex === 0} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex === 0 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}>Previous</button>
+          <div className="flex items-center gap-1">
+            {(() => {
+              const pages = [];
+              const totalPages = pageCount;
+              const current = pageIndex + 1;
+              const delta = 2;
+
+              if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+              } else if (current <= delta + 2) {
+                for (let i = 1; i <= 5; i++) pages.push(i);
+                pages.push("...");
+                pages.push(totalPages);
+              } else if (current >= totalPages - delta - 1) {
+                pages.push(1);
+                pages.push("...");
+                for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+              } else {
+                pages.push(1);
+                pages.push("...");
+                for (let i = current - delta; i <= current + delta; i++) pages.push(i);
+                pages.push("...");
+                pages.push(totalPages);
+              }
+
+              return pages.map((page, idx) =>
+                page === "..." ? (
+                  <span key={idx} className="px-3 py-2 text-gray-500">...</span>
+                ) : (
+                  <button
+                    key={idx}
+                    onClick={() => setPageIndex(page - 1)}
+                    className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${
+                      current === page
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-white hover:bg-blue-50 text-gray-700 border border-gray-300"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              );
+            })()}
+          </div>
+          <button
+            onClick={handleNextPage}
+            disabled={pageIndex >= pageCount - 1}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex >= pageCount - 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}
+          >
+            Next
+          </button>
+          <button
+            onClick={() => setPageIndex(pageCount - 1)}
+            disabled={pageIndex >= pageCount - 1}
+            className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${pageIndex >= pageCount - 1 ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white hover:bg-gray-100 text-gray-700 border border-gray-300"}`}
+          >
+            Last
+          </button>
+        </nav>
       </div>
     </div>
   );

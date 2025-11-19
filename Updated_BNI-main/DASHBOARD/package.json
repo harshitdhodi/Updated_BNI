@@ -24,6 +24,7 @@
     "country-list": "^2.3.0",
     "country-state-city": "^3.2.1",
     "csvjson": "^5.1.0",
+    "date-fns": "^4.1.0",
     "file-saver": "^2.0.5",
     "firebase": "^10.13.2",
     "js-cookie": "^3.0.5",
