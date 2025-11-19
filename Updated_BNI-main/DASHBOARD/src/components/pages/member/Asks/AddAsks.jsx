@@ -118,16 +118,18 @@ const CreateMyAsk = () => {
     <>
       <div className="w-full p-2">
         <nav>
-          <Link to="/" className="mr-2 text-red-300 hover:text-red-600">
+          <Link to="/" className="mr-2 text-gray-600 hover:text-red-600">
+            Home /
+          </Link>
+          <Link to={`/dashboard/${userId}`} className="mr-2 text-gray-600 hover:text-red-600">
             Dashboard /
           </Link>
           <Link
             to={`/myAsks/${userId}`}
-            className="mr-2 text-red-300 hover:text-red-600"
+            className="mr-2 text-gray-700 font-medium hover:text-gray-700"
           >
-            My Asks /
+            My Asks 
           </Link>
-          <Link className="font-bold text-gray-600"> Add My Ask</Link>
         </nav>
       </div>
 

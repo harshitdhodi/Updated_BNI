@@ -173,11 +173,10 @@ const CreateMyGivesByEmail = () => {
                       value={myGive[key]}
                       onChange={handleChange}
                       className="w-full p-2 border rounded focus:outline-none focus:border-red-500"
-                      required
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
-                        <option key={dept._id} value={dept.name}>
+                        <option key={dept._id} value={dept._id}>
                           {dept.name}
                         </option>
                       ))}
@@ -189,7 +188,6 @@ const CreateMyGivesByEmail = () => {
                       value={myGive[key]}
                       onChange={handleChange}
                       className="w-full p-2 border rounded focus:outline-none focus:border-red-500"
-                      required
                     >
                       <option value="">Select Member Email</option>
                       {emails.map((email) => (
@@ -214,7 +212,6 @@ const CreateMyGivesByEmail = () => {
                           label="Add Company Name"
                           variant="outlined"
                           className="w-full"
-                          required
                         />
                       )}
                     />
@@ -226,7 +223,6 @@ const CreateMyGivesByEmail = () => {
                       value={myGive[key]}
                       onChange={handleChange}
                       className="w-full p-2 border rounded focus:outline-none focus:border-red-500"
-                      required
                     />
                   )}
                 </div>

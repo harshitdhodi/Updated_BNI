@@ -60,6 +60,19 @@ const CreateUser = () => {
     }
   }, [country]);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please select an image type file only (e.g., JPG, PNG).");
+        e.target.value = null; // Reset the file input
+        setProfileImg(null);
+        return;
+      }
+      setProfileImg(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     // validate all fields
@@ -194,7 +207,7 @@ const CreateUser = () => {
               type="text"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
           </div>
           <div>
@@ -205,7 +218,7 @@ const CreateUser = () => {
               type="text"
               value={facebook}
               onChange={(e) => setFacebook(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
           </div>
           <div>
@@ -216,7 +229,7 @@ const CreateUser = () => {
               type="text"
               value={linkedin}
               onChange={(e) => setLinkedin(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
           </div>
           <div>
@@ -227,7 +240,7 @@ const CreateUser = () => {
               type="text"
               value={twitter}
               onChange={(e) => setTwitter(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
           </div>
           <div>
@@ -312,8 +325,9 @@ const CreateUser = () => {
             <label className="block text-gray-700 font-bold mb-2">Profile Image</label>
             <input
               type="file"
-              onChange={(e) => setProfileImg(e.target.files[0])}
+              onChange={handleFileChange}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              accept="image/*"
             />
           </div>
         

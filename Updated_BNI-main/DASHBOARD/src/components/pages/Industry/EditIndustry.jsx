@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
 
 const EditIndustry = () => {
   const { id } = useParams();
@@ -34,26 +35,36 @@ const EditIndustry = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!name.trim()) {
+      toast.error("Industry name cannot be empty.");
+      return;
+    }
+
+    const loadingToast = toast.loading("Updating industry...");
     const industryData = { name };
 
     try {
       const token = getCookie("token");
       await axios.put(`/api/industry/updateIndustry?id=${id}`, industryData, {
         withCredentials: true,
-        Authorization: `Bearer ${token}`,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      setName("");
-      navigate("/industryList");
+      toast.success("Industry updated successfully!", { id: loadingToast });
+      setTimeout(() => {
+        navigate("/industryList");
+      }, 1500);
     } catch (error) {
-      console.error(
-        "Failed to update industry:",
-        error.response ? error.response.data : error.message
-      );
+      const errorMessage =
+        error.response?.data?.message || "Failed to update industry.";
+      toast.error(errorMessage, { id: loadingToast });
     }
   };
 
   return (
     <>
+      <Toaster position="top-right" reverseOrder={false} />
       <div className="w-full p-2">
         <nav>
           <Link to="/" className="mr-2 text-gray-400 hover:text-gray-500">

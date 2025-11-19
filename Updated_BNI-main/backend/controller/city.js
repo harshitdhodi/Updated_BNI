@@ -4,20 +4,40 @@ const Country = require('../model/country');
 const { City: CityLib } = require('country-state-city');
 const { Country: CountryLib } = require('country-state-city');
 
+// Corrected code for backend/controller/city.js
+
 const addCity = async (req, res) => {
   try {
-      const { countryName , name } = req.body;
+    const { name, countryName } = req.body;
+  
+    // Basic validation
+    if (!name || !countryName) {
+      return res.status(400).json({ message: "City name and country are required." });
+    }
 
-      const city = new City({ name,countryName,city });
-      await city.save();
+    // Check if the city already exists for this user
+    const existingCity = await City.findOne({ name, countryName });
+    if (existingCity) {
+      return res.status(409).json({ message: "This city already exists in your list." });
+    }
 
-      res.status(201).send({ city, message: "city created successfully" });
+    // Create the new city, correctly assigning the user ID
+    const newCity = await City.create({
+      name,
+      countryName,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "City added successfully",
+      data: newCity,
+    });
   } catch (error) {
-      console.error("Error creating city:", error);
-      res.status(400).send(error);
+    console.error("Error creating city:", error);
+    res.status(500).json({ message: "Server error while creating city." });
   }
 };
- 
+
 
 // Get all city
 const getCity = async (req, res) => {

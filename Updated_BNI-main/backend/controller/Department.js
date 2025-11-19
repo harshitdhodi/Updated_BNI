@@ -5,14 +5,29 @@ const Department = require('../model/Department');
 const addDepartment = async (req, res) => {
     try {
         const { name } = req.body;
+        
+        // Validate input
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: "Department name is required." });
+        }
 
-        const department = new Department({ name });
+        // Check for uniqueness (case-insensitive)
+        const existingDepartment = await Department.findOne({ name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } });
+
+        if (existingDepartment) {
+            return res.status(409).json({ message: "A department with this name already exists." });
+        }
+
+        const department = new Department({ name: name.trim() });
         await department.save();
 
-        res.status(201).send({ department, message: "Department created successfully" });
+        res.status(201).json({ department, message: "Department created successfully" });
     } catch (error) {
         console.error("Error creating Department:", error);
-        res.status(400).send(error);
+        if (error.code === 11000) {
+            return res.status(409).json({ message: "A department with this name already exists." });
+        }
+        res.status(500).json({ message: "Server error while creating department." });
     }
 };
 
@@ -20,7 +35,7 @@ const addDepartment = async (req, res) => {
 const getDepartment = async (req, res) => { 
     try {
         const { page = 1 } = req.query;
-        const limit = 5;
+        const limit = req.query.limit || 5;
         const count = await Department.countDocuments();
         const department = await Department.find()
         .skip((page - 1) * limit) // Skip records for previous pages
@@ -59,25 +74,36 @@ const getDepartmentById = async (req, res) => {
 const updateDepartmentById = async (req, res) => {
     try {
         const { id } = req.query;
-        const { name } = req.body;
+        const { name } = req.body; 
 
-        const updateObj = {
-            $set: {
-                name,
-                updatedAt: Date.now()
-            }
-        };
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: "Department name cannot be empty." });
+        }
 
-        const department = await Department.findByIdAndUpdate(id, updateObj, { new: true });
+        // Check if another department with the same name already exists
+        const existingDepartment = await Department.findOne({ 
+            name: { $regex: new RegExp(`^${name.trim()}$`, 'i') },
+            _id: { $ne: id } // Exclude the current department from the check
+        });
 
-        if (!department) {
+        if (existingDepartment) {
+            return res.status(409).json({ message: "Another department with this name already exists." });
+        }
+
+        const updatedDepartment = await Department.findByIdAndUpdate(
+            id, 
+            { $set: { name: name.trim(), updatedAt: Date.now() } }, 
+            { new: true }
+        );
+
+        if (!updatedDepartment) {
             return res.status(404).send({ message: 'Department not found' });
         }
 
-        res.status(200).send({ department, message: "Update successful" });
+        res.status(200).json({ department: updatedDepartment, message: "Update successful" });
     } catch (error) {
         console.error("Error updating Department:", error);
-        res.status(400).send(error);
+        res.status(500).json({ message: "Server error while updating department." });
     }
 };
 

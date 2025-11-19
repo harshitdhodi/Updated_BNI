@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Pie } from 'react-chartjs-2';
 import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { HelpCircle, Gift, Briefcase, Users } from 'lucide-react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 // Register Chart.js components
 ChartJS.register(Title, Tooltip, Legend, ArcElement);
@@ -45,28 +45,32 @@ function DashboardContent() {
         icon: HelpCircle,
         color: 'bg-blue-500',
         bgLight: 'bg-blue-50',
-        textColor: 'text-blue-600'
+        textColor: 'text-blue-600',
+        path: 'my-asks'
       },
       gives: {
         title: 'Gives',
         icon: Gift,
         color: 'bg-green-500',
         bgLight: 'bg-green-50',
-        textColor: 'text-green-600'
+        textColor: 'text-green-600',
+        path: 'my-gives'
       },
       business: {
         title: 'Business',
         icon: Briefcase,
         color: 'bg-purple-500',
         bgLight: 'bg-purple-50',
-        textColor: 'text-purple-600'
+        textColor: 'text-purple-600',
+        path: 'bussiness'
       },
       matches: {
         title: 'Matches',
         icon: Users,
         color: 'bg-orange-500',
         bgLight: 'bg-orange-50',
-        textColor: 'text-orange-600'
+        textColor: 'text-orange-600',
+        path: 'my-matches'
       }
     };
     return configs[name] || configs.asks;
@@ -148,21 +152,23 @@ function DashboardContent() {
           const Icon = config.icon;
           
           return (
-            <div
-              key={key}
-              className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-500 mb-2">{config.title}</p>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-1">{value}</h3>
-                  <p className="text-xs text-gray-400">Total Count</p>
-                </div>
-                <div className={`${config.bgLight} p-3 rounded-lg`}>
-                  <Icon className={`w-6 h-6 ${config.textColor}`} />
+            <Link to={`/member/${userId}/${config.path}`} key={key}>
+              <div
+                
+                className="bg-white rounded-xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 mb-2">{config.title}</p>
+                    <h3 className="text-3xl font-bold text-gray-900 mb-1">{value}</h3>
+                    <p className="text-xs text-gray-400">Total Count</p>
+                  </div>
+                  <div className={`${config.bgLight} p-3 rounded-lg`}>
+                    <Icon className={`w-6 h-6 ${config.textColor}`} />
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>

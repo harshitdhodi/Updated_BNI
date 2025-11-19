@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const User = require('../model/user'); // Make sure to import your User model
 
 const requireAuth = async (req, res, next) => {
   console.log(req.cookies)
@@ -41,8 +42,8 @@ const authMiddleware = async (req, res, next) => {
         try {
             if (token) {
                 const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY); 
-                console.log(decoded)
-                // req.user = await User.findById(decoded.id).select("password");
+                // Find the user by id from token and attach it to the request object
+                req.user = await User.findById(decoded.userId).select("-password");
                 next();
             }
         } catch (error) {

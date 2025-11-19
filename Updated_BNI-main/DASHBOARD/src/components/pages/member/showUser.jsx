@@ -302,10 +302,6 @@ const MemberList = () => {
               </button>
             </Link>
 
-            <button className="w-full flex gap-3 md:w-auto px-4 py-2 bg-gray-100 text-black shadow-lg hover:shadow-xl border border-gray-200 rounded-lg font-medium transition">
-              Export
-              <Download size={18} />
-            </button>
           </div>
         </div>
       </div>
