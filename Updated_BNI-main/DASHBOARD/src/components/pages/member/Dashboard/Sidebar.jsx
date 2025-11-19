@@ -256,6 +256,9 @@ function Sidebar({ isOpen, onClose }) {
                       setActiveMenu(item.id)
                       if (item.subItems.length > 0) {
                         toggleMenu(item.id)
+                      } else {
+                        // Close sidebar on mobile after selecting a menu item
+                        if (onClose) onClose();
                       }
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 mb-1 ${

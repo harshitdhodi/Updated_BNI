@@ -535,23 +535,19 @@ const getApprovedMember = async (req, res) => {
     const page = parseInt(req.query.page) || 0; // Default to 0 if no page is provided
     const limit = parseInt(req.query.limit) || 0; // Default to 0 if no limit is provided
 
-    // Find members that are approved by both Admin and Member
-    const query = {
-      approvedByadmin: "approved",
-      approvedBymember: "approved"
-    };
+  
 
     let members;
 
     // If page and limit are provided, paginate the result
     if (page && limit) {
-      members = await Member.find(query)
+      members = await Member.find()
         .sort({ createdAt: -1 }) // Sort by 'createdAt' in descending order
         .skip((page - 1) * limit) // Skip records of previous pages
         .limit(limit); // Limit to the number of records per page
     } else {
       // If no pagination params are provided, return all data
-      members = await Member.find(query).sort({ createdAt: -1 }); // Sort by 'createdAt' in descending order
+      members = await Member.find().sort({ createdAt: -1 }); // Sort by 'createdAt' in descending order
     }
 
     // Check if members were found
@@ -560,7 +556,7 @@ const getApprovedMember = async (req, res) => {
     }
 
     // Count total approved members matching the query
-    const totalApprovedMembers = await Member.countDocuments(query);
+    const totalApprovedMembers = await Member.countDocuments();
 
     // Initialize an array to hold promises for referral counts
     const referralCountsPromises = members.map(async (member) => {

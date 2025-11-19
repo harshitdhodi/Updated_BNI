@@ -138,23 +138,45 @@ const createBusiness = async (req, res) => {
 // Get all businesss
 const getbusiness = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
+    // Validate and sanitize pagination parameters
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10)); // optional: cap limit
     const skip = (page - 1) * limit;
 
-    // Fetch businesses and populate the user field
+    // Build the query and chain all operations correctly
     const businesses = await Business.find()
+      .populate({
+        path: 'user',
+        select: 'name email mobile',   // fields from User model
+      })
+      .populate({
+        path: 'industryName',          // assuming this is a reference to another collection
+        select: 'name',                // adjust selected fields as needed
+      })
       .skip(skip)
       .limit(limit)
-      .populate('user', 'name email mobile'); // Select fields to populate from the user document
+      .lean(); // optional but recommended for read-only operations (faster)
 
+    // Use the same filtering conditions for the count (in case you add filters later)
     const total = await Business.countDocuments();
 
-    res.status(200).json({ total, data: businesses });
+    return res.status(200).json({
+      success: true,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      data: businesses,
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch businesses' });
+    console.error('Error fetching businesses:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch businesses',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+    });
   }
-}
+};
 
 // Get business by ID
 const getbusinessByuserId = async (req, res) => {
