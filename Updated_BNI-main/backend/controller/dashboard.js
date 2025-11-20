@@ -10,7 +10,8 @@ const mongoose = require('mongoose');
  */
 const getUserCounters = async (req, res) => {
   try {
-    const { userId } = req.query;
+    // Accept userId from route params first, then query string for backward compatibility
+    const userId = req.params?.userId || req.query?.userId;
 
     // Validate userId
     if (!userId) {

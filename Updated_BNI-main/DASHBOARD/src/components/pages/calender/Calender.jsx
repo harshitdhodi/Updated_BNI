@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock, Loader2, Edit, Trash2, CheckCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, Loader2, Edit, Trash2, CheckCircle, Bell, BellOff } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isToday, isSameDay, startOfDay } from 'date-fns';
 import axios from 'axios';
 import { toast, Toaster } from 'react-hot-toast';
-import Swal from 'sweetalert2'; // Import SweetAlert2
+import Swal from 'sweetalert2';
 import { useParams } from 'react-router-dom';
 
 export default function SmartCalendar() {
@@ -17,6 +17,11 @@ export default function SmartCalendar() {
   const [eventTime, setEventTime] = useState('09:00');
   const [editingEvent, setEditingEvent] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Notification states
+  const [notificationPermission, setNotificationPermission] = useState('default');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [registration, setRegistration] = useState(null);
 
   const { id: userId } = useParams();
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -27,7 +32,154 @@ export default function SmartCalendar() {
     if (parts.length === 2) return parts.pop().split(';').shift();
   };
 
-  // Fetch events — only when userId changes
+  // ============ NOTIFICATION FUNCTIONS ============
+
+  // Convert VAPID key from base64 to Uint8Array
+  const urlBase64ToUint8Array = (base64String) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, '+')
+      .replace(/_/g, '/');
+
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
+
+  // Initialize notification service
+  const initializeNotifications = async () => {
+    try {
+      // Check if service workers and push notifications are supported
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.warn('Push notifications not supported');
+        return;
+      }
+
+      // Check current permission
+      setNotificationPermission(Notification.permission);
+
+      // Register service worker
+      const reg = await navigator.serviceWorker.register('/service-worker.js');
+      setRegistration(reg);
+      console.log('Service Worker registered');
+
+      // Check if already subscribed
+      const subscription = await reg.pushManager.getSubscription();
+      setIsSubscribed(subscription !== null);
+
+    } catch (error) {
+      console.error('Error initializing notifications:', error);
+    }
+  };
+
+  // Subscribe to push notifications
+  const subscribeToNotifications = async () => {
+    try {
+      if (!registration) {
+        toast.error('Service worker not registered');
+        return;
+      }
+
+      // Request permission
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+
+      if (permission !== 'granted') {
+        toast.error('Notification permission denied');
+        return;
+      }
+
+      // Get VAPID public key from server
+      const token = getCookie('token');
+      const vapidResponse = await axios.get('/api/notifications/vapid-public-key', {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+
+      const publicKey = vapidResponse.data.publicKey;
+
+      // Subscribe to push manager
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+
+      // Send subscription to server
+      await axios.post(
+        '/api/notifications/subscribe',
+        { subscription },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      setIsSubscribed(true);
+      toast.success('✓ Notifications enabled successfully!');
+    } catch (error) {
+      console.error('Error subscribing to notifications:', error);
+      toast.error('Failed to enable notifications');
+    }
+  };
+
+  // Unsubscribe from push notifications
+  const unsubscribeFromNotifications = async () => {
+    try {
+      if (!registration) return;
+
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        await subscription.unsubscribe();
+
+        const token = getCookie('token');
+        await axios.delete(
+          '/api/notifications/unsubscribe',
+          {
+            data: { endpoint: subscription.endpoint },
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
+
+        setIsSubscribed(false);
+        toast.success('Notifications disabled');
+      }
+    } catch (error) {
+      console.error('Error unsubscribing:', error);
+      toast.error('Failed to disable notifications');
+    }
+  };
+
+  // Send test notification
+  const sendTestNotification = async () => {
+    try {
+      const token = getCookie('token');
+      const response = await axios.post(
+        '/api/notifications/test',
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.success) {
+        toast.success('Test notification sent! Check your notifications.');
+      } else {
+        toast.error('Failed to send test notification');
+      }
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      toast.error('Failed to send test notification');
+    }
+  };
+
+  // ============ EVENT FUNCTIONS ============
+
   const fetchEvents = async () => {
     if (!userId) return;
 
@@ -47,13 +199,14 @@ export default function SmartCalendar() {
         const colorKey = ['bg-blue-500', 'bg-red-500', 'bg-purple-500', 'bg-green-500', 'bg-yellow-500'][
           event._id.slice(-1).charCodeAt(0) % 5
         ];
-        const borderColor = colorKey.replace('bg-', ''); // e.g., blue-500
+        const borderColor = colorKey.replace('bg-', '');
 
         return {
           id: event._id,
-          date: startOfDay(eventDate), // Normalize to start of day (prevents timezone bugs)
+          date: startOfDay(eventDate),
           message: event.message || 'Untitled Event',
           time: event.time || '00:00',
+          status: event.status || false,
           color: colorKey,
           borderColor: borderColor,
         };
@@ -69,9 +222,9 @@ export default function SmartCalendar() {
     }
   };
 
-  // Only load events when userId changes (not on month navigation)
   useEffect(() => {
     fetchEvents();
+    initializeNotifications();
   }, [userId]);
 
   const previousMonth = () => setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1));
@@ -187,7 +340,6 @@ export default function SmartCalendar() {
       );
 
       const updated = res.data.data;
-      console.log("updated", updated)
       const colorKey = ['bg-blue-500', 'bg-red-500', 'bg-purple-500', 'bg-green-500', 'bg-yellow-500'][
         updated._id.slice(-1).charCodeAt(0) % 5
       ];
@@ -222,7 +374,7 @@ export default function SmartCalendar() {
     setSubmitting(true);
     try {
       const token = getCookie('token');
-      const res = await axios.put(
+      await axios.put(
         `/api/calendar/${event.id}?userId=${userId}`,
         {
           status: !event.status,
@@ -240,7 +392,6 @@ export default function SmartCalendar() {
       setSubmitting(false);
     }
   };
-
 
   const getEventsForDate = (date) => events.filter(e => isSameDay(e.date, date));
 
@@ -260,12 +411,46 @@ export default function SmartCalendar() {
 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 flex items-center gap-3">
-              <Calendar className="w-10 h-10 text-blue-600" />
-              My Calendar
-            </h1>
-            <p className="text-slate-600 mt-2">Stay organized, stay productive</p>
+          {/* Header with Notification Button */}
+          <div className="mb-8 flex justify-between items-start">
+            <div>
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 flex items-center gap-3">
+                <Calendar className="w-10 h-10 text-blue-600" />
+                My Calendar
+              </h1>
+              <p className="text-slate-600 mt-2">Stay organized, stay productive</p>
+            </div>
+
+            {/* Notification Control */}
+            <div className="flex gap-2">
+              {notificationPermission === 'granted' && isSubscribed ? (
+                <>
+                  <button
+                    onClick={sendTestNotification}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                  >
+                    <Bell className="w-4 h-4" />
+                    Test
+                  </button>
+                  <button
+                    onClick={unsubscribeFromNotifications}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
+                  >
+                    <BellOff className="w-4 h-4" />
+                    Disable
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={subscribeToNotifications}
+                  disabled={notificationPermission === 'denied'}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Bell className="w-4 h-4" />
+                  {notificationPermission === 'denied' ? 'Blocked' : 'Enable Notifications'}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -345,14 +530,14 @@ export default function SmartCalendar() {
                         key={event.id}
                         className={`${event.color} bg-opacity-10 border-l-4 border-${event.borderColor} rounded-r-lg p-4 relative group hover:shadow-md transition-shadow`}
                       >
-                         <button
-                            onClick={() => toggleComplete(event)}
-                            className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 bg-white shadow-md text-green-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-green-50 transition"
-                          >
-                            {event.status ? (
-                              <CheckCircle className="w-5 h-5" fill="currentColor" />
-                            ) : <CheckCircle className="w-5 h-5" />}
-                          </button>
+                        <button
+                          onClick={() => toggleComplete(event)}
+                          className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 bg-white shadow-md text-green-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-green-50 transition"
+                        >
+                          {event.status ? (
+                            <CheckCircle className="w-5 h-5" fill="currentColor" />
+                          ) : <CheckCircle className="w-5 h-5" />}
+                        </button>
                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => {
@@ -370,7 +555,9 @@ export default function SmartCalendar() {
                             <Trash2 size={16} />
                           </button>
                         </div>
-                        <p className="font-semibold pr-10">{event.message}</p>
+                        <p className={`font-semibold pr-10 ${event.status ? 'line-through opacity-60' : ''}`}>
+                          {event.message}
+                        </p>
                         <div className="flex items-center gap-2 text-sm text-slate-600 mt-1">
                           <Clock className="w-4 h-4" />
                           {event.time}
@@ -459,13 +646,15 @@ export default function SmartCalendar() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <input
-                    type="checkbox"
-                    value={editingEvent.status}
-                    onChange={e => setEditingEvent({ ...editingEvent, status: e.target.checked })}
-                    className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  />
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={editingEvent.status}
+                      onChange={e => setEditingEvent({ ...editingEvent, status: e.target.checked })}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    Mark as Completed
+                  </label>
                 </div>
 
                 <div className="flex gap-4 pt-4">
