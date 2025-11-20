@@ -22,7 +22,7 @@ const calendarSchema = new mongoose.Schema({
 
     userId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // This should match the name of your User model
+        ref: 'user', // match the registered user model name
         required: true,
     },
 }, {

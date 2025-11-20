@@ -118,7 +118,7 @@ function App() {
               <Route path="my-gives" element={<UserGives />} />
               <Route path="my-matches" element={<UserMyMatches />} />
               <Route path="calendar" element={<SmartCalendar />} />
-               <Route path="bussiness" element={<UserBusinessList />} />
+               <Route path="business" element={<UserBusinessList />} />
               {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
             </Route>
 
