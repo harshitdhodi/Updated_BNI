@@ -40,11 +40,11 @@ if (!dbUri) {
 
 mongoose.connect(dbUri)
   .then(() => {
-    if (typeof initCalendarCronJob === 'function') {
-      initCalendarCronJob();
-    } else {
-      console.warn('initCalendarCronJob is not a function, skipping cron job initialization');
-    }
+    // if (typeof initCalendarCronJob === 'function') {
+    //   initCalendarCronJob();
+    // } else {
+    //   console.warn('initCalendarCronJob is not a function, skipping cron job initialization');
+    // }
     console.log("Connected to MongoDB");
   })
   .catch(err => {
