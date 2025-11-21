@@ -20,7 +20,6 @@ const generateReferralCode = () => {
 
 const userRegistration = async (req, res) => {
   const { firstName, lastName, email, password, confirm_password } = req.body;
-  const photo = req.files.map((file) => file.filename);
 
   try {
     // Check if the email already exists
@@ -30,7 +29,7 @@ const userRegistration = async (req, res) => {
     }
 
     // Check if all required fields are provided
-    if (!firstName || !lastName || !email || !photo || !password || !confirm_password) {
+    if (!firstName || !lastName || !email || !password || !confirm_password) {
       console.log("Validation failed.......");
       return res.send({ status: "failed", message: "All fields are required" });
     }
@@ -51,7 +50,6 @@ const userRegistration = async (req, res) => {
       firstName,
       lastName,
       email,
-      photo,
       password: password, // Storing password in plain text (insecure)
       refral_code, // Add the generated referral code
     });

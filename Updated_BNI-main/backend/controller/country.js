@@ -16,21 +16,23 @@ exports.createCountry = async (req, res) => {
 // READ - GET all
 exports.getCountries = async (req, res) => {
     try {
-        const { page = 1 } = req.query;
-        const limit = 85;
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
         const count = await Country.countDocuments();
         const countries = await Country.find()
-            .skip((page - 1) * limit) // Skip records for previous pages
+            .skip((page - 1) * limit)
             .limit(limit);
 
         res.status(200).json({
             data: countries,
-           
+            count,
+            totalPages: Math.ceil(count / limit),
+            currentPage: page,
             message: "Countries fetched successfully",
         });
     } catch (err) {
         console.error("Error fetching countries:", err);
-        res.status(400).send(err);
+        res.status(500).json({ message: "Error fetching countries", error: err.message });
     }
 };
 

@@ -40,20 +40,26 @@ const createEvent = async (req, res) => {
 
     // === Message validation ===
     const trimmedMessage = message.trim();
+    const messageRegex = /^[a-zA-Z0-9\s.,'&()-]+$/; // Allow letters, numbers, spaces, and some punctuation
+
     if (trimmedMessage.length < 3) {
       return sendResponse(res, 400, false, "Message must be at least 3 characters.");
     }
+    if (trimmedMessage.length > 100) {
+      return sendResponse(res, 400, false, "Message cannot exceed 100 characters.");
+    }
+    if (!messageRegex.test(trimmedMessage)) {
+      return sendResponse(res, 400, false, "Message contains invalid characters. Only letters, numbers, and basic punctuation (.,'&-) are allowed.");
+    }
 
-    // === CHECK: Does this user already have an event with the same message? ===
+    // === CHECK: Does this user already have an event at this date and time? ===
     const existingEvent = await Calendar.findOne({
       userId: userId, 
       date: parsedDate,
-      time: time.trim(),         // ← Only for this user
-      message: trimmedMessage   // ← Exact same message text
+      time: time.trim(),
     });
-console.log(existingEvent);
     if (existingEvent) {
-      return sendResponse(res, 409, false, "You already have an event with this message.");
+      return sendResponse(res, 409, false, "You already have an event scheduled at this date and time.");
     }
 
     // === Create the new event ===
@@ -150,28 +156,46 @@ const updateEvent = async (req, res) => {
     }
 
     // Validate message
-    if (message && String(message).trim().length < 3) {
-      return sendResponse(res, 400, false, "Message must be at least 3 characters.");
+    if (message) {
+      const trimmedMessage = String(message).trim();
+      const messageRegex = /^[a-zA-Z0-9\s.,'&()-]+$/;
+      if (trimmedMessage.length < 3) {
+        return sendResponse(res, 400, false, "Message must be at least 3 characters.");
+      }
+      if (trimmedMessage.length > 100) {
+        return sendResponse(res, 400, false, "Message cannot exceed 100 characters.");
+      }
+      if (!messageRegex.test(trimmedMessage)) {
+        return sendResponse(res, 400, false, "Message contains invalid characters. Only letters, numbers, and basic punctuation (.,'&-) are allowed.");
+      }
     }
 
-    // Define allowed statuses
-    const validStatuses = ["pending", "confirmed", "cancelled", "completed"];
+    // Validate status
+    if (status !== undefined && typeof status !== 'boolean') {
+      return sendResponse(res, 400, false, "Status must be a boolean value (true or false).");
+    }
 
-    // Safely validate and normalize status
-    let normalizedStatus = null;
-    if (status !== undefined && status !== null && status !== "") {
-      if (typeof status !== "string") {
-        return sendResponse(res, 400, false, "Status must be a valid string.");
+    // === Duplication Check ===
+    // Only check for duplicates if date or time is being updated.
+    if (date || time) {
+      // Find the original event to get the unchanged date/time values.
+      const originalEvent = await Calendar.findOne({ _id: id, userId: req.query.userId });
+      if (!originalEvent) {
+        return sendResponse(res, 404, false, "Event not found or access denied.");
       }
-      normalizedStatus = status.trim().toLowerCase();
 
-      if (!validStatuses.includes(normalizedStatus)) {
-        return sendResponse(
-          res,
-          400,
-          false,
-          `Invalid status. Allowed values: ${validStatuses.join(", ")}`
-        );
+      const newDate = date ? new Date(date) : originalEvent.date;
+      const newTime = time ? String(time).trim() : originalEvent.time;
+
+      const conflictingEvent = await Calendar.findOne({
+        userId: req.query.userId,
+        date: newDate,
+        time: newTime,
+        _id: { $ne: id } // Exclude the event being updated
+      });
+
+      if (conflictingEvent) {
+        return sendResponse(res, 409, false, "You already have another event scheduled at this date and time.");
       }
     }
 
@@ -180,8 +204,8 @@ const updateEvent = async (req, res) => {
       ...(date && { date: new Date(date) }),
       ...(time && { time: String(time).trim() }),
       ...(message && { message: String(message).trim() }),
-      ...(normalizedStatus && { status: normalizedStatus }),
     };
+    if (status !== undefined) updateData.status = status;
 
     const event = await Calendar.findOneAndUpdate(
       { _id: id, userId: req.query.userId },

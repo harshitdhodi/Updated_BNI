@@ -59,8 +59,8 @@ function decryptPassword(encryptedPassword) {
 
 const memberRegistration = async (req, res) => {
   const { name, email, mobile, password, confirm_password, country, city, ref_member } = req.body;
-
-  // Handle optional images
+console.log(req.body)
+  // Safely handle optional images, checking if req.files exists
   const bannerImg = req.files && req.files['bannerImg'] ? path.basename(req.files['bannerImg'][0].path) : null;
   const profileImg = req.files && req.files['profileImg'] ? path.basename(req.files['profileImg'][0].path) : null;
 
@@ -71,10 +71,10 @@ const memberRegistration = async (req, res) => {
       return res.status(400).send({ status: "failed", message: "Email already exists" });
     }
 
-    // Check if all required fields are provided
-    if (!name || !email || !mobile || !password || !confirm_password || !country || !city) {
-      return res.status(400).send({ status: "failed", message: "All fields are required" });
-    }
+    // // Check if all required fields are provided
+    // if (!name || !email || !mobile || !password || !confirm_password || !country || !city) {
+    //   return res.status(400).send({ status: "failed", message: "All fields are required" });
+    // }
 
     // Check if password and confirm_password match
     if (password !== confirm_password) {
@@ -211,6 +211,11 @@ const memberLogin = async (req, res) => {
 
 
 //forgot password
+
+// Function to generate a 6-digit OTP
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
 
 const sendmemberPasswordResetEmail = async (req, res) => {
   try {
@@ -354,7 +359,7 @@ const members = await Member.find().skip((page - 1) * limit).limit(limit);
     // Send response
     res.status(200).json({
       data: members,
-      total: count,
+      total: count, // Ensure this field is named 'total'
       currentPage: page,
       hasNextPage: hasNextPage,
       message: "Members fetched successfully",

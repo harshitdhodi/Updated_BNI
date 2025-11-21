@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
 import axios from "axios"; // Import axios
+import { Mail } from "lucide-react";
 
 const ForgotPasswordForm = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ const ForgotPasswordForm = () => {
     e.preventDefault();
     try {
       const token = getCookie("token");
-      const response = await axios.post("/api/user/forgot-password", { email }, {
+      const response = await axios.post("/api/member/forgot-password", { email }, {
         headers: {
           Authorization: `Bearer ${token}`,
         },      withCredentials: true,
@@ -33,33 +34,40 @@ const ForgotPasswordForm = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto m-8 p-6 bg-white rounded-md shadow-md">
-      <h2 className="text-2xl font-bold mb-4">Forgot Password</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:border-blue-500"
-            placeholder="Your email address"
-            required
-          />
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="w-full max-w-md m-4 bg-gradient-to-r from-blue-100 to-blue-50 shadow-2xl rounded-2xl overflow-hidden">
+        <div className="p-8 md:p-12">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">Forgot Password</h2>
+          <p className="text-gray-500 mb-8">Enter your email to reset your password.</p>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Email Input */}
+            <div>
+              <label className="block text-gray-700 text-sm font-semibold mb-2">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  className="pl-10 w-full py-3 px-4 border rounded-lg leading-tight focus:outline-none focus:ring-2 border-gray-300 focus:ring-blue-500"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300"
+              type="submit"
+            >
+              Submit
+            </button>
+          </form>
         </div>
-        <button
-          type="submit"
-          className="w-full px-4 py-2 mt-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:bg-blue-600 focus:outline-none"
-        >
-          Submit
-        </button>
-      </form>
+      </div>
     </div>
   );
 };

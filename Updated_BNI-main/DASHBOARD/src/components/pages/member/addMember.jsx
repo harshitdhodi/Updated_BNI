@@ -119,35 +119,48 @@ const CreateUser = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!name.trim()) newErrors.name = "Name is required";
-
-    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    if (!email.trim()) newErrors.email = "Email is required";
-    else if (!emailPattern.test(email)) newErrors.email = "Invalid email format";
-    else {
-      const domain = email.split("@")[1] || "";
-      const labels = domain.split(".");
-      if (labels.length < 2) newErrors.email = "Invalid email domain";
-      else {
-        const secondLevel = labels[labels.length - 2] || "";
-        // Ensure second-level domain contains a letter (avoid emails like abc@2.com)
-        if (!/[A-Za-z]/.test(secondLevel)) newErrors.email = "Email domain seems invalid";
-      }
+    const namePattern = /^[a-zA-Z\s]+$/;
+    if (!name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (!namePattern.test(name)) {
+      newErrors.name = "Invalid name. Please enter alphabetic characters only.";
     }
 
-    if (!password) newErrors.password = "Password is required";
-    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailPattern.test(email)) {
+      newErrors.email = "Invalid email format. Please enter a valid email address.";
+    }
 
-    if (!confirmPassword) newErrors.confirmPassword = "Confirm password is required";
-    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!password) {
+      newErrors.password = "Password is required";
+    } else if (!passwordPattern.test(password)) {
+      newErrors.password = "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.";
+    }
 
-    if (!country) newErrors.country = "Country is required";
-    if (!city) newErrors.city = "City is required";
+    if (!confirmPassword) {
+      newErrors.confirmPassword = "Confirm password is required";
+    } else if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match. Please re-enter.";
+    }
 
-    const phonePattern = /^\+?\d{7,15}$/;
-    if (!mobile) newErrors.mobile = "Mobile number is required";
-    else if (!phonePattern.test(mobile)) newErrors.mobile = "Enter a valid mobile number (7-15 digits)";
+    if (!country) newErrors.country = "Please select a country.";
+    if (!city) newErrors.city = "Please select a city.";
 
+    const mobilePattern = /^[6-9]\d{9}$/;
+    if (!mobile) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!mobilePattern.test(mobile)) {
+      newErrors.mobile = "Invalid mobile number. Please enter a valid 10-digit number.";
+    }
+
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    if (facebook && !urlPattern.test(facebook)) newErrors.facebook = "Invalid URL. Please enter a valid link starting with http:// or https://.";
+    if (linkedin && !urlPattern.test(linkedin)) newErrors.linkedin = "Invalid URL. Please enter a valid link starting with http:// or https://.";
+    if (twitter && !urlPattern.test(twitter)) newErrors.twitter = "Invalid URL. Please enter a valid link starting with http:// or https://.";
+    
     setErrors(newErrors);
     // show first error as toast as well
     const firstKey = Object.keys(newErrors)[0];
@@ -209,6 +222,7 @@ const CreateUser = () => {
               onChange={(e) => setWhatsapp(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
+            {errors.whatsapp && <p className="text-gray-600 text-sm mt-1">{errors.whatsapp}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -220,6 +234,7 @@ const CreateUser = () => {
               onChange={(e) => setFacebook(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
+            {errors.facebook && <p className="text-gray-600 text-sm mt-1">{errors.facebook}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -231,6 +246,7 @@ const CreateUser = () => {
               onChange={(e) => setLinkedin(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
+            {errors.linkedin && <p className="text-gray-600 text-sm mt-1">{errors.linkedin}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">
@@ -242,6 +258,7 @@ const CreateUser = () => {
               onChange={(e) => setTwitter(e.target.value)}
               className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
             />
+            {errors.twitter && <p className="text-gray-600 text-sm mt-1">{errors.twitter}</p>}
           </div>
           <div>
             <label className="block text-gray-700 font-bold mb-2">Password <span className="text-gray-600">*</span></label>
@@ -314,8 +331,6 @@ const CreateUser = () => {
               type="text"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
-              aria-invalid={errors.mobile ? "true" : "false"}
               minLength={10}
               maxLength={10}
             />

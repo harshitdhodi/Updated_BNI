@@ -41,22 +41,22 @@ const Sidebar = () => {
         },
       ],
     },
-    {
-      title: "Business",
-      path: "/business",
-      icon: <Building2 size={20} strokeWidth={1.5} />,
-      text: "Business",
-      submenu: [
-        {
-          title: "Business",
-          path: "/business",
-        },
-        {
-          title: "Business Form",
-          path: "/business_form",
-        },
-      ],
-    },
+    // {
+    //   title: "Business",
+    //   path: "/business",
+    //   icon: <Building2 size={20} strokeWidth={1.5} />,
+    //   text: "Business",
+    //   submenu: [
+    //     {
+    //       title: "Business",
+    //       path: "/business",
+    //     },
+    //     {
+    //       title: "Business Form",
+    //       path: "/business_form",
+    //     },
+    //   ],
+    // },
     {
       title: "Admin Master",
       path: "/master",

@@ -4,15 +4,17 @@ const User = require("../model/member");
 exports.createIndustry = async (req, res) => {
     try {
         const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: 'Industry name is required.' });
+        }
 
-    //     const user = await User.findById(req.userId);
-    // if (!user) {
-    //   return res
-    //     .status(404)
-    //     .json({ status: "failed", message: "User not found" });
-    // }
+        const trimmedName = name.trim();
+        const existingIndustry = await Industry.findOne({ name: { $regex: new RegExp(`^${trimmedName}$`, 'i') } });
 
-        const industry = new Industry({ name});
+        if (existingIndustry) {
+            return res.status(409).json({ message: 'An industry with this name already exists.' });
+        }
+        const industry = new Industry({ name: trimmedName });
         await industry.save();
         res.status(201).json(industry);
     } catch (error) {
@@ -85,11 +87,21 @@ exports.updateIndustry = async (req, res) => {
     try {
         const { id } = req.query;
         const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: 'Industry name is required.' });
+        }
+
+        const trimmedName = name.trim();
+        const existingIndustry = await Industry.findOne({ name: { $regex: new RegExp(`^${trimmedName}$`, 'i') }, _id: { $ne: id } });
+
+        if (existingIndustry) {
+            return res.status(409).json({ message: 'An industry with this name already exists.' });
+        }
         const industry = await Industry.findByIdAndUpdate(id, { name, updatedAt: Date.now() }, { new: true });
         if (!industry) {
             return res.status(404).json({ message: 'Industry not found' });
         }
-        res.status(200).json(industry);
+        res.status(200).json({data: industry, message: "Industry updated successfully"});
     } catch (error) {
         res.status(400).json({ message: error.message });
     }
