@@ -5,44 +5,36 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Swal from 'sweetalert2';
 const CountryList = () => {
   const [countries, setCountries] = useState([]);
-  const [allCountries, setAllCountries] = useState([]);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10); // Default to 10
   const [pageCount, setPageCount] = useState(0);
+  const [totalCountries, setTotalCountries] = useState(0);
+
   const getCookie = (name) => { 
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
-  useEffect(() => {
-    fetchCountries();
-  }, []);
 
   useEffect(() => {
-    if (allCountries.length > 0) {
-      const offset = pageIndex * pageSize;
-      const pagedData = allCountries.slice(offset, offset + pageSize);
-      setCountries(pagedData);
-      setPageCount(Math.ceil(allCountries.length / pageSize));
-    }
-  }, [pageIndex, pageSize, allCountries]);
+    fetchCountries();
+  }, [pageIndex, pageSize]);
 
   const fetchCountries = async () => {
     try {
       const token = getCookie("token");
-      const response = await axios.get(
-        `/api/country/getCountry`, { // Fetch all countries
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          withCredentials: true,
-        }
-      );
-      const dataWithIds = response.data.data.map((country, index) => ({ // Assign a stable ID
+      const response = await axios.get(`/api/country/getCountry`, {
+        params: { page: pageIndex + 1, limit: pageSize },
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      const dataWithIds = response.data.data.map((country, index) => ({
         ...country,
-        id: index + 1,
+        id: pageIndex * pageSize + index + 1,
       }));
-      setAllCountries(dataWithIds);
+      setCountries(dataWithIds);
+      setTotalCountries(response.data.count); // Corrected from 'total' to 'count'
+      setPageCount(Math.ceil(response.data.count / pageSize)); // Corrected from 'total' to 'count'
     } catch (error) {
       console.error("There was an error fetching the countries!", error);
     }
@@ -182,8 +174,8 @@ const CountryList = () => {
   {/* Page info */}
   <span className="text-sm text-gray-600">
     Showing {(pageIndex * pageSize) + 1} to{" "}
-    {Math.min((pageIndex + 1) * pageSize, allCountries.length)} of{" "}
-    {allCountries.length} entries
+    {Math.min((pageIndex + 1) * pageSize, totalCountries)} of{" "}
+    {totalCountries} entries
   </span>
 
   {/* Pagination Controls */}

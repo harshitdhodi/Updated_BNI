@@ -48,12 +48,14 @@ const AllAsks = () => {
   const filterAndPaginateData = () => {
     let filteredData = allData;
 
+    const trimmedSearchValue = searchValue.trim().toLowerCase();
+
     // Client-side filtering based on search value
-    if (searchValue.trim()) {
+    if (trimmedSearchValue) {
       filteredData = allData.filter((ask) =>
-        ask.companyName?.toLowerCase().includes(searchValue.toLowerCase()) ||
-        ask.dept?.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
-        ask.message?.toLowerCase().includes(searchValue.toLowerCase())
+        ask.companyName?.toLowerCase().includes(trimmedSearchValue) ||
+        ask.dept?.name?.toLowerCase().includes(trimmedSearchValue) ||
+        ask.message?.toLowerCase().includes(trimmedSearchValue)
       );
     }
 
@@ -350,4 +352,3 @@ const AllAsks = () => {
 };
 
 export default AllAsks;
-

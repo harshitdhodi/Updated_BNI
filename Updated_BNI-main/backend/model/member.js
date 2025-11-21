@@ -26,11 +26,11 @@ const customerSchema = new mongoose.Schema({
   },
   country: {
     type: String,
-    required: true,
+    // required: true,
   },
   city: {
     type: String,
-    required: true,
+    // required: true,
   },
   refral_code: {
     type: String,

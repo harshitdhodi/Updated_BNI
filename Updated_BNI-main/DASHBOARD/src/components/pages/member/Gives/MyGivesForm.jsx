@@ -22,18 +22,24 @@ function MyGivesForm({ mode, initialData, onSubmit, onClose, loading, department
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.companyName.trim()) newErrors.companyName = 'Company Name is required.';
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Company Name is required.';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.companyName)) {
+      newErrors.companyName = 'Company Name must contain only letters.';
+    }
     
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required.';
     } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address.';
     }
-
+    
     if (!formData.phoneNumber.trim()) {
       newErrors.phoneNumber = 'Phone Number is required.';
     } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
       newErrors.phoneNumber = 'Phone Number must be 10 digits.';
+    } else if (/(.)\1{9}/.test(formData.phoneNumber) || formData.phoneNumber === '1234567890') {
+      newErrors.phoneNumber = 'Phone Number must be valid and realistic.';
     }
 
     if (!formData.webURL.trim()) {

@@ -203,7 +203,7 @@ const CreateMyAsk = () => {
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
-                        <option key={dept._id} value={dept.name}>
+                        <option key={dept._id} value={dept._id}>
                           {dept.name}
                         </option>
                       ))}

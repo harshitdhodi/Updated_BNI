@@ -194,32 +194,56 @@ const EditMember = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!member.name.trim()) newErrors.name = "Name is required";
-
-    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    if (!member.email.trim()) newErrors.email = "Email is required";
-    else if (!emailPattern.test(member.email)) newErrors.email = "Invalid email format";
-
-    // Password is optional on edit, but if entered, it must be valid and confirmed
-    if (member.password) {
-      if (member.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters";
-      } else if (member.password !== confirmPassword) {
-        newErrors.confirm_password = "Passwords do not match";
-      }
+    const namePattern = /^[a-zA-Z\s]+$/;
+    if (!member.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (!namePattern.test(member.name)) {
+      newErrors.name = "Invalid name. Please enter alphabetic characters only.";
     }
 
-    if (!member.country) newErrors.country = "Country is required";
-    if (!member.city) newErrors.city = "City is required";
+    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!member.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!emailPattern.test(member.email)) {
+      newErrors.email = "Invalid email format. Please enter a valid email address.";
+    }
 
-    const phonePattern = /^\+?\d{7,15}$/;
-    if (!member.mobile) newErrors.mobile = "Mobile number is required";
-    else if (!phonePattern.test(member.mobile)) newErrors.mobile = "Enter a valid mobile number (7-15 digits)";
+    // Password is optional on edit, but if entered, it must be valid and confirmed
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (member.password) {
+      if (!passwordPattern.test(member.password)) {
+        newErrors.password = "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.";
+      } else if (member.password !== confirmPassword) {
+        newErrors.confirm_password = "Passwords do not match. Please re-enter.";
+      }
+    } else if (confirmPassword) { // If confirm password is provided but password isn't
+        newErrors.password = "Password is required if confirm password is entered.";
+    }
+
+    if (!member.country) newErrors.country = "Please select a country.";
+    if (!member.city) newErrors.city = "Please select a city.";
+
+    const mobilePattern = /^[6-9]\d{9}$/;
+    if (!member.mobile) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!mobilePattern.test(member.mobile)) {
+      newErrors.mobile = "Invalid mobile number. Please enter a valid 10-digit number.";
+    }
+
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+    if (whatsapp && !urlPattern.test(whatsapp)) newErrors.whatsapp = "Invalid URL. Please enter a valid link starting with http:// or https://.";
+    if (facebook && !urlPattern.test(facebook)) newErrors.facebook = "Invalid URL. Please enter a valid link starting with http:// or https://.";
+    if (linkedin && !urlPattern.test(linkedin)) newErrors.linkedin = "Invalid URL. Please enter a valid link starting with http:// or https://.";
+    if (twitter && !urlPattern.test(twitter)) newErrors.twitter = "Invalid URL. Please enter a valid link starting with http:// or https://.";
 
     setErrors(newErrors);
     const firstKey = Object.keys(newErrors)[0];
     if (firstKey) {
       toast.error(newErrors[firstKey]);
+    }
+    // If there are errors, prevent form submission
+    if (Object.keys(newErrors).length > 0) {
+      return false;
     }
     return Object.keys(newErrors).length === 0;
   };
@@ -381,20 +405,24 @@ const EditMember = () => {
                       type="password"
                       id="password"
                       name="password"
+            onChange={(e) => {
+              handleChange(e); if (errors.password) setErrors((prevErrors) => ({ ...prevErrors, password: '' }));
+            }}
                       value={member.password || ""}
-                      onChange={handleChange}
                       placeholder="Enter new password"
                       className={`w-full p-4 border rounded focus:outline-none focus:border-red-500  border-[#aeabab] ${errors.password ? 'border-red-500' : ''}`}
-                    />
+          />
                     {errors.password && <p className="text-gray-600 text-sm mt-1">{errors.password}</p>}
                   </div>
                 ) : (
                   <input
                     type="text"
                     id={key}
-                    name={key}
+              name={key} // Ensure name attribute is present for handleChange
+              onChange={(e) => {
+                handleChange(e); if (errors[key]) setErrors((prevErrors) => ({ ...prevErrors, [key]: '' }));
+              }}
                     value={member[key]}
-                    onChange={handleChange}
                     className={`w-full p-4 border rounded focus:outline-none focus:border-red-500  border-[#aeabab] ${errors[key] ? 'border-red-500' : ''}`}
                   />
                 )}
@@ -413,8 +441,10 @@ const EditMember = () => {
             type="password"
             id="confirm_password"
             name="confirm_password"
+            onChange={(e) => {
+              setConfirmPassword(e.target.value); if (errors.confirm_password) setErrors((prevErrors) => ({ ...prevErrors, confirm_password: '' }));
+            }}
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
             className={`w-full p-4 border rounded focus:outline-none focus:border-red-500  border-[#aeabab] ${errors.confirm_password ? 'border-red-500' : ''}`}
           />
           {errors.confirm_password && <p className="text-gray-600 text-sm mt-1">{errors.confirm_password}</p>}
@@ -429,10 +459,14 @@ const EditMember = () => {
           <input
             type="text"
             id="whatsapp"
+            name="whatsapp" // Added name attribute
             value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
+            onChange={(e) => {
+              setWhatsapp(e.target.value); if (errors.whatsapp) setErrors((prevErrors) => ({ ...prevErrors, whatsapp: '' }));
+            }}
             className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
+          {errors.whatsapp && <p className="text-gray-600 text-sm mt-1">{errors.whatsapp}</p>}
         </div>
         <div className="mb-4">
           <label htmlFor="facebook" className="block font-semibold mb-2">
@@ -441,10 +475,14 @@ const EditMember = () => {
           <input
             type="text"
             id="facebook"
+            name="facebook" // Added name attribute
             value={facebook}
-            onChange={(e) => setFacebook(e.target.value)}
+            onChange={(e) => {
+              setFacebook(e.target.value); if (errors.facebook) setErrors((prevErrors) => ({ ...prevErrors, facebook: '' }));
+            }}
             className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
+          {errors.facebook && <p className="text-gray-600 text-sm mt-1">{errors.facebook}</p>}
         </div>
         <div className="mb-4">
           <label htmlFor="linkedin" className="block font-semibold mb-2">
@@ -453,10 +491,14 @@ const EditMember = () => {
           <input
             type="text"
             id="linkedin"
+            name="linkedin" // Added name attribute
             value={linkedin}
-            onChange={(e) => setLinkedin(e.target.value)}
+            onChange={(e) => {
+              setLinkedin(e.target.value); if (errors.linkedin) setErrors((prevErrors) => ({ ...prevErrors, linkedin: '' }));
+            }}
             className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
+          {errors.linkedin && <p className="text-gray-600 text-sm mt-1">{errors.linkedin}</p>}
         </div>
         <div className="mb-4">
           <label htmlFor="twitter" className="block font-semibold mb-2">
@@ -465,10 +507,14 @@ const EditMember = () => {
           <input
             type="text"
             id="twitter"
+            name="twitter" // Added name attribute
             value={twitter}
-            onChange={(e) => setTwitter(e.target.value)}
+            onChange={(e) => {
+              setTwitter(e.target.value); if (errors.twitter) setErrors((prevErrors) => ({ ...prevErrors, twitter: '' }));
+            }}
             className="w-full p-4 border border-[#aeabab] rounded focus:outline-none focus:border-red-500 "
           />
+          {errors.twitter && <p className="text-gray-600 text-sm mt-1">{errors.twitter}</p>}
         </div>
         {/* Profile image input rendered after social fields */}
         <div className="mb-4 col-span-2">

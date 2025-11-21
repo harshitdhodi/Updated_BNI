@@ -16,6 +16,7 @@ export default function SmartCalendar() {
   const [eventMessage, setEventMessage] = useState('');
   const [eventTime, setEventTime] = useState('09:00');
   const [editingEvent, setEditingEvent] = useState(null);
+  const [formError, setFormError] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   
   // Notification states
@@ -34,22 +35,7 @@ export default function SmartCalendar() {
 
   // ============ NOTIFICATION FUNCTIONS ============
 
-  // Convert VAPID key from base64 to Uint8Array
-  const urlBase64ToUint8Array = (base64String) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-      .replace(/\-/g, '+')
-      .replace(/_/g, '/');
-
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-
-    for (let i = 0; i < rawData.length; ++i) {
-      outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-  };
-
+  
   // Initialize notification service
   const initializeNotifications = async () => {
     try {
@@ -76,107 +62,7 @@ export default function SmartCalendar() {
     }
   };
 
-  // Subscribe to push notifications
-  const subscribeToNotifications = async () => {
-    try {
-      if (!registration) {
-        toast.error('Service worker not registered');
-        return;
-      }
-
-      // Request permission
-      const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
-
-      if (permission !== 'granted') {
-        toast.error('Notification permission denied');
-        return;
-      }
-
-      // Get VAPID public key from server
-      const token = getCookie('token');
-      const vapidResponse = await axios.get('/api/notifications/vapid-public-key', {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
-
-      const publicKey = vapidResponse.data.publicKey;
-
-      // Subscribe to push manager
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
-
-      // Send subscription to server
-      await axios.post(
-        '/api/notifications/subscribe',
-        { subscription },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
-
-      setIsSubscribed(true);
-      toast.success('✓ Notifications enabled successfully!');
-    } catch (error) {
-      console.error('Error subscribing to notifications:', error);
-      toast.error('Failed to enable notifications');
-    }
-  };
-
-  // Unsubscribe from push notifications
-  const unsubscribeFromNotifications = async () => {
-    try {
-      if (!registration) return;
-
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        await subscription.unsubscribe();
-
-        const token = getCookie('token');
-        await axios.delete(
-          '/api/notifications/unsubscribe',
-          {
-            data: { endpoint: subscription.endpoint },
-            headers: { Authorization: `Bearer ${token}` },
-            withCredentials: true,
-          }
-        );
-
-        setIsSubscribed(false);
-        toast.success('Notifications disabled');
-      }
-    } catch (error) {
-      console.error('Error unsubscribing:', error);
-      toast.error('Failed to disable notifications');
-    }
-  };
-
-  // Send test notification
-  const sendTestNotification = async () => {
-    try {
-      const token = getCookie('token');
-      const response = await axios.post(
-        '/api/notifications/test',
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
-        }
-      );
-
-      if (response.data.success) {
-        toast.success('Test notification sent! Check your notifications.');
-      } else {
-        toast.error('Failed to send test notification');
-      }
-    } catch (error) {
-      console.error('Error sending test notification:', error);
-      toast.error('Failed to send test notification');
-    }
-  };
+ 
 
   // ============ EVENT FUNCTIONS ============
 
@@ -242,7 +128,20 @@ export default function SmartCalendar() {
 
   const addEvent = async (e) => {
     e.preventDefault();
-    if (!eventMessage.trim()) return toast.error('Event name is required');
+    setFormError('');
+
+    const trimmedMessage = eventMessage.trim();
+    const messageRegex = /^[a-zA-Z0-9\s.,'&-]+$/;
+
+    if (trimmedMessage.length < 3) {
+      return setFormError('Event title must be at least 3 characters.');
+    }
+    if (trimmedMessage.length > 50) {
+      return setFormError('Event title cannot exceed 50 characters.');
+    }
+    if (!messageRegex.test(trimmedMessage)) {
+      return setFormError("Title can only contain letters, numbers, spaces, and basic punctuation (.,'-&).");
+    }
 
     setSubmitting(true);
     try {
@@ -252,7 +151,7 @@ export default function SmartCalendar() {
         {
           date: format(startOfDay(selectedDate), 'yyyy-MM-dd'),
           time: eventTime,
-          message: eventMessage.trim(),
+          message: trimmedMessage,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -279,6 +178,7 @@ export default function SmartCalendar() {
       setEventMessage('');
       setEventTime('09:00');
       setShowEventForm(false);
+      setFormError('');
       toast.success('Event created!');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to create event');
@@ -318,7 +218,21 @@ export default function SmartCalendar() {
 
   const handleUpdateEvent = async (e) => {
     e.preventDefault();
-    if (!editingEvent?.message.trim()) return toast.error('Event name is required');
+    setFormError('');
+
+    const trimmedMessage = editingEvent.message.trim();
+    const messageRegex = /^[a-zA-Z0-9\s.,'&-]+$/;
+
+    if (trimmedMessage.length < 3) {
+      return setFormError('Event title must be at least 3 characters.');
+    }
+    if (trimmedMessage.length > 50) {
+      return setFormError('Event title cannot exceed 50 characters.');
+    }
+    if (!messageRegex.test(trimmedMessage)) {
+      return setFormError("Title can only contain letters, numbers, spaces, and basic punctuation (.,'-&).");
+    }
+
 
     setSubmitting(true);
     const loadingToast = toast.loading('Updating event...');
@@ -331,7 +245,7 @@ export default function SmartCalendar() {
           date: format(startOfDay(editingEvent.date), 'yyyy-MM-dd'),
           time: editingEvent.time,
           status: editingEvent.status,
-          message: editingEvent.message.trim(),
+          message: trimmedMessage,
         },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -340,6 +254,7 @@ export default function SmartCalendar() {
       );
 
       const updated = res.data.data;
+      console.log("Updated Event Data:", updated);
       const colorKey = ['bg-blue-500', 'bg-red-500', 'bg-purple-500', 'bg-green-500', 'bg-yellow-500'][
         updated._id.slice(-1).charCodeAt(0) % 5
       ];
@@ -362,6 +277,7 @@ export default function SmartCalendar() {
 
       setIsEditModalOpen(false);
       setEditingEvent(null);
+      setFormError('');
       toast.success('Event updated!', { id: loadingToast });
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to update event', { id: loadingToast });
@@ -541,7 +457,10 @@ export default function SmartCalendar() {
                 </div>
 
                 <button
-                  onClick={() => setShowEventForm(!showEventForm)}
+                  onClick={() => {
+                    setShowEventForm(!showEventForm);
+                    setFormError(''); // Clear errors when toggling form
+                  }}
                   className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition shadow-md"
                 >
                   {showEventForm ? 'Cancel' : '+ Add New Event'}
@@ -552,7 +471,8 @@ export default function SmartCalendar() {
                     <input
                       type="text"
                       value={eventMessage}
-                      onChange={e => setEventMessage(e.target.value)}
+                      onChange={e => { setEventMessage(e.target.value); if (formError) setFormError(''); }}
+                      maxLength={100}
                       placeholder="Event title..."
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       required
@@ -564,6 +484,9 @@ export default function SmartCalendar() {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       required
                     />
+                    {formError && (
+                      <p className="text-red-600 text-sm">{formError}</p>
+                    )}
                     <button
                       type="submit"
                       disabled={submitting}
@@ -588,8 +511,12 @@ export default function SmartCalendar() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
                   <input
                     type="text"
+                    maxLength={100}
                     value={editingEvent.message}
-                    onChange={e => setEditingEvent({ ...editingEvent, message: e.target.value })}
+                    onChange={e => {
+                      setEditingEvent({ ...editingEvent, message: e.target.value });
+                      if (formError) setFormError(''); // Clear error on edit
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     required
                   />
@@ -599,7 +526,10 @@ export default function SmartCalendar() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
                   <input
                     type="date"
-                    value={editingEvent.date ? format(editingEvent.date, 'yyyy-MM-dd') : ''}
+                    value={format(
+                      typeof editingEvent.date === 'string' ? new Date(editingEvent.date) : editingEvent.date,
+                      'yyyy-MM-dd'
+                    )}
                     onChange={e => setEditingEvent({ ...editingEvent, date: new Date(e.target.value) })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     required
@@ -628,12 +558,16 @@ export default function SmartCalendar() {
                   </label>
                 </div>
 
+                {formError && (
+                  <p className="text-red-600 text-sm">{formError}</p>
+                )}
+
                 <div className="flex gap-4 pt-4">
                   <button
                     type="button"
                     onClick={() => {
                       setIsEditModalOpen(false);
-                      setEditingEvent(null);
+                      setFormError('');
                     }}
                     className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-xl font-semibold hover:bg-gray-300 transition"
                   >

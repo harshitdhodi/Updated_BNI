@@ -32,10 +32,9 @@ const AddCompany = () => {
   }, [companyNameFromURL]);
 
   // Regex patterns
-  const urlPattern = /^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i;
-  const whatsappPattern = /^(\+?[0-9\s\-\(\)]{10,20})$|^https?:\/\/(wa\.me|chat\.whatsapp\.com|api\.whatsapp\.com)\/.+/i;
-  const noScriptTagPattern = /<script.*?>.*?<\/script>/gi;
-  const invalidCharPattern = /[<>]/g; // Block < > to prevent XSS and HTML injection
+  const strictUrlPattern = /^(https?:\/\/)(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$/i;
+  const companyNamePattern = /^[a-zA-Z0-9\s.,'&()-]+$/;
+  const addressPattern = /^[a-zA-Z0-9\s.,'#\-\/()]+$/;
 
   const validateForm = () => {
     const newErrors = {};
@@ -43,38 +42,35 @@ const AddCompany = () => {
     // Company Name validation
     if (!companyName.trim()) {
       newErrors.companyName = "Company Name is required";
-    } else if (companyName.length < 2 || companyName.length > 100) {
-      newErrors.companyName = "Company Name must be 2–100 characters";
-    } else if (invalidCharPattern.test(companyName) || noScriptTagPattern.test(companyName)) {
-      newErrors.companyName = "Company Name contains invalid or unsafe characters (e.g., <, >, <script>)";
+    } else if (!companyNamePattern.test(companyName)) {
+      newErrors.companyName = "Invalid characters in Company Name. Only letters, numbers, and basic punctuation (.,'&-) are allowed.";
     }
 
     // Company Address validation
     if (!companyAddress.trim()) {
       newErrors.companyAddress = "Company Address is required";
-    } else if (companyAddress.length < 5 || companyAddress.length > 500) {
-      newErrors.companyAddress = "Address must be 5–500 characters";
-    } else if (invalidCharPattern.test(companyAddress) || noScriptTagPattern.test(companyAddress)) {
-      newErrors.companyAddress = "Address contains invalid or unsafe characters (e.g., <script>)";
+    } else if (!addressPattern.test(companyAddress)) {
+      newErrors.companyAddress = "Invalid characters in Address. Only letters, numbers, and basic punctuation (.,'#-) are allowed.";
     }
 
     // Social Links Validation
-    if (facebook && !urlPattern.test(facebook.trim()) && facebook.trim() !== "") {
-      newErrors.facebook = "Invalid Facebook URL (e.g., https://facebook.com/page)";
+    if (facebook && !strictUrlPattern.test(facebook.trim())) {
+      newErrors.facebook = "Invalid URL. Please enter a valid link starting with http:// or https://.";
     }
 
-    if (linkedin && !urlPattern.test(linkedin.trim())) {
-      newErrors.linkedin = "Invalid LinkedIn URL";
+    if (linkedin && !strictUrlPattern.test(linkedin.trim())) {
+      newErrors.linkedin = "Invalid URL. Please enter a valid link starting with http:// or https://.";
     }
 
-    if (twitter && !urlPattern.test(twitter.trim())) {
-      newErrors.twitter = "Invalid Twitter/X URL";
+    if (twitter && !strictUrlPattern.test(twitter.trim())) {
+      newErrors.twitter = "Invalid URL. Please enter a valid link starting with http:// or https://.";
     }
 
     if (whatsapp) {
       const cleaned = whatsapp.trim();
-      if (!whatsappPattern.test(cleaned) && !urlPattern.test(cleaned)) {
-        newErrors.whatsapp = "Enter valid WhatsApp number (e.g., +1234567890) or link";
+      // Check if it's a valid URL or a phone number
+      if (!strictUrlPattern.test(cleaned) && !/^\+?\d{10,15}$/.test(cleaned.replace(/\s/g, ''))) {
+        newErrors.whatsapp = "Invalid WhatsApp. Enter a valid URL or a 10-15 digit phone number.";
       }
     }
 
