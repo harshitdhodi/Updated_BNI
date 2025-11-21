@@ -79,7 +79,7 @@ const { id:userId } = useParams();
         {/* Right Section - Icons & Profile */}
         <div className="flex items-center gap-2 sm:gap-4">
           {/* Notification Bell */}
-          <button className="relative text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-lg">
+          {/* <button className="relative text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-lg">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -89,7 +89,7 @@ const { id:userId } = useParams();
               />
             </svg>
             <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-          </button>
+          </button> */}
 
           {/* User Profile Dropdown */}
           <div className="relative">
