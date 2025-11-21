@@ -262,7 +262,7 @@ function ContactDetailsTab({ userData, isEditing, onInputChange, errors }) {
 }
 
 // Social Links Component
-function SocialLinksTab({ userData, isEditing, onInputChange }) {
+function SocialLinksTab({ userData, isEditing, onInputChange, errors }) {
   const socialLinks = [
     { field: "facebook", label: "Facebook", icon: "Facebook", placeholder: "https://facebook.com/username" },
     { field: "linkedin", label: "LinkedIn", icon: "LinkedIn", placeholder: "https://linkedin.com/in/username" },
@@ -279,13 +279,17 @@ function SocialLinksTab({ userData, isEditing, onInputChange }) {
               {social.label}
             </label>
             {isEditing ? (
-              <input
-                type="url"
-                value={userData[social.field] || ""}
-                onChange={(e) => onInputChange(social.field, e.target.value)}
-                placeholder={social.placeholder}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              />
+              <>
+                <input
+                  type="url"
+                  value={userData[social.field] || ""}
+                  onChange={(e) => onInputChange(social.field, e.target.value)}
+                  placeholder={social.placeholder}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                  aria-invalid={errors[social.field] ? "true" : "false"}
+                />
+                {errors[social.field] && <p className="text-red-500 text-sm mt-1">{errors[social.field]}</p>}
+              </>
             ) : (
               <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,6 +409,18 @@ export default function UserProfile() {
       newErrors.name = "Name must contain only letters and spaces.";
     }
 
+    if (!userData.name) {
+      newErrors.name = "Name is required.";
+    }
+
+    if (!userData.email) {
+      newErrors.email = "Email is required.";
+    }
+
+    if (!userData.city) {
+      newErrors.city = "City is required.";
+    }
+
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(userData.email)) {
       newErrors.email = "Please enter a valid email address (e.g., user@example.com).";
     }
@@ -427,6 +443,21 @@ export default function UserProfile() {
     } else if (confirmNewPassword) {
       newErrors.confirmNewPassword = "Please enter a new password first.";
     }
+
+    if (userData.facebook && !/^https:\/\/(www\.)?facebook\.com\/.+/.test(userData.facebook)) {
+      newErrors.facebook = "Please enter a valid Facebook URL (e.g., https://facebook.com/username).";
+    }
+
+    if (userData.linkedin && !/^https:\/\/(www\.)?linkedin\.com\/(in|company)\/.+/.test(userData.linkedin)) {
+      newErrors.linkedin = "Please enter a valid LinkedIn URL (e.g., https://linkedin.com/in/username).";
+    }
+
+    if (userData.twitter && !/^https:\/\/(www\.)?twitter\.com\/.+/.test(userData.twitter)) {
+      newErrors.twitter = "Please enter a valid Twitter URL (e.g., https://twitter.com/username).";
+    }
+
+
+
 
     setErrors(newErrors);
 
@@ -513,7 +544,7 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 sm:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="bg-white rounded-2xl shadow-lg p-8">
             <div className="animate-pulse space-y-4">
@@ -540,7 +571,7 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 sm:p-6 lg:p-8">
       <Toaster position="top-center" reverseOrder={false} />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
@@ -702,7 +733,7 @@ export default function UserProfile() {
               <ContactDetailsTab userData={userData} isEditing={isEditing} onInputChange={handleInputChange} errors={errors} />
             )}
             {activeTab === "social" && (
-              <SocialLinksTab userData={userData} isEditing={isEditing} onInputChange={handleInputChange} />
+              <SocialLinksTab userData={userData} isEditing={isEditing} onInputChange={handleInputChange} errors={errors} />
             )}
           </div>
         </div>

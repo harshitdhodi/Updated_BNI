@@ -192,7 +192,7 @@ function Sidebar({ isOpen, onClose }) {
       if (res.ok) {
         // Optionally close sidebar on mobile
         if (onClose) onClose();
-        navigate("/login");
+        window.location.href = "/login";
       } else {
         console.error("Logout failed", res.status);
       }

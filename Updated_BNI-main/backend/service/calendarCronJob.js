@@ -1,7 +1,7 @@
 // jobs/calendarCronJob.js
 const cron = require('node-cron');
 const Calendar = require('../model/calendar');
-const { sendNotificationToUser } = require('../service/NotificationService');
+const NotificationService = require('../utils/notificationService');
 
 /**
  * Check for calendar events matching today and send notifications
@@ -23,57 +23,44 @@ const checkCalendarReminders = async () => {
             },
             status: false, // Only events that haven't been notified
         }); // Populate user details if needed
-console.log(todaysEvents);
+console.log("todaysEvents",todaysEvents);
         console.log(`Found ${todaysEvents.length} events for today`);
 
         // Send notification for each event
-        for (const event of todaysEvents) {
-                if (!event.userId) {
-                    console.warn(`Skipping calendar event ${event._id}: missing userId`);
-                    continue;
-                }
-            const payload = {
-                title: '📅 Calendar Reminder',
-                body: event.message,
-                icon: '/icon.png', // Add your icon path
-                badge: '/badge.png', // Add your badge path
-                data: {
-                    eventId: event._id.toString(),
-                    date: event.date,
-                    time: event.time,
-                    url: `/calendar/${event._id}`, // URL to open when clicked
-                },
-                actions: [
-                    {
-                        action: 'view',
-                        title: 'View Event',
-                    },
-                    {
-                        action: 'dismiss',
-                        title: 'Dismiss',
-                    },
-                ],
-            };
+    for (const event of todaysEvents) {
+    if (!event.userId) {
+        console.warn(`Skipping calendar event ${event._id}: missing userId`);
+        continue;
+    }
+    
+    const payload = {
+        title: '📅 Calendar Reminder',
+        body: event.message,
+        data: {
+            eventId: event._id.toString(),
+            date: event.date,
+            time: event.time,
+            url: `/calendar/${event._id}`,
+        },
+    };
 
-            // Resolve user id for subscriptions
-            const targetUserId = (event.userId && event.userId._id) ? event.userId._id : event.userId;
-            if (!targetUserId) {
-                console.warn(`Skipping event ${event._id}: unable to resolve target user id`);
-                continue;
-            }
+    const targetUserId = (event.userId && event.userId._id) ? event.userId._id : event.userId;
+    if (!targetUserId) {
+        console.warn(`Skipping event ${event._id}: unable to resolve target user id`);
+        continue;
+    }
 
-            // Send notification
-            const result = await sendNotificationToUser(targetUserId, payload);
+    // Use targetUserId, not todaysEvents[0].userId
+    const result = await NotificationService.sendNotificationToUser(targetUserId, payload);
 
-            // Mark as notified if successful
-            if (result.success) {
-                event.status = true;
-                await event.save();
-                console.log(`Notification sent for event: ${event._id}`);
-            } else {
-                console.error(`Failed to send notification for event: ${event._id}`);
-            }
-        }
+    if (result.success) {
+        event.status = true;
+        await event.save();
+        console.log(`Notification sent for event: ${event._id}`);
+    } else {
+        console.error(`Failed to send notification for event: ${event._id}`, result.message);
+    }
+}
 
         console.log('Calendar reminder check completed');
     } catch (error) {

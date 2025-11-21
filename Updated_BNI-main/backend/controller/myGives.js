@@ -75,27 +75,53 @@ const totalMyGives = async (req, res) => {
 // GET /api/myGives/byUserId?userId=123&page=1
 const getMyGivesByUserId = async (req, res) => {
   try {
-    const { userId, page = 1 } = req.query;
-    const limit = 5;
-    const count = await myGives.countDocuments({ user: userId });
+    const { userId } = req.query;
+    
+    // Parse page and limit as integers with defaults
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 5;
+    
+    // Validate userId
+    if (!userId) {
+      return res.status(400).json({
+        status: "failed",
+        message: "userId is required",
+      });
+    }
+
+    // Get total count
+    const total = await myGives.countDocuments({ user: userId });
+    
+    // Calculate total pages
+    const totalPages = Math.ceil(total / limit);
+    
+    // Calculate skip value
+    const skip = (page - 1) * limit;
+
+    // Fetch paginated data
     const userMyGives = await myGives
       .find({ user: userId })
       .populate('dept')
-      .skip((page - 1) * limit)
-      .limit(limit);
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }); // Optional: sort by newest first
 
     res.status(200).json({
       data: userMyGives,
-      total: count, 
-      currentPage: Number(page),
-      hasNextPage: count > page * limit,
+      total: total,
+      totalPages: totalPages,
+      currentPage: page,
+      limit: limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
       message: "User fetched successfully",
     });
   } catch (error) {
-    console.error(error); 
-    res
-      .status(500)
-      .json({ status: "failed", message: "Unable to fetch myGives" });
+    console.error("Error fetching myGives:", error);
+    res.status(500).json({
+      status: "failed",
+      message: "Unable to fetch myGives",
+    });
   }
 };
 

@@ -60,14 +60,14 @@ function MyGivesForm({ mode, initialData, onSubmit, onClose, loading, department
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-2xl w-full max-w-2xl transform transition-all">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex justify-between items-center rounded-t-xl">
-          <h2 className="text-xl font-bold text-white">
+        <div className="bg-gradient-to-r from-blue-100 to-blue-50  px-6 py-4 flex justify-between items-center rounded-t-xl">
+          <h2 className="text-xl font-bold text-black">
             {mode === 'add' ? 'Add New Record' : 'Edit Record'}
           </h2>
           <button
             onClick={onClose}
             disabled={loading}
-            className="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-1 transition-colors duration-150 disabled:opacity-50"
+            className="text-black hover:bg-black hover:bg-opacity-20 rounded-lg p-1 transition-colors duration-150 disabled:opacity-50"
           >
             <X size={24} />
           </button>

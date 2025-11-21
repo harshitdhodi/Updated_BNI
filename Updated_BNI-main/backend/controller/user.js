@@ -203,19 +203,32 @@ const userPasswordReset = async (req, res) => {
 
 const logoutUser = async (req, res) => {
   try {
-    // Clear the token cookie
-    res.clearCookie('token', { 
+    // Clear cookies
+    res.clearCookie("token", {
       httpOnly: true,
-      sameSite:"None",
-      secure:true 
-
+      sameSite: "None",
+      secure: true,
     });
-    return res.status(200).json({ success: true, message: "User logged out successfully" });
+
+    res.clearCookie("userRole", {
+      httpOnly: true,
+      sameSite: "None",
+      secure: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "User logged out successfully",
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };
+
 
 
 const getUserById = async (req, res) => {

@@ -46,10 +46,12 @@ const createEvent = async (req, res) => {
 
     // === CHECK: Does this user already have an event with the same message? ===
     const existingEvent = await Calendar.findOne({
-      userId: userId,           // ← Only for this user
+      userId: userId, 
+      date: parsedDate,
+      time: time.trim(),         // ← Only for this user
       message: trimmedMessage   // ← Exact same message text
     });
-
+console.log(existingEvent);
     if (existingEvent) {
       return sendResponse(res, 409, false, "You already have an event with this message.");
     }

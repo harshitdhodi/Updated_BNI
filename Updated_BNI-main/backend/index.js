@@ -40,17 +40,20 @@ if (!dbUri) {
 
 mongoose.connect(dbUri)
   .then(() => {
-    // if (typeof initCalendarCronJob === 'function') {
-    //   initCalendarCronJob();
-    // } else {
-    //   console.warn('initCalendarCronJob is not a function, skipping cron job initialization');
-    // }
+    if (typeof initCalendarCronJob === 'function') {
+      initCalendarCronJob();
+    } else {
+      console.warn('initCalendarCronJob is not a function, skipping cron job initialization');
+    }
     console.log("Connected to MongoDB");
   })
   .catch(err => {
     console.error("Failed to connect to MongoDB", err);
     process.exit(1); // Also exit if the connection fails
   });
+
+// Serve static files from the 'dist' directory. This should come before API routes.
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // API routes
 app.get('/countries', (req, res) => {
@@ -98,9 +101,6 @@ const pdf = require("./route/pdf");
 const profile = require("./route/profile");
 const company = require("./route/company");
 const dashboard = require("./route/dashboard");
-
-// Serve static files from the 'dist' directory
-app.use(express.static(path.join(__dirname, 'dist')));
 
 const uploadDir = path.join(__dirname, 'uploads'); // Define the upload directory
 
@@ -154,10 +154,6 @@ app.get('*', (req, res) => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
-});
-
-app.get('/service-worker.js', (req, res) => {
-    res.sendFile(path.join(__dirname, 'utils', 'service-worker.js'));
 });
 
 // Start server

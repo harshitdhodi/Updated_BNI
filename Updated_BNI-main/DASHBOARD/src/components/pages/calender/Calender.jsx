@@ -421,36 +421,7 @@ export default function SmartCalendar() {
               <p className="text-slate-600 mt-2">Stay organized, stay productive</p>
             </div>
 
-            {/* Notification Control */}
-            <div className="flex gap-2">
-              {notificationPermission === 'granted' && isSubscribed ? (
-                <>
-                  <button
-                    onClick={sendTestNotification}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
-                  >
-                    <Bell className="w-4 h-4" />
-                    Test
-                  </button>
-                  <button
-                    onClick={unsubscribeFromNotifications}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2"
-                  >
-                    <BellOff className="w-4 h-4" />
-                    Disable
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={subscribeToNotifications}
-                  disabled={notificationPermission === 'denied'}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Bell className="w-4 h-4" />
-                  {notificationPermission === 'denied' ? 'Blocked' : 'Enable Notifications'}
-                </button>
-              )}
-            </div>
+            
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
