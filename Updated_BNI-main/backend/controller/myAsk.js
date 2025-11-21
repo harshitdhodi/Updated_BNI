@@ -16,6 +16,18 @@ const addMyAsk = async (req, res) => {
       });
     }
 
+    // Check if a MyAsk with the same companyName and dept already exists for the user
+    const existingMyAsk = await MyAsk.findOne({
+      user: user,
+      companyName: companyName,
+      dept: dept,
+    });
+
+    if (existingMyAsk) {
+      return res.status(400).json({ status: "failed", message: "A MyAsk with the same company name and department already exists for this user" });
+    }
+
+
 
     // Create new MyAsk instance
     const myAsk = new MyAsk({
@@ -41,31 +53,40 @@ const addMyAsk = async (req, res) => {
 
 const getMyAsks = async (req, res) => {
   try {
-    // Extract userId from request parameters
-    const { userId } = req.query;
-    
-    const { page = 1 } = req.query;
-    const limit = 5;
-    // Check if user exists (if validation is needed)
-    const user = await User.findById(userId)
-    .skip((page - 1) * limit) // Skip records for previous pages
-    .limit(limit);;
+    const { userId, page = 1, limit = 5 } = req.query;
+
+    // Check if user exists
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ status: "failed", message: "User not found" });
     }
-console.log('myASk',userId)
-    // Query MyAsk collection for entries associated with userId
-    const userMyAsk = await MyAsk.find({ user: userId }).populate('dept');
+
+    // Pagination values
+    const skipCount = (page - 1) * limit;
+
+    // Fetch paginated MyAsk
+    const userMyAsk = await MyAsk.find({ user: userId })
+      .populate("dept")
+      .skip(skipCount)
+      .limit(Number(limit));
+
+    // Total count for pagination
+    const total = await MyAsk.countDocuments({ user: userId });
 
     res.status(200).json({
       status: "success",
+      total,
+      currentPage: Number(page),
+      totalPages: Math.ceil(total / limit),
       data: userMyAsk,
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ status: "failed", message: "Unable to fetch myAsk" });
   }
 };
+
 
 const MyAllAsks= async (req, res) => {
   try {

@@ -1,128 +1,180 @@
-// services/notificationService.js
-const webpush = require('web-push');
-const Subscription = require('../model/subscription');
-require('dotenv').config();
+// utils/notificationService.js
+const admin = require('firebase-admin');
+const User = require('../model/member');
+const { initializeFirebase } = require('../config/initializeFirebase');
 
-// Configure web-push with VAPID details
-webpush.setVapidDetails(
-    process.env.VAPID_EMAIL,
-    process.env.VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
-);
+// Initialize Firebase when this module is loaded
+initializeFirebase();
 
-/**
- * Send push notification to a specific user
- * @param {String} userId - The user's MongoDB ID
- * @param {Object} payload - Notification payload
- */
-const sendNotificationToUser = async (userId, payload) => {
+class NotificationService {
+  static async sendNotificationToAllUsers(title, body, data = {}) {
+    console.log('=== Starting sendNotificationToAllUsers ===');
+    console.log('Notification details:', { title, body, data });
+
     try {
-        // Find subscriptions for this user in Subscription collection
-        const subscriptions = await Subscription.find({ userId }).lean();
+      // Verify Firebase is initialized
+      if (!admin.apps.length) {
+        console.log('Firebase not initialized, initializing now...');
+        initializeFirebase();
+      } else {
+        console.log('Firebase already initialized');
+      }
 
-        if (!Array.isArray(subscriptions) || subscriptions.length === 0) {
-            console.log(`No subscriptions found for user: ${userId}`);
-            return { success: false, message: 'No subscriptions found' };
+      // Get all users with device tokens
+      console.log('Fetching users with device tokens...');
+      const users = await User.find({
+        deviceTokens: { $exists: true, $not: { $size: 0 } },
+        active: true
+      }).select('deviceTokens firstName lastName');
+
+      console.log(`Found ${users.length} users with device tokens`);
+      if (!users || users.length === 0) {
+        console.log('No users with device tokens found');
+        return { success: true, message: 'No users to notify' };
+      }
+
+      // Collect all device tokens
+      const allTokens = [];
+      users.forEach(user => {
+        if (user.deviceTokens && user.deviceTokens.length > 0) {
+          allTokens.push(...user.deviceTokens);
         }
+      });
 
-        // Send notification to all user's subscriptions
-        const notificationPromises = subscriptions.map(async (sub) => {
-            try {
-                await webpush.sendNotification(
-                    {
-                        endpoint: sub.endpoint,
-                        keys: {
-                            p256dh: sub.keys.p256dh,
-                            auth: sub.keys.auth,
-                        },
-                    },
-                    JSON.stringify(payload)
-                );
-                return { success: true, endpoint: sub.endpoint };
-            } catch (error) {
-                console.error(`Failed to send to ${sub.endpoint}:`, error);
-                
-                // Remove invalid subscriptions (410 = Gone, 404 = Not Found)
-                if (error.statusCode === 410 || error.statusCode === 404) {
-                    console.log(`Subscription expired or not found for endpoint ${sub.endpoint}. Please remove it from DB.`);
-                    // If subscriptions are stored as top-level documents, implement deletion here.
-                    // Avoid modifying nested arrays in member document automatically to prevent accidental data loss.
-                }
-                
-                return { success: false, endpoint: sub.endpoint, error: error.message };
+      if (allTokens.length === 0) {
+        console.log('No device tokens found');
+        return { success: true, message: 'No device tokens available' };
+      }
+
+      // Remove duplicates
+      const uniqueTokens = [...new Set(allTokens)];
+      console.log(`Sending notifications to ${uniqueTokens.length} devices`);
+
+      // Send notifications in batches (Firebase has a limit of 500 tokens per request)
+      const batchSize = 500;
+      const results = [];
+      let totalSuccess = 0;
+      let totalFailure = 0;
+
+      for (let i = 0; i < uniqueTokens.length; i += batchSize) {
+        const tokenBatch = uniqueTokens.slice(i, i + batchSize);
+        console.log(`Sending batch ${(i / batchSize) + 1} with ${tokenBatch.length} tokens`);
+
+        try {
+          const message = {
+            notification: {
+              title: title,
+              body: body,
+            },
+            data: {
+              ...data,
+              click_action: data.click_action || 'FLUTTER_NOTIFICATION_CLICK',
+            },
+            tokens: tokenBatch,
+          };
+
+          console.log('Sending message:', JSON.stringify({
+            ...message,
+            tokens: `[${tokenBatch.length} tokens]` // Don't log actual tokens
+          }, null, 2));
+
+          const response = await admin.messaging().sendEachForMulticast(message);
+          console.log('Batch response:', {
+            batch: (i / batchSize) + 1,
+            successCount: response.successCount,
+            failureCount: response.failureCount,
+            responses: response.responses
+          });
+
+          totalSuccess += response.successCount;
+          totalFailure += response.failureCount;
+
+          results.push({
+            batch: (i / batchSize) + 1,
+            successCount: response.successCount,
+            failureCount: response.failureCount,
+            responses: response.responses,
+          });
+
+          console.log(`Batch ${Math.floor(i/batchSize) + 1}: ${response.successCount} successful, ${response.failureCount} failed`);
+
+          // Handle failed tokens (optional - remove invalid tokens)
+          if (response.failureCount > 0) {
+            const failedTokens = [];
+            response.responses.forEach((resp, idx) => {
+              if (!resp.success) {
+                failedTokens.push(tokenBatch[idx]);
+                console.error(`Failed to send to token: ${tokenBatch[idx]}, Error: ${resp.error?.message || resp.error}`);
+              }
+            });
+
+            // Optionally remove invalid tokens from users
+            if (failedTokens.length > 0) {
+              await this.removeInvalidTokens(failedTokens);
             }
-        });
+          }
+        } catch (error) {
+          console.error(`Error sending notification batch:`, error);
+          // Re-throw the error to be caught by the outer try-catch
+          throw error;
+        }
+      }
 
-        const results = await Promise.all(notificationPromises);
-        return { success: true, results };
+      console.log(`Notification summary: ${totalSuccess} successful, ${totalFailure} failed`);
+
+      return {
+        success: true,
+        message: `Notifications sent to ${totalSuccess} devices`,
+        totalSuccess,
+        totalFailure,
+        batches: results
+      };
+
     } catch (error) {
-        console.error('Error in sendNotificationToUser:', error);
-        return { success: false, error: error.message };
+      console.error('Error sending notifications:', error);
+      return {
+        success: false,
+        message: 'Failed to send notifications',
+        error: error.message
+      };
     }
-};
+  }
 
-/**
- * Send notification to multiple users
- * @param {Array} userIds - Array of user IDs
- * @param {Object} payload - Notification payload
- */
-const sendBulkNotifications = async (userIds, payload) => {
-    const results = await Promise.all(
-        userIds.map(userId => sendNotificationToUser(userId, payload))
-    );
-    return results;
-};
-
-module.exports = {
-    sendNotificationToUser,
-    sendBulkNotifications,
-};
-
-/**
- * Send a notification payload to all stored subscriptions
- * @param {Object} payload - Notification payload
- */
-const sendNotificationToAll = async (payload) => {
+  static async removeInvalidTokens(invalidTokens) {
     try {
-        const subscriptions = await Subscription.find({}).lean();
-
-        if (!Array.isArray(subscriptions) || subscriptions.length === 0) {
-            console.log('No subscriptions available to broadcast');
-            return { success: false, message: 'No subscriptions available' };
-        }
-
-        const promises = subscriptions.map(async (sub) => {
-            try {
-                await webpush.sendNotification(
-                    { endpoint: sub.endpoint, keys: { p256dh: sub.keys?.p256dh, auth: sub.keys?.auth } },
-                    JSON.stringify(payload)
-                );
-                return { success: true, endpoint: sub.endpoint };
-            } catch (err) {
-                console.error(`Broadcast send failed for ${sub.endpoint}:`, err.message || err);
-                // Cleanup expired subscriptions
-                if (err.statusCode === 410 || err.statusCode === 404) {
-                    try {
-                        await Subscription.deleteOne({ _id: sub._id });
-                        console.log(`Removed expired subscription ${sub._id}`);
-                    } catch (delErr) {
-                        console.error('Failed to delete expired subscription', delErr);
-                    }
-                }
-                return { success: false, endpoint: sub.endpoint, error: err.message };
-            }
-        });
-
-        const results = await Promise.all(promises);
-        return { success: true, results };
+      // Remove invalid tokens from all users
+      await User.updateMany(
+        { deviceTokens: { $in: invalidTokens } },
+        { $pullAll: { deviceTokens: invalidTokens } }
+      );
+      console.log(`Removed ${invalidTokens.length} invalid tokens`);
     } catch (error) {
-        console.error('Error in sendNotificationToAll:', error);
-        return { success: false, error: error.message };
+      console.error('Error removing invalid tokens:', error);
     }
-};
+  }
 
-module.exports = {
-    sendNotificationToUser,
-    sendBulkNotifications,
-    sendNotificationToAll,
-};
+  static async sendEventNotification(event, isUpdate = false) {
+    const title = isUpdate
+      ? `🔄 Event Updated: ${event.name}`
+      : `🎉 New Event Alert: ${event.name}`;
+
+    const body = isUpdate
+      ? `The event has been updated. Check out the latest details!`
+      : `New event is now available. Register before ${new Date(event.lastDate).toLocaleDateString()}!`;
+
+    const data = {
+      type: isUpdate ? 'event_updated' : 'new_event',
+      eventId: event._id.toString(),
+      eventName: event.name,
+      eventDate: event.date,
+      lastDate: event.lastDate,
+      screen: 'event_details',
+      click_action: 'FLUTTER_NOTIFICATION_CLICK',
+      timestamp: new Date().toISOString()
+    };
+
+    return await this.sendNotificationToAllUsers(title, body, data);
+  }
+}
+
+module.exports = NotificationService;

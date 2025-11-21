@@ -1,0 +1,21 @@
+{
+    "name": "BCONN",
+  "short_name": "BCONN",
+  "theme_color": "#f32121",
+  "background_color": "#2196f3",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icons/BNI1.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg"
+    },
+    {
+      "src": "/icons/BNI1.jpg",
+      "sizes": "512x512",
+      "type": "image/jpg"
+    }
+  ]
+}
