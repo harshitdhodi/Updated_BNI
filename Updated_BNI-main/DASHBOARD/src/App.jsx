@@ -64,7 +64,8 @@ import UserMyMatches from "./components/pages/member/mymatches/UserMyMatches";
 import SmartCalendar from "./components/pages/calender/Calender";
 import { Toaster } from "react-hot-toast";
 import UserBusinessList from "./components/pages/member/business/UserBusinessList";
-
+import { messaging } from "./firebase";
+import { getToken } from "firebase/messaging";
 // Helper component to dynamically redirect with the member's ID
 const MemberIndexRedirect = () => {
   const { id } = useParams();
@@ -75,6 +76,32 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  
+  function requestPermission() {
+    console.log('Requesting permission for notifications...');
+    Notification.requestPermission().then((permission) => {
+        if (permission === 'granted') {
+            console.log('Notification permission granted.');
+            // Get the registration token
+            getToken(messaging, { vapidKey:"BFL6JYHGdtTgKv7b6_mnt9ifKTFZc4f5mmc3uz_IzFzqtYcgdUuXUuQalRIkLn5mz97MKl2nIoALBWJx2BCaAr4"}).then((currentToken) => {
+                if (currentToken) {
+                    console.log('FCM Token:', currentToken);
+                    // You might want to send this token to your server for later use
+                } else {
+                    console.log('No registration token available. Request permission to generate one.');
+                }
+            }).catch((err) => {
+                console.log('An error occurred while retrieving token. ', err);
+            });
+        } else {
+            console.log('Notification permission denied.');
+            alert('You have denied notification permissions. Please enable them in your browser settings to receive notifications.');
+        }
+    });
+}
+useEffect(() => {
+    requestPermission();
+}, []);
 
   useEffect(() => {
     const token = Cookies.get("token");
