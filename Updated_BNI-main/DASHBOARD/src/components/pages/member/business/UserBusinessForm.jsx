@@ -145,7 +145,7 @@ const BusinessFormModal = ({
             'Content-Type': 'multipart/form-data'
           }
         });
-        toast.success('Business profile created successfully!');
+        // toast.success('Business profile created successfully!');
       } else {
         await axios.put(`/api/business/updateBusinessDetails`, submitData, {
           params: { id: businessId },
@@ -153,7 +153,7 @@ const BusinessFormModal = ({
             'Content-Type': 'multipart/form-data'
           }
         });
-        toast.success('Business profile updated successfully!');
+        // toast.success('Business profile updated successfully!');
       }
       onSuccess();
       onClose();
@@ -345,12 +345,12 @@ const BusinessFormModal = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Company Address *</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Company Address </label>
               <textarea
                 name="companyAddress"
                 value={formData.companyAddress}
                 onChange={handleInputChange}
-                required
+              
                 rows={3}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
                 placeholder="Full business address"

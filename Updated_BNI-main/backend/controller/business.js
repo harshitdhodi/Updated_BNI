@@ -248,11 +248,10 @@ const updateBusinessDetails = async (req, res) => {
   console.log('Received designation:', designation);
   console.log('Received aboutCompany:', aboutCompany);
   console.log('Received companyAddress:', companyAddress);
-
-  const updateFields = {};
-  if (designation) updateFields.designation = designation;
-  if (aboutCompany) updateFields.aboutCompany = aboutCompany;
-  if (companyAddress) updateFields.companyAddress = companyAddress;
+  
+    // Use the request body directly as the update object
+    const updateFields = req.body;
+  
 
   try {
     const updatedBusiness = await Business.findByIdAndUpdate(
