@@ -15,25 +15,50 @@ exports.createCountry = async (req, res) => {
 
 // READ - GET all
 exports.getCountries = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 5;
-        const count = await Country.countDocuments();
-        const countries = await Country.find()
-            .skip((page - 1) * limit)
-            .limit(limit);
+  try {
+    const page = parseInt(req.query.page, 10);
+    const limit = parseInt(req.query.limit, 10);
 
-        res.status(200).json({
-            data: countries,
-            count,
-            totalPages: Math.ceil(count / limit),
-            currentPage: page,
-            message: "Countries fetched successfully",
-        });
-    } catch (err) {
-        console.error("Error fetching countries:", err);
-        res.status(500).json({ message: "Error fetching countries", error: err.message });
+    // If page or limit is missing / NaN / 0 → fetch ALL countries
+    const fetchAll = !page || !limit || page <= 0 || limit <= 0;
+
+    let countries;
+    let count;
+    let totalPages = 1;
+    let currentPage = 1;
+
+    if (fetchAll) {
+      // No pagination → return everything
+      countries = await Country.find().sort({ name: 1 }); // optional sorting
+      count = countries.length;
+    } else {
+      // Pagination active
+      count = await Country.countDocuments();
+      countries = await Country.find()
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .sort({ name: 1 }); // optional sorting
+
+      totalPages = Math.ceil(count / limit);
+      currentPage = page;
     }
+
+    res.status(200).json({
+      data: countries,
+      count,                // total number of countries (without pagination when fetchAll)
+      totalPages,
+      currentPage,
+      hasNextPage: fetchAll ? false : page < totalPages,
+      hasPrevPage: fetchAll ? false : page > 1,
+      message: "Countries fetched successfully",
+    });
+  } catch (err) {
+    console.error("Error fetching countries:", err);
+    res.status(500).json({
+      message: "Error fetching countries",
+      error: err.message,
+    });
+  }
 };
 
 // READ - GET by id

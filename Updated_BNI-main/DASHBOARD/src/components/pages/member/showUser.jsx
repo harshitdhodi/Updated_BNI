@@ -104,6 +104,32 @@ const MemberList = () => {
     }
   };
 
+  const handleApprovalChange = async (memberId, currentStatus) => {
+    const newStatus = currentStatus === "approved" ? "pending" : "approved";
+    const toastId = toast.loading(`Updating status to ${newStatus}...`);
+
+    try {
+      const token = getCookie("token");
+      await axios.put(
+        `/api/member/updatememberById?id=${memberId}`,
+        { approvedByadmin: newStatus },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      );
+
+      // Update local state for immediate UI feedback
+      setAllMembers(prevMembers =>
+        prevMembers.map(m => (m._id === memberId ? { ...m, approvedByadmin: newStatus } : m))
+      );
+
+      toast.success("Approval status updated successfully!", { id: toastId });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update status.", { id: toastId });
+    }
+  };
+
   const filterMember = (searchValue) => {
     if (searchValue !== "") {
       const filtered = allMembers.filter((customer) =>
@@ -135,72 +161,100 @@ const MemberList = () => {
     setOpenMenuId(openMenuId === memberId ? null : memberId);
   };
 
-  const ActionMenu = ({ memberId, member, position = "right", isLastOrSecondLast = false }) => {
+const ActionMenu = ({ memberId, member, position = "right", isLastOrSecondLast = false }) => {
     return (
       <div
         className={`absolute ${
           isLastOrSecondLast ? "bottom-full mb-2" : "top-full mt-2"
         } ${
           position === "right" ? "right-0" : "left-0"
-        } bg-white rounded-lg shadow-lg border border-gray-200 z-50 min-w-max`}
+        } bg-white rounded-xl shadow-2xl border border-gray-100 z-50 min-w-[200px] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200`}
         onClick={(e) => e.stopPropagation()}
       >
-        <Link
-          to={`/myAsks/${member._id}`}
-          onClick={() => setOpenMenuId(null)}
-          className="block w-full px-4 py-2 text-left hover:bg-purple-50 text-purple-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
-        >
-          ✦ Asks
-        </Link>
-
-        <Link
-          to={`/myGives/${member._id}`}
-          onClick={() => setOpenMenuId(null)}
-          className="block w-full px-4 py-2 text-left hover:bg-green-50 text-green-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
-        >
-          ✦ Gives
-        </Link>
-        <Link
-          to={`/business/${member._id}`}
-          onClick={() => setOpenMenuId(null)}
-          className="block w-full px-4 py-2 text-left hover:bg-yellow-50 text-yellow-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
-        >
-          ✦ Business
-        </Link>
-        <Link
-          to={`/myMatches/${member._id}`}
-          onClick={() => setOpenMenuId(null)}
-          className="block w-full px-4 py-2 text-left hover:bg-orange-50 text-orange-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
-        >
-          ✦ Matches
-        </Link>
-
-        <Link to={`/ref-member/${member?.refral_code}`} className="block">
-          <button
+        <div className="py-2">
+          {/* Asks */}
+          <Link
+            to={`/myAsks/${member._id}`}
             onClick={() => setOpenMenuId(null)}
-            className="w-full px-4 py-2 text-left hover:bg-green-50 text-green-700 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
+            className="flex items-center gap-3 px-4 py-2.5 hover:bg-purple-50 text-gray-700 hover:text-purple-700 transition-all duration-150 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-purple-100 group-hover:bg-purple-200 flex items-center justify-center transition-colors">
+              <span className="text-purple-600 font-bold text-sm">✦</span>
+            </div>
+            <span className="font-medium text-sm">Asks</span>
+          </Link>
+
+          {/* Gives */}
+          <Link
+            to={`/myGives/${member._id}`}
+            onClick={() => setOpenMenuId(null)}
+            className="flex items-center gap-3 px-4 py-2.5 hover:bg-green-50 text-gray-700 hover:text-green-700 transition-all duration-150 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-green-100 group-hover:bg-green-200 flex items-center justify-center transition-colors">
+              <span className="text-green-600 font-bold text-sm">✦</span>
+            </div>
+            <span className="font-medium text-sm">Gives</span>
+          </Link>
+
+          {/* Business */}
+          <Link
+            to={`/business/${member._id}`}
+            onClick={() => setOpenMenuId(null)}
+            className="flex items-center gap-3 px-4 py-2.5 hover:bg-yellow-50 text-gray-700 hover:text-yellow-700 transition-all duration-150 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-yellow-100 group-hover:bg-yellow-200 flex items-center justify-center transition-colors">
+              <span className="text-yellow-600 font-bold text-sm">✦</span>
+            </div>
+            <span className="font-medium text-sm">Business</span>
+          </Link>
+
+          {/* Matches */}
+          <Link
+            to={`/myMatches/${member._id}`}
+            onClick={() => setOpenMenuId(null)}
+            className="flex items-center gap-3 px-4 py-2.5 hover:bg-orange-50 text-gray-700 hover:text-orange-700 transition-all duration-150 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-orange-100 group-hover:bg-orange-200 flex items-center justify-center transition-colors">
+              <span className="text-orange-600 font-bold text-sm">✦</span>
+            </div>
+            <span className="font-medium text-sm">Matches</span>
+          </Link>
+
+          {/* Divider */}
+          <div className="my-2 border-t border-gray-100"></div>
+
+          {/* Ref Member */}
+          <Link 
+            to={`/ref-member/${member?.refral_code}`}
+            onClick={() => setOpenMenuId(null)}
+            className="flex items-center gap-3 px-4 py-2.5 hover:bg-emerald-50 text-gray-700 hover:text-emerald-700 transition-all duration-150 group"
             title={`${member?.referralCount || 0} referrals`}
           >
-            <Gift size={16} /> 
-            Ref Member 
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 group-hover:bg-emerald-200 flex items-center justify-center transition-colors">
+              <Gift size={16} className="text-emerald-600" />
+            </div>
+            <span className="font-medium text-sm flex-1">Ref Member</span>
             {member?.referralCount > 0 && (
-              <span className="ml-auto bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+              <span className="bg-emerald-600 text-white text-xs rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center font-bold shadow-sm">
                 {member?.referralCount}
               </span>
             )}
+          </Link>
+
+          {/* View Details */}
+          <button
+            onClick={() => {
+              handleViewDetails(member);
+              setOpenMenuId(null);
+            }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition-all duration-150 group"
+          >
+            <div className="w-8 h-8 rounded-lg bg-blue-100 group-hover:bg-blue-200 flex items-center justify-center transition-colors">
+              <Eye size={16} className="text-blue-600" />
+            </div>
+            <span className="font-medium text-sm">View Details</span>
           </button>
-        </Link>
-
-        <button
-          onClick={() => {
-            handleViewDetails(member);
-            setOpenMenuId(null);
-          }}
-          className="w-full px-4 py-2 text-left hover:bg-blue-50 text-blue-600 font-medium text-sm flex items-center gap-2 border-b border-gray-100"
-        >
-          <Eye size={16} /> View Details
-        </button>
-
+        </div>
       </div>
     );
   };
@@ -313,100 +367,120 @@ const MemberList = () => {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-gradient-to-r from-blue-200 to-blue-100 text-black text-lg">
-                <th className="px-6 py-3 text-left font-semibold text-sm">ID</th>
-                <th className="px-6 py-3 text-left font-semibold text-sm">
-                  Member Name
-                </th>
-                <th className="px-6 py-3 text-left font-semibold text-sm">
-                  Contact Info
-                </th>
-                <th className="px-6 py-3 text-center font-semibold text-sm">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {(searchValue.length > 0 ? filteredMember : member).map(
-                (customer, index) => {
-                  const visibleData = searchValue.length > 0 ? filteredMember : member;
-                  const isLastOrSecondLast = index >= visibleData.length - 2;
-                  return (
-                    <tr
-                      key={customer._id}
-                      className="border-b border-gray-200 hover:bg-blue-50 transition"
-                    >
-                      <td className="px-6 py-4 text-gray-800 font-medium">
-                        {customer.id}
-                      </td>
-                      <td className="px-6 py-4 text-gray-800 font-medium">
-                        {customer.name}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 space-y-1">
-                        <p className="flex items-center gap-2">
-                          <Phone size={16} className="text-blue-600" />
-                          {customer.mobile}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <Mail size={16} className="text-blue-600" />
-                          {customer.email}
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <MapPin size={16} className="text-blue-600" />
-                          {customer.country}, {customer.city}
-                        </p>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-1 relative">
-                          <Link
-                            to={`/editMember/${customer._id}`}
-                            className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
-                            title="Edit"
-                          >
-                            <Edit2 size={18} />
-                          </Link>
-                          <button
-                            onClick={() => handleDelete(customer._id)}
-                            className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
-                            title="Delete"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                          <button
-                            onClick={() => toggleMenu(customer._id)}
-                            className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
-                            title="More actions"
-                          >
-                            <MoreVertical size={20} />
-                          </button>
-                          {openMenuId === customer._id && (
-                            <ActionMenu 
-                              memberId={customer._id} 
-                              member={customer} 
-                              position="right"
-                              isLastOrSecondLast={isLastOrSecondLast}
-                            />
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                }
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="hidden md:block bg-white rounded-lg shadow-md"> {/* Removed overflow-hidden */}
+        <table className="w-full table-auto">
+          <thead>
+            <tr className="bg-gradient-to-r from-blue-200 to-blue-100 text-black text-lg">
+              <th className="px-6 py-3 text-left font-semibold text-sm">ID</th>
+              <th className="px-6 py-3 text-left font-semibold text-sm">
+                Member Name
+              </th>
+              <th className="px-6 py-3 text-left font-semibold text-sm">
+                Contact Info
+              </th>
+              <th className="px-6 py-3 text-center font-semibold text-sm">
+                Admin Approval
+              </th>
+              <th className="px-6 py-3 text-center font-semibold text-sm">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {(searchValue.length > 0 ? filteredMember : member).map(
+              (customer, index) => {
+                const visibleData = searchValue.length > 0 ? filteredMember : member;
+                // For the last two items on the page, open the menu upwards.
+                // This should only happen if there are more than 3 items on the page.
+                const openUpwards = visibleData.length > 3 && index >= visibleData.length - 2;
+
+                return (
+                  <tr
+                    key={customer._id}
+                    className="border-b border-gray-200 hover:bg-blue-50 transition"
+                  >
+                    <td className="px-6 py-4 text-gray-800 font-medium">
+                      {customer.id}
+                    </td>
+                    <td className="px-6 py-4 text-gray-800 font-medium">
+                      {customer.name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600 space-y-1">
+                      <p className="flex items-center gap-2">
+                        <Phone size={16} className="text-blue-600" />
+                        {customer.mobile}
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Mail size={16} className="text-blue-600" />
+                        {customer.email}
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <MapPin size={16} className="text-blue-600" />
+                        {customer.country}, {customer.city}
+                      </p>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={customer.approvedByadmin === 'approved'}
+                          onChange={() => handleApprovalChange(customer._id, customer.approvedByadmin)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <span className="ml-3 text-sm font-medium text-gray-900 sr-only">
+                          Admin Approval
+                        </span>
+                      </label>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center gap-1 relative">
+                        <Link
+                          to={`/editMember/${customer._id}`}
+                          className="p-2 hover:bg-blue-100 rounded-lg transition text-blue-600"
+                          title="Edit"
+                        >
+                          <Edit2 size={18} />
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(customer._id)}
+                          className="p-2 hover:bg-red-100 rounded-lg transition text-red-600"
+                          title="Delete"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => toggleMenu(customer._id)}
+                          className="p-2 hover:bg-blue-100 z-0 rounded-lg transition text-blue-600"
+                          title="More actions"
+                        >
+                          <MoreVertical size={20} />
+                        </button>
+                        {openMenuId === customer._id && (
+                          <ActionMenu 
+                            memberId={customer._id} 
+                            member={customer} 
+                            position="right"
+                            isLastOrSecondLast={openUpwards}
+                          />
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              }
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
         {(searchValue.length > 0 ? filteredMember : member).map((customer, index) => {
           const visibleData = searchValue.length > 0 ? filteredMember : member;
-          const isLastOrSecondLast = index >= visibleData.length - 2;
+          // If there are more than 3 items, open the menu upwards for the last two.
+          const openUpwards = visibleData.length > 3 && index >= visibleData.length - 2;
+
           return (
             <div
               key={customer._id}
@@ -446,7 +520,7 @@ const MemberList = () => {
                       memberId={customer._id} 
                       member={customer} 
                       position="left"
-                      isLastOrSecondLast={isLastOrSecondLast}
+                      isLastOrSecondLast={openUpwards}
                     />
                   )}
                 </div>

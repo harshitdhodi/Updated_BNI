@@ -14,7 +14,7 @@ const myAskSchema = new Schema({
   },
   message: {
     type: String,
-    required: true,
+    default: ""
   },
   user: {
     type: Schema.Types.ObjectId,

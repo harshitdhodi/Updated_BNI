@@ -1,7 +1,38 @@
 import React, { useState } from "react";
 import axios from "axios";
 import {  Link } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, ShieldCheck, X } from "lucide-react";
+
+// A simple, reusable modal component for displaying messages
+const InfoModal = ({ title, message, onClose }) => {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+        <div className="p-8 text-center">
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
+            <ShieldCheck className="h-8 w-8 text-blue-600" />
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">{title}</h3>
+          <p className="text-gray-600 mb-8">
+            {message}
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300"
+          >
+            Got it, thanks!
+          </button>
+        </div>
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+        >
+          <X size={24} />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -9,6 +40,11 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [modalInfo, setModalInfo] = useState({
+    visible: false,
+    title: "",
+    message: "",
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,8 +91,17 @@ const LoginForm = () => {
       }
       // If member login was not successful, fall through to attempt user login.
     } catch (error) {
-      // Member login failed (e.g., 401, 404, 500).
-      // We will ignore this error and proceed to try the user login.
+      // Check for the specific "pending approval" error
+      if (error.response && error.response.status === 403) {
+        setModalInfo({
+          visible: true,
+          title: "Account Pending Approval",
+          message: error.response.data.message,
+        });
+        setIsLoading(false);
+        return; // Stop the login process
+      }
+      // For other errors (like wrong password), we'll proceed to the admin login attempt.
       console.log("Member login failed, proceeding to user login attempt.");
     }
 
@@ -80,6 +125,13 @@ const LoginForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      {modalInfo.visible && (
+        <InfoModal
+          title={modalInfo.title}
+          message={modalInfo.message}
+          onClose={() => setModalInfo({ ...modalInfo, visible: false })}
+        />
+      )}
       <div className="w-full max-w-5xl m-4 bg-white shadow-2xl rounded-2xl flex overflow-hidden">
         {/* Branding Section */}
         <div className="hidden md:flex w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 p-12 text-white flex-col justify-between">

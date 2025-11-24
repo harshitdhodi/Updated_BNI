@@ -9,7 +9,7 @@ const addMyAsk = async (req, res) => {
  
 
     // Validate required fields
-    if (!companyName || !dept || !message) {
+    if (!companyName || !dept) {
       return res.status(400).json({
         status: "failed",
         message: "Company name, MyAsk, and message are required"

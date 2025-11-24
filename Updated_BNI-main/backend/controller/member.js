@@ -180,6 +180,11 @@ const memberLogin = async (req, res) => {
       return res.status(401).json({ status: "failed", message: "Invalid email or password" });
     }
 
+    // Check if the member has been approved by the admin
+    if (member.approvedByadmin !== 'approved') {
+      return res.status(403).json({ status: "failed", message: "Your account is pending administrator approval. You will be able to log in once your account has been approved." });
+    }
+
     // Handle deviceTokens and generate JWT if login is successful
     // Replace deviceToken if it exists, otherwise add it
     if (!member.deviceTokens.includes(deviceTokens)) {
@@ -414,6 +419,28 @@ const updatememberById = async (req, res) => {
       return res.status(404).json({ status: "failed", message: 'Member not found' });
     }
 
+    // Send a notification to the user that their profile was updated
+    if (updatedMember.deviceTokens && updatedMember.deviceTokens.length > 0) {
+      const notificationData = {
+        notification: {
+          title: 'Profile Updated',
+          body: 'Your profile information has been successfully updated.',
+        }
+      };
+
+      // Send notification to all registered device tokens for the user
+      for (const token of updatedMember.deviceTokens) {
+        if (token) { // Ensure the token is not null or empty
+          try {
+            await sendNotification({ ...notificationData, token });
+            console.log(`Notification sent to token ${token}`);
+          } catch (notificationError) {
+            console.error(`Failed to send notification to token ${token}:`, notificationError);
+          }
+        }
+      }
+    }
+
     // Respond with updated fields only
     res.status(200).json({ status: "success", message: 'Member updated successfully', id: updatedMember._id, updatedFields });
   } catch (error) {
@@ -569,7 +596,7 @@ const getApprovedMember = async (req, res) => {
       const totalReferralMembers = await Member.countDocuments({
         ref_member: member.refral_code,
         approvedByadmin: "approved",
-        approvedBymember: "approved"
+        // approvedBymember: "approved"
       });
       return {
         ...member.toObject(), // Convert Mongoose Document to plain object

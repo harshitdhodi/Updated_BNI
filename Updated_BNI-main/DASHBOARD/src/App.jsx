@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -66,6 +66,7 @@ import { Toaster } from "react-hot-toast";
 import UserBusinessList from "./components/pages/member/business/UserBusinessList";
 import { messaging } from "./firebase";
 import { getToken } from "firebase/messaging";
+import { NotificationProvider } from "./NotificationContext";
 // Helper component to dynamically redirect with the member's ID
 const MemberIndexRedirect = () => {
   const { id } = useParams();
@@ -76,6 +77,7 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  const notificationShownRef = useRef(false);
   
   function requestPermission() {
     console.log('Requesting permission for notifications...');
@@ -95,13 +97,21 @@ function App() {
             });
         } else {
             console.log('Notification permission denied.');
-            alert('You have denied notification permissions. Please enable them in your browser settings to receive notifications.');
+            // alert('You have denied notification permissions. Please enable them in your browser settings to receive notifications.');
         }
     });
 }
 useEffect(() => {
     requestPermission();
 }, []);
+
+  // Show a test notification on every page load
+  useEffect(() => {
+    if (Notification.permission === "granted" && !notificationShownRef.current) {
+      new Notification("Test Notification", { body: "This is a test notification on page load!" });
+      notificationShownRef.current = true; // Mark as shown
+    }
+  }, []); // Empty dependency array ensures this runs only on mount
 
   useEffect(() => {
     const token = Cookies.get("token");
@@ -122,91 +132,93 @@ useEffect(() => {
   }
 
   return (
-    <Router>
-        <Toaster position="top-right" />
-      <Routes>
-        {!isLoggedIn ? (
-          <>
-            <Route path="/login" element={<LoginForm />} />
-            <Route path="*" element={<Navigate to="/login" />} />
-            <Route path="/registration" element={<UserForm />} />
-            <Route path="/forgotPassword" element={<ForgotPasswordForm />} />
-            <Route path="/setPassword" element={<SetPasswordForm />} />
-          </>
-        ) : userRole === "member" ? (
-          <>
-            {/* Routes for 'member' role */}
-            <Route path="/member/:id" element={<Layout />}>
-              <Route index element={<MemberIndexRedirect />} />
-              <Route path="dashboard" element={<DashboardContent />} />
-              <Route path="user-profile" element={<UserProfile />} />
-              {/* <Route path="member-info" element={<MemberInfo />} /> */}
-              <Route path="my-asks" element={<UserMyAsk />} />
-              <Route path="my-gives" element={<UserGives />} />
-              <Route path="my-matches" element={<UserMyMatches />} />
-              <Route path="calendar" element={<SmartCalendar />} />
-               <Route path="business" element={<UserBusinessList />} />
-              {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
-            </Route>
+    <NotificationProvider>
+      <Router>
+          <Toaster position="top-right" />
+        <Routes>
+          {!isLoggedIn ? (
+            <>
+              <Route path="/login" element={<LoginForm />} />
+              <Route path="*" element={<Navigate to="/login" />} />
+              <Route path="/registration" element={<UserForm />} />
+              <Route path="/forgotPassword" element={<ForgotPasswordForm />} />
+              <Route path="/setPassword" element={<SetPasswordForm />} />
+            </>
+          ) : userRole === "member" ? (
+            <>
+              {/* Routes for 'member' role */}
+              <Route path="/member/:id" element={<Layout />}>
+                <Route index element={<MemberIndexRedirect />} />
+                <Route path="dashboard" element={<DashboardContent />} />
+                <Route path="user-profile" element={<UserProfile />} />
+                {/* <Route path="member-info" element={<MemberInfo />} /> */}
+                <Route path="my-asks" element={<UserMyAsk />} />
+                <Route path="my-gives" element={<UserGives />} />
+                <Route path="my-matches" element={<UserMyMatches />} />
+                <Route path="calendar" element={<SmartCalendar />} />
+                 <Route path="business" element={<UserBusinessList />} />
+                {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
+              </Route>
 
-          </>
-        ) : (
-          userRole === "admin" ? ( <Route path="/" element={<Sidebar />}>
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route path="/dashboard" index element={<Dashboard />} />
-            <Route path="/country" element={<CountryList />} />
-            <Route path="/addCountry" element={<CreateCountry />} />
-            <Route path="/editCountry/:id" element={<EditCountry />} />
-            <Route path="/cities" element={<CityList />} />
-            <Route path="/createCity" element={<CreateCity />} />
-            <Route path="/editcities/:id" element={<EditCity />} />
-            <Route path="/ChapterList" element={<ChapterList />} />
-            <Route path="/createChapter" element={<CreateChapter />} />
-            <Route path="/editChapter/:id" element={<EditChapter />} />
-            <Route path="/departmentList" element={<DepartmentList />} />
-            <Route path="/createDepartment" element={<CreateDepartment />} />
-            <Route path="/editdepartment/:id" element={<EditDepartment />} />
-            <Route path="/memberList" element={<MemberList />} />
-            <Route path="/createCustomer" element={<CreateUser />} />
-            <Route path="/myGives/:userId" element={<MyGivesList />} />
-            <Route path="/myAsks/:userId" element={<MyAskList />} />
-            <Route path="/forgotPassword" element={<ForgotPasswordForm />} />
-            <Route path="/setPassword" element={<SetPasswordForm />} />
-            <Route path="/myMatch/:companyName/:dept/:userId" element={<MyMatches />} />
-            <Route path="/allGives" element={<AllGives />} />
-            <Route path="/allAsks" element={<AllAsks />} />
-            <Route path="/industryList" element={<IndustryList />} />
-            <Route path="/addIndustry" element={<CreateIndustry />} />
-            <Route path="/editIndustry/:id" element={<EditIndustry />} />
-            <Route path="/myMatches/:userId" element={<MyAllMatches />} />
-            <Route path="/editMember/:id" element={<EditMember />} />
-            <Route path="/business/:id" element={<BusinessList />} />
-            <Route path="/business_form/:userId" element={<BusinessForm />} />
-            <Route path="/business_form" element={<BusinessForm />} />
-            <Route path="/myBusiness/:userId" element={<MyBusinessList />} />
-            <Route path="/createMyGives/:userId" element={<CreateMyGives />} />
-            <Route path="/editMyGives/:userId/:id" element={<EditMyGives />} />
-            <Route path="/createMyAsks/:userId" element={<CreateMyAsk />} />
-            <Route path="/editMyAsks/:userId/:id" element={<EditMyAsk />} />
-            <Route path="/editMyBusiness/:id" element={<EditBusiness />} />
-            <Route path="/editMyBusiness/:userId/:id" element={<EditBusiness />} />
-            <Route path="/editAllMyAsks/:id" element={<EditAllAsks />} />
-            <Route path="/editAllMyGives/:id" element={<EditAllMyGives />} />
-            <Route path="/addAsksbyEmail" element={<CreateMyAskByEmail />} />
-            <Route path="/addGivesbyEmail" element={<CreateMyGivesByEmail />} />
-            <Route path="/company" element={<CompanyList />} />
-            <Route path="/add_company" element={<AddCompany />} />
-            <Route path="/edit_company/:id" element={<EditCompany />} />
-            <Route path="/ref-member/:refMember" element={<RefMember />} />
-            <Route path="/pending-member" element={<PendingMember />} />
-
-          </Route>
+            </>
           ) : (
-            <Route path="*" element={<Navigate to="/login" />} />
-          )
-        )}
-      </Routes>
-    </Router>
+            userRole === "admin" ? ( <Route path="/" element={<Sidebar />}>
+              <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route path="/dashboard" index element={<Dashboard />} />
+              <Route path="/country" element={<CountryList />} />
+              <Route path="/addCountry" element={<CreateCountry />} />
+              <Route path="/editCountry/:id" element={<EditCountry />} />
+              <Route path="/cities" element={<CityList />} />
+              <Route path="/createCity" element={<CreateCity />} />
+              <Route path="/editcities/:id" element={<EditCity />} />
+              <Route path="/ChapterList" element={<ChapterList />} />
+              <Route path="/createChapter" element={<CreateChapter />} />
+              <Route path="/editChapter/:id" element={<EditChapter />} />
+              <Route path="/departmentList" element={<DepartmentList />} />
+              <Route path="/createDepartment" element={<CreateDepartment />} />
+              <Route path="/editdepartment/:id" element={<EditDepartment />} />
+              <Route path="/memberList" element={<MemberList />} />
+              <Route path="/createCustomer" element={<CreateUser />} />
+              <Route path="/myGives/:userId" element={<MyGivesList />} />
+              <Route path="/myAsks/:userId" element={<MyAskList />} />
+              <Route path="/forgotPassword" element={<ForgotPasswordForm />} />
+              <Route path="/setPassword" element={<SetPasswordForm />} />
+              <Route path="/myMatch/:companyName/:dept/:userId" element={<MyMatches />} />
+              <Route path="/allGives" element={<AllGives />} />
+              <Route path="/allAsks" element={<AllAsks />} />
+              <Route path="/industryList" element={<IndustryList />} />
+              <Route path="/addIndustry" element={<CreateIndustry />} />
+              <Route path="/editIndustry/:id" element={<EditIndustry />} />
+              <Route path="/myMatches/:userId" element={<MyAllMatches />} />
+              <Route path="/editMember/:id" element={<EditMember />} />
+              <Route path="/business/:id" element={<BusinessList />} />
+              <Route path="/business_form/:userId" element={<BusinessForm />} />
+              <Route path="/business_form" element={<BusinessForm />} />
+              <Route path="/myBusiness/:userId" element={<MyBusinessList />} />
+              <Route path="/createMyGives/:userId" element={<CreateMyGives />} />
+              <Route path="/editMyGives/:userId/:id" element={<EditMyGives />} />
+              <Route path="/createMyAsks/:userId" element={<CreateMyAsk />} />
+              <Route path="/editMyAsks/:userId/:id" element={<EditMyAsk />} />
+              <Route path="/editMyBusiness/:id" element={<EditBusiness />} />
+              <Route path="/editMyBusiness/:userId/:id" element={<EditBusiness />} />
+              <Route path="/editAllMyAsks/:id" element={<EditAllAsks />} />
+              <Route path="/editAllMyGives/:id" element={<EditAllMyGives />} />
+              <Route path="/addAsksbyEmail" element={<CreateMyAskByEmail />} />
+              <Route path="/addGivesbyEmail" element={<CreateMyGivesByEmail />} />
+              <Route path="/company" element={<CompanyList />} />
+              <Route path="/add_company" element={<AddCompany />} />
+              <Route path="/edit_company/:id" element={<EditCompany />} />
+              <Route path="/ref-member/:refMember" element={<RefMember />} />
+              <Route path="/pending-member" element={<PendingMember />} />
+
+            </Route>
+            ) : (
+              <Route path="*" element={<Navigate to="/login" />} />
+            )
+          )}
+        </Routes>
+      </Router>
+    </NotificationProvider>
   );
 }
 

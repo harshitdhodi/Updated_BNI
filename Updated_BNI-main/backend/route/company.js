@@ -13,6 +13,6 @@ router.put("/updateCompanyById" ,authMiddleware,generatePdfMiddleware,updateComp
 router.delete("/deleteCompany" ,authMiddleware,deleteCompany )
 router.get("/getNonExistingCompanyNames" ,authMiddleware,getNonExistingCompanyNames )
 router.get("/getFilteredCompanyNames" ,authMiddleware,getFilteredCompanyNames )
-router.get("/getFilteredGives" ,authMiddleware,getFilteredGives )
+router.get("/getFilteredGives" ,getFilteredGives )
 router.get("/totalCompany" ,authMiddleware,TotalCompany )
 module.exports = router;

@@ -97,24 +97,24 @@ const RegistrationForm = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="w-full max-w-5xl m-4 bg-gradient-to-r from-blue-100 to-blue-50 shadow-2xl rounded-2xl overflow-hidden"> 
         {/* Branding Section */}
-        <div className="hidden md:flex w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 p-12 text-white flex-col justify-between">
+        <div className="hidden md:flex bg-gradient-to-br from-blue-600 to-blue-800 p-12 text-white flex-col justify-between">
           <div>
             <h1 className="text-4xl font-bold mb-3">Join Our Network</h1>
             <p className="text-blue-100">Create an account to connect, collaborate, and grow your business.</p>
           </div>
           <div>
-            <p className="text-sm text-blue-200">© {new Date().getFullYear()} BNI Global. All Rights Reserved.</p>
+            <p className="text-sm text-blue-200">© {new Date().getFullYear()} BCONN Global. All Rights Reserved.</p>
           </div>
         </div>
 
         {/* Form Section */}
-        <div className="w-full md:w-1/2 p-8 md:p-12">
+        <div className="w-full  md:p-12">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
           <p className="text-gray-500 mb-8">Let's get you started!</p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Name Input */}
-            <div>
+            <div className='pt-6'>
               <label className="block text-gray-700 text-sm font-semibold mb-2">Full Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -134,7 +134,7 @@ const RegistrationForm = () => {
             </div>
 
             {/* Referral Code Input */}
-            {/* <div>
+            <div>
               <label className="block text-gray-700 text-sm font-semibold mb-2">Referral Code (Optional)</label>
               <div className="relative">
                 <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -143,7 +143,7 @@ const RegistrationForm = () => {
                   type="text" name="ref_member" placeholder="Enter referral code" value={formData.ref_member} onChange={handleChange}
                 />
               </div>
-            </div> */}
+            </div>
 
             {/* Mobile Input */}
             <div>
@@ -182,9 +182,9 @@ const RegistrationForm = () => {
               </div>
               {errors.confirm_password && <p className="text-red-500 text-xs italic mt-2">{errors.confirm_password}</p>}
             </div>
-
-            {/* Submit Button */}
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 flex items-center justify-center disabled:bg-blue-400" type="submit" disabled={isLoading}>
+            <div className='flex justify-center flex-col col-span-2 items-center'>
+               {/* Submit Button */}
+            <button className="w-full md:w-1/2 mx-auto mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 flex items-center justify-center disabled:bg-blue-400" type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin mr-2" size={20} />
@@ -196,13 +196,16 @@ const RegistrationForm = () => {
             </button>
 
             {/* Login Link */}
-            <p className="text-center text-sm text-gray-600 mt-8">
+            <p className="text-center text-sm text-gray-600 mt-2">
               Already have an account?{" "}
               <Link className="font-semibold text-blue-600 hover:underline" to="/">
                 Login here
               </Link>
             </p>
-          </form>
+            </div>
+  </form>
+           
+        
         </div>
       </div>
     </div>

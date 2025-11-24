@@ -5,6 +5,7 @@ const User = require("../model/user")
 const { initializeFirebase } = require('../config/initializeFirebase');
 initializeFirebase();
 const removeDeviceTokenFromDatabase = async (deviceToken) => {
+  console.log(`Removing device token ${deviceToken} from the database...`);
     try {
       await User.updateMany(
         { deviceTokens: deviceToken },
@@ -25,6 +26,7 @@ const removeDeviceTokenFromDatabase = async (deviceToken) => {
             },
             token: notificationData.token,
         });
+        console.log("Notification sent successfully:", response);
         return response;
     } catch (error) {
         console.error("Error sending notification:", error);

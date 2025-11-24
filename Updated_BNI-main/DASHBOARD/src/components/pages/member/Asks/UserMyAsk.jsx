@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Plus, Edit2, Trash2, X, Loader2, AlertTriangle, Building2, Briefcase, MessageSquare } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
@@ -22,6 +22,10 @@ export default function UserMyAsk() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [departments, setDepartments] = useState([]);
+  const [companySuggestions, setCompanySuggestions] = useState([]);
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+
+  const companyInputRef = useRef(null);
 
   // Pagination state
   const [pageIndex, setPageIndex] = useState(0);
@@ -137,6 +141,39 @@ export default function UserMyAsk() {
     fetchDepartments();
   }, []);
 
+  // Debounced fetch for company suggestions
+  useEffect(() => {
+    if (formData.companyName.trim().length < 2) {
+      setCompanySuggestions([]);
+      setIsSuggestionsOpen(false);
+      return;
+    }
+
+    const handler = setTimeout(async () => {
+      try {
+        const response = await axios.get(`/api/company/getFilteredGives?companyName=${formData.companyName}`);
+        setCompanySuggestions(response.data.companies || []);
+        setIsSuggestionsOpen(true);
+      } catch (error) {
+        console.error("Failed to fetch company suggestions:", error);
+        setCompanySuggestions([]);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(handler);
+  }, [formData.companyName]);
+
+  // Handle clicks outside the suggestions box
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (companyInputRef.current && !companyInputRef.current.contains(event.target)) {
+        setIsSuggestionsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   // Modal handlers
   const openAddModal = () => {
     setModalMode('add');
@@ -197,14 +234,8 @@ export default function UserMyAsk() {
       newErrors.dept = "Department is required.";
     }
 
-    if (!formData.message.trim()) {
-      newErrors.message = "Message is required.";
-    } else if (formData.message.length < 15) {
-      newErrors.message = "Message must be at least 15 characters long.";
-    } else if (formData.message.length > 150) {
+    if (formData.message.trim() && formData.message.length > 150) {
       newErrors.message = "Message cannot exceed 150 characters.";
-    } else if (/<script\b[^>]*>[\s\S]*?<\/script>/gi.test(formData.message)) {
-      newErrors.message = "Message contains invalid characters. HTML/Script is not allowed.";
     }
 
     setErrors(newErrors);
@@ -347,7 +378,7 @@ export default function UserMyAsk() {
                   <tr className="bg-slate-100 border-b border-slate-200">
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-16">#</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Company Name</th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Department</th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ">Department</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Message</th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -534,20 +565,38 @@ export default function UserMyAsk() {
                 ) : (
                   <>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Company Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleInputChange}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 ${errors.companyName ? 'border-red-500' : 'border-slate-300'}`}
-                        placeholder="Enter company name"
-                        required
-                        aria-invalid={errors.companyName ? "true" : "false"}
-                      />
-                      {errors.companyName && <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>}
+                      <div className="relative" ref={companyInputRef}>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          Company Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          name="companyName"
+                          value={formData.companyName}
+                          onChange={handleInputChange}
+                          autoComplete="off"
+                          className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 ${errors.companyName ? 'border-red-500' : 'border-slate-300'}`}
+                          placeholder="Enter company name"
+                          required
+                          aria-invalid={errors.companyName ? "true" : "false"}
+                        />
+                        {isSuggestionsOpen && companySuggestions.length > 0 && (
+                          <ul className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            {companySuggestions.map((company) => (
+                              <li key={company.companyName} // Use companyName as key since _id is not present
+                                onMouseDown={() => { // Use onMouseDown to prevent input blur before click registers
+                                  setFormData(prev => ({ ...prev, companyName: company.companyName }));
+                                  setIsSuggestionsOpen(false);
+                                }}
+                                className="px-4 py-2 hover:bg-blue-50 cursor-pointer"
+                              >
+                                {company.companyName}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {errors.companyName && <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>}
+                      </div>
                     </div>
 
                     <div>
@@ -558,7 +607,7 @@ export default function UserMyAsk() {
                         name="dept"
                         value={formData.dept}
                         onChange={handleInputChange}
-                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 ${errors.dept ? 'border-red-500' : 'border-slate-300'}`}
+                        className={`w-full px-4 py-2.5 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 ${errors.dept ? 'border-red-500' : 'border-slate-300'}`}
                         required
                         aria-invalid={errors.dept ? "true" : "false"}
                       >
@@ -572,9 +621,15 @@ export default function UserMyAsk() {
 
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Message <span className="text-red-500">*</span>
+                        Message (Optional)
                       </label>
-                      <textarea name="message" value={formData.message} onChange={handleInputChange} rows="4" className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 resize-none ${errors.message ? 'border-red-500' : 'border-slate-300'}`} placeholder="Enter message (min 15 characters, max 150 characters)" minLength={15} maxLength={150} required aria-invalid={errors.message ? "true" : "false"} />
+                      <textarea
+                        name="message"
+                        value={formData.message}
+                        onChange={handleInputChange}
+                        rows="4"
+                        className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 resize-none ${errors.message ? 'border-red-500' : 'border-slate-300'}`}
+                        placeholder="Enter an optional message (max 150 characters)" maxLength={150} aria-invalid={errors.message ? "true" : "false"} />
                       {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
                     </div>
                   </>
