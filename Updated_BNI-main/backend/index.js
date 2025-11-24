@@ -1,3 +1,4 @@
+require('dotenv').config(); // Ensure environment variables are loaded
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
@@ -7,9 +8,7 @@ const cron = require("node-cron");
 const cookieParser = require("cookie-parser");
 const { City } = require('country-state-city');
 const { Country } = require('country-state-city');
-const notificationRoutes = require('./route/notificationRoutes');
-const { initCalendarCronJob } = require('./service/calendarCronJob');
-require("dotenv").config();
+
 const app = express();
 
 // Middleware setup
@@ -40,11 +39,7 @@ if (!dbUri) {
 
 mongoose.connect(dbUri)
   .then(() => {
-    if (typeof initCalendarCronJob === 'function') {
-      initCalendarCronJob();
-    } else {
-      console.warn('initCalendarCronJob is not a function, skipping cron job initialization');
-    }
+   
     console.log("Connected to MongoDB");
   })
   .catch(err => {
@@ -138,7 +133,6 @@ app.use("/api/profile", profile);
 app.use("/api/company", company);
 app.use("/api/dashboard", dashboard);
 app.use("/api/calendar", require("./route/calender"));
-app.use('/api/notifications', notificationRoutes);
 
 // Test route
 app.get("/test", (req, res) => {
