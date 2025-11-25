@@ -47,10 +47,8 @@ const AddCompany = () => {
     }
 
     // Company Address validation
-    if (!companyAddress.trim()) {
-      newErrors.companyAddress = "Company Address is required";
-    } else if (!addressPattern.test(companyAddress)) {
-      newErrors.companyAddress = "Invalid characters in Address. Only letters, numbers, and basic punctuation (.,'#-) are allowed.";
+    if (companyAddress.trim() && !addressPattern.test(companyAddress)) {
+      newErrors.companyAddress = "Invalid characters in Address. Only letters, numbers, and basic punctuation (.,'#-/()) are allowed.";
     }
 
     // Social Links Validation
@@ -219,7 +217,7 @@ const AddCompany = () => {
 
           {/* Company Address */}
           <div>
-            <label className="block text-gray-700 font-semibold mb-2">Company Address *</label>
+            <label className="block text-gray-700 font-semibold mb-2">Company Address (Optional)</label>
             <textarea
               value={companyAddress}
               onChange={(e) => setCompanyAddress(e.target.value)}

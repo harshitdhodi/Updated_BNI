@@ -146,7 +146,7 @@ export default function UserMyMatches() {
     return (
       <div className="min-h-screen sm:p-6 flex items-center justify-center">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-          <h3 className="text-red-800 font-semibold mb-2">Error Loading Matches</h3>
+          <h3 className="text-red-800 font-semibold mb-2">No matching companies found</h3>
           <p className="text-red-600 text-sm">{error}</p>
           <button
             onClick={fetchMatches}

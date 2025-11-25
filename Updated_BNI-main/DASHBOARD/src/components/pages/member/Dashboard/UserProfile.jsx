@@ -3,10 +3,10 @@ import { User, Phone, Link as LinkIcon, Lock } from 'lucide-react';
 import axios from "axios"
 import { useParams } from "react-router-dom"
 import { toast, Toaster } from "react-hot-toast";
-
+import FilterableDropdown from "./FilterableDropdown";
 // Personal Info Component
 // Personal Info Component - UPDATED with Password Fields
-function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNewPassword, onConfirmPasswordChange }) {
+function PersonalInfoTab({ userData, isEditing, onInputChange, errors, countries, cities }) {
   return (
     <div className="space-y-8">
       {/* Personal Details Grid */}
@@ -65,16 +65,16 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Country</label>
             {isEditing ? (
-              <>
-                <input
-                  type="text"
-                  value={userData.country || ""}
-                  onChange={(e) => onInputChange("country", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                  aria-invalid={errors.country ? "true" : "false"}
-                />
-                {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
-              </>
+              <FilterableDropdown
+                options={countries.map(c => ({ value: c.name, label: c.name }))}
+                value={userData.country}
+                onSelect={(value) => {
+                  onInputChange("country", value);
+                  // Reset city when country changes
+                  onInputChange("city", "");
+                }}
+                placeholder="Search and select a country"
+              />
             ) : (
               <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,16 +89,16 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
             {isEditing ? (
-              <>
-                <input
-                  type="text"
-                  value={userData.city || ""}
-                  onChange={(e) => onInputChange("city", e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                  aria-invalid={errors.city ? "true" : "false"}
-                />
-                {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
-              </>
+              <FilterableDropdown
+                options={cities
+                  .filter(city => city.countryName === userData.country)
+                  .map(c => ({ value: c.name, label: c.name }))
+                }
+                value={userData.city}
+                onSelect={(value) => onInputChange("city", value)}
+                placeholder="Search and select a city"
+                disabled={!userData.country}
+              />
             ) : (
               <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
           <h3 className="text-lg font-semibold text-gray-900">{isEditing ? "Change Password (Optional)" : "Password"}</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2">
           {/* New Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
@@ -146,34 +146,6 @@ function PersonalInfoTab({ userData, isEditing, onInputChange, errors, confirmNe
             )}
           </div>
 
-          {/* Confirm New Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
-            {isEditing ? (
-              <>
-                <div className="relative">
-                  <input
-                    type="password"
-                    value={confirmNewPassword}
-                    onChange={(e) => onConfirmPasswordChange(e.target.value)}
-                    placeholder="Re-type new password"
-                    className="w-full px-4 py-3 pl-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-                  />
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                </div>
-                {errors.confirmNewPassword && (
-                  <p className="text-red-500 text-sm mt-1">{errors.confirmNewPassword}</p>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <span className="text-gray-900">••••••••</span>
-              </div>
-            )}
-          </div>
         </div>
 
         {isEditing && (
@@ -332,8 +304,10 @@ export default function UserProfile() {
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const { id: userId } = useParams();
+
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
 
   const [userData, setUserData] = useState({
     name: "",
@@ -381,11 +355,27 @@ export default function UserProfile() {
     fetchUserData();
   }, [userId]);
 
+  useEffect(() => {
+    const fetchDropdownData = async () => {
+      try {
+        const [countryRes, cityRes] = await Promise.all([
+          axios.get('/api/country/getCountry'),
+          axios.get('/api/city/getCity')
+        ]);
+        setCountries(countryRes.data.data || []);
+        console.log(cityRes.data.data)
+        setCities(cityRes.data.data || []);
+      } catch (err) {
+        console.error("Failed to fetch country/city data:", err);
+      }
+    };
+    fetchDropdownData();
+  }, []);
+
   const handleInputChange = (field, value) => {
     setUserData(prev => ({
       ...prev,
       [field]: value,
-      ...(field === "password" && !value && { confirmNewPassword: "" })
     }));
   };
 
@@ -439,9 +429,6 @@ export default function UserProfile() {
 
     if (userData.password) {
       if (userData.password.length < 6) newErrors.password = "Password must be at least 6 characters.";
-      if (userData.password !== confirmNewPassword) newErrors.confirmNewPassword = "Passwords do not match.";
-    } else if (confirmNewPassword) {
-      newErrors.confirmNewPassword = "Please enter a new password first.";
     }
 
     if (userData.facebook && !/^https:\/\/(www\.)?facebook\.com\/.+/.test(userData.facebook)) {
@@ -490,19 +477,23 @@ export default function UserProfile() {
         }
         formData.append("profileImg", profileImageFile);
         if (userData.password) formData.append("password", userData.password);
-        if (confirmNewPassword) formData.append("confirm_password", confirmNewPassword);
-        requestBody = formData;
+        config.headers = { "Content-Type": "multipart/form-data" };
       } else {
-        requestBody = { ...userData };
-        if (requestBody.profileImg?.startsWith?.("data:image")) {
-          delete requestBody.profileImg;
+        // Create a copy of userData and remove fields that shouldn't be sent as JSON
+        const { profileImg, ...otherData } = userData;
+        requestBody = { ...otherData };
+
+        // Only include password if it's being changed
+        if (!userData.password) {
+          delete requestBody.password;
         }
+
         config.headers = { "Content-Type": "application/json" };
       }
 
       const response = await axios.put(`/api/member/updatememberById?id=${userId}`, requestBody, config);
 
-      if (response.status !== 200) throw new Error(response.data?.message || "Failed to update");
+      if (response.status >= 300) throw new Error(response.data?.message || "Failed to update");
 
       const updatedData = response.data.data || {};
 
@@ -515,7 +506,6 @@ export default function UserProfile() {
       };
 
       setUserData({ ...finalData, password: "" });
-      setConfirmNewPassword("");
       setIsEditing(false);
       setProfileImageFile(null);
       setError(null);
@@ -676,14 +666,14 @@ export default function UserProfile() {
                   Admin: {userData.approvedByadmin || "pending"}
                 </span>
               </div>
-              <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusBadge(userData.approvedBymember)}`}>
+              {/* <div className={`px-4 py-2 rounded-full text-sm font-medium border ${getStatusBadge(userData.approvedBymember)}`}>
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                   Member: {userData.approvedBymember || "pending"}
                 </span>
-              </div>
+              </div> */}
               <div className="px-4 py-2 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -696,7 +686,7 @@ export default function UserProfile() {
           </div>
 
           <div className="border-t border-gray-200">
-            <div className="flex overflow-x-auto">
+            <div className="flex mx-auto overflow-x-auto w-full">
               {[
                 { id: "personal", label: "Personal Info", icon: User },
                 { id: "contact", label: "Contact Details", icon: Phone },
@@ -725,8 +715,8 @@ export default function UserProfile() {
     isEditing={isEditing} 
     onInputChange={handleInputChange} 
     errors={errors}
-    confirmNewPassword={confirmNewPassword}
-    onConfirmPasswordChange={setConfirmNewPassword}
+    countries={countries}
+    cities={cities}
   />
 )}
             {activeTab === "contact" && (

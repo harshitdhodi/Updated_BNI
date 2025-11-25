@@ -6,6 +6,7 @@ import { FaFacebook, FaTwitterSquare, FaLinkedin } from "react-icons/fa";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Swal from 'sweetalert2';
 import { Eye, EyeIcon } from "lucide-react";
+import FindCompanyModal from "./NotApprovedCompany";
 const CompanyList = () => {
   const [companies, setCompanies] = useState([]);
   const [allCompanies, setAllCompanies] = useState([]);
@@ -188,38 +189,46 @@ const CompanyList = () => {
             </p>
             <ul className="mb-2">
               <li className="flex">
-                <a
-                  href={company.whatsapp || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mr-2"
-                >
-                  <IoLogoWhatsapp className="w-[25px] h-[25px] text-green-500" />
-                </a>
-                <a
-                  href={company.facebook || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mr-2"
-                >
-                  <FaFacebook className="w-[25px] h-[25px] text-purple-900" />
-                </a>
-                <a
-                  href={company.twitter || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mr-2"
-                >
-                  <FaTwitterSquare className="w-[25px] h-[25px] text-blue-500" />
-                </a>
-                <a
-                  href={company.linkedin || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mr-2"
-                >
-                  <FaLinkedin className="w-[25px] h-[25px] text-blue-500" />
-                </a>
+                {company.whatsapp && (
+                  <a
+                    href={company.whatsapp}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mr-2"
+                  >
+                    <IoLogoWhatsapp className="w-[25px] h-[25px] text-green-500" />
+                  </a>
+                )}
+                {company.facebook && (
+                  <a
+                    href={company.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mr-2"
+                  >
+                    <FaFacebook className="w-[25px] h-[25px] text-purple-900" />
+                  </a>
+                )}
+                {company.twitter && (
+                  <a
+                    href={company.twitter}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mr-2"
+                  >
+                    <FaTwitterSquare className="w-[25px] h-[25px] text-blue-500" />
+                  </a>
+                )}
+                {company.linkedin && (
+                  <a
+                    href={company.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mr-2"
+                  >
+                    <FaLinkedin className="w-[25px] h-[25px] text-blue-500" />
+                  </a>
+                )}
               </li>
             </ul>
           </div>
@@ -234,91 +243,7 @@ const CompanyList = () => {
     );
   };
 
-  const FindCompanyModal = ({ companies, onClose }) => {
-    const [currentPage, setCurrentPage] = useState(0);
-    const itemsPerPage = 4; // 2 columns * 2 rows
-    const totalPages = Math.ceil(companies.length / itemsPerPage);
-    const navigate = useNavigate();
-
-    if (!companies) return null;
-
-    const startIndex = currentPage * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, companies.length);
-    const paginatedCompanies = companies.slice(startIndex, endIndex);
-
-    const handleNextPage = () => {
-      if (currentPage < totalPages - 1) {
-        setCurrentPage(currentPage + 1);
-      }
-    };
-
-    const handlePreviousPage = () => {
-      if (currentPage > 0) {
-        setCurrentPage(currentPage - 1);
-      }
-    };
-
-    const handleCompanyClick = (companyName) => {
-      // Redirect to the company form page using React Router
-      navigate(`/add_company?name=${encodeURIComponent(companyName)}`);
-    };
-    
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 p-4">
-        <div className="bg-white p-6 rounded shadow-lg max-w-full mx-auto overflow-y-auto">
-          <h2 className="text-xl font-bold mb-4">Company Names</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-      {paginatedCompanies.map((company, index) => (
-        <div
-          key={index}
-          className="relative p-2 border rounded bg-gray-100 cursor-pointer hover:bg-gray-200"
-        >
-          <div onClick={() => handleCompanyClick(company)}>
-            {company} {/* Adjust according to your company object structure */}
-          </div>
-          {/* <div
-            onClick={() => handleRemoveCompany(company.id)} // Replace with the actual ID or identifier
-            className="absolute top-0 right-0 p-1 text-gray-600 cursor-pointer"
-          >
-            <FaTimes /> 
-          </div> */}
-        </div>
-      ))}
-    </div>
-          <div className="flex justify-between mt-4">
-            <button
-              onClick={handlePreviousPage}
-              disabled={currentPage === 0}
-              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded"
-            >
-              Previous
-            </button>
-            <span>
-              Page {currentPage + 1} of {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages - 1}
-              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded"
-            >
-              Next
-            </button>
-          </div>
-      <div className="flex gap-5">
-      <button
-            onClick={onClose}
-            className="mt-4 bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded"
-          >
-            Close
-          </button>
-          <button className="mt-4 bg-red-600 hover:bg-red-900 px-3 py-1 text-white rounded">
-             <Link to="/add_company">Add Own Company</Link>
-          </button>
-      </div>
-        </div>
-      </div>
-    );
-  };
+  <FindCompanyModal companies={companies} onClose={closeFindCompanyModal} />
 
   return (
     <div
@@ -350,7 +275,7 @@ const CompanyList = () => {
               <thead>
                 <tr className="bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 text-left uppercase font-serif text-[14px]">
                   <th className="py-2 px-4 lg:px-6">Profile Image</th>
-                 <th className="py-2 px-4 lg:px-6">Company Name</th>
+                  <th className="py-2 px-4 lg:px-6">Company Name</th>
                   <th className="py-2 px-4 lg:px-6">Contact Links</th>
                   <th className="py-2 px-4 lg:px-6">Actions</th>
                 </tr>
@@ -365,45 +290,53 @@ const CompanyList = () => {
                       <img
                         src={`/api/image/download/${company.profileImg}`}
                         alt="Profile"
-                        className="h-20 object-cover w-[200px] lg:w-[150px] lg:h-[100px]"
+                        className="h-10 object-cover w-10"
                       />
                     </td>
                   
                     <td className="py-2 px-6">{company.companyName}</td>
                     <td className="py-2 px-6">
                       <div className="flex items-center gap-2">
-                      <a
-                        href={company.whatsapp || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mr-2"
-                      >
-                        <IoLogoWhatsapp className="w-[20px] h-[20px] text-green-500" />
-                      </a>
-                      <a
-                        href={company.facebook || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mr-2"
-                      >
-                        <FaFacebook className="w-[20px] h-[20px] text-purple-900" />
-                      </a>
-                      <a
-                        href={company.twitter || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mr-2"
-                      >
-                        <FaTwitterSquare className="w-[20px] h-[20px] text-blue-500" />
-                      </a>
-                      <a
-                        href={company.linkedin || "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mr-2"
-                      >
-                        <FaLinkedin className="w-[20px] h-[20px] text-blue-500" />
-                      </a>
+                      {company.whatsapp && (
+                        <a
+                          href={company.whatsapp}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mr-2"
+                        >
+                          <IoLogoWhatsapp className="w-[20px] h-[20px] text-green-500" />
+                        </a>
+                      )}
+                      {company.facebook && (
+                        <a
+                          href={company.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mr-2"
+                        >
+                          <FaFacebook className="w-[20px] h-[20px] text-purple-900" />
+                        </a>
+                      )}
+                      {company.twitter && (
+                        <a
+                          href={company.twitter}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mr-2"
+                        >
+                          <FaTwitterSquare className="w-[20px] h-[20px] text-blue-500" />
+                        </a>
+                      )}
+                      {company.linkedin && (
+                        <a
+                          href={company.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mr-2"
+                        >
+                          <FaLinkedin className="w-[20px] h-[20px] text-blue-500" />
+                        </a>
+                      )}
                       </div>
                     </td>
                     <td className=" px-6">

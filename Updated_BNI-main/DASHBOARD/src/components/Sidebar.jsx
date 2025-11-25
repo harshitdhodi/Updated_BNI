@@ -92,6 +92,13 @@ const Sidebar = () => {
       text: "Total Gives",
       submenu: [],
     },
+    {
+      title: "All Business",
+      path: "/business",
+      icon: <Building2 size={20} strokeWidth={1.5} />,
+      text: "All Business",
+      submenu: [],
+    }
   ];
 
   const handleClickOutside = (event) => {

@@ -73,6 +73,7 @@ const createEvent = async (req, res) => {
     return sendResponse(res, 201, true, "Event created successfully.", event);
 
   } catch (error) {
+    console.log("Create Event Error:", error);
     // This catches MongoDB duplicate key error (if you add the index below)
     if (error.code === 11000) {
       return sendResponse(res, 409, false, "You already have an event with this message.");

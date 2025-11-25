@@ -17,6 +17,7 @@ export default function Modal({ open, onClose, userData, setUserData }) {
     lastName: "",
     email: "",
     photo: "",
+    password: ""
   });
   const getCookie = (name) => {
     const value = `; ${document.cookie}`;
@@ -30,6 +31,7 @@ export default function Modal({ open, onClose, userData, setUserData }) {
         lastName: userData.lastName || "",
         email: userData.email || "",
         photo: userData.photo || "",
+        password: ""
       });
       setIsEditing(true);
     }
@@ -58,6 +60,11 @@ export default function Modal({ open, onClose, userData, setUserData }) {
       formDataObj.append("lastName", formData.lastName);
       formDataObj.append("email", formData.email);
       formDataObj.append("photo", formData.photo);
+
+      // Only append password if it's being changed
+      if (formData.password) {
+        formDataObj.append("password", formData.password);
+      }
 
       const response = await axios.put("/api/user/updateUser", formDataObj, {
         withCredentials: true,
@@ -127,6 +134,19 @@ export default function Modal({ open, onClose, userData, setUserData }) {
               type="email"
               fullWidth
               value={formData.email}
+              onChange={handleInputChange}
+              className="mt-4"
+              inputProps={{
+                className: "p-2 border border-gray-300 rounded-md",
+              }}
+            />
+            <TextField
+              margin="dense"
+              name="password"
+              label="New Password (leave blank to keep current)"
+              type="password"
+              fullWidth
+              value={formData.password}
               onChange={handleInputChange}
               className="mt-4"
               inputProps={{

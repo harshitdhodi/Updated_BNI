@@ -252,7 +252,7 @@ const updateUserById = async (req, res) => {
     console.log('userData:', userData);
 
     // Exclude sensitive fields from being updated
-    const { password, confirm_password, resetOTP, ...updateData } = userData;
+    const { resetOTP, ...updateData } = userData;
 
     // Add updatedAt field
     updateData.updatedAt = Date.now();
@@ -265,16 +265,30 @@ const updateUserById = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const updatedUser = await user.findByIdAndUpdate(userId, updateData, { new: true });
+    // Password will be included in updateData if provided (stored directly)
+    
+    const updatedUser = await user.findByIdAndUpdate(
+      userId, 
+      updateData, 
+      { new: true, runValidators: true }
+    );
 
     if (!updatedUser) {
-      return res.status(404).json({ message: "User not found after update attempt" });
+      return res.status(404).json({ 
+        message: "User not found after update attempt" 
+      });
     }
 
-    res.status(200).json({ data: updatedUser, message: "Update successful" });
+    res.status(200).json({ 
+      data: updatedUser, 
+      message: "Update successful" 
+    });
   } catch (error) {
     console.error("Error updating user:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ 
+      message: "Server error",
+      error: error.message 
+    });
   }
 };
 

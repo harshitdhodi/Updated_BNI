@@ -53,7 +53,7 @@ const ProfileSchema = new Schema({
   },
   companyAddress: {
     type: String,
-    required: true,
+  
   },
   user: {
     type: Schema.Types.ObjectId,

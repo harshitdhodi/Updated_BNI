@@ -32,7 +32,7 @@ const CompanySchema = new Schema({
     },
   companyAddress: {
     type: String,
-    required: true,
+    default: ""
   },
   user: {
     type: Schema.Types.ObjectId,

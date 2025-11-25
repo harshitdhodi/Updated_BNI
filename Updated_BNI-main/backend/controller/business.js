@@ -241,20 +241,23 @@ const updateContactLinks = async (req, res) => {
 // update CompanyDetails 
 
 const updateBusinessDetails = async (req, res) => {
-  const { id } = req.query;
-  const { designation, aboutCompany, companyAddress } = req.body;
-
-  console.log('Received ID:', id);
-  console.log('Received designation:', designation);
-  console.log('Received aboutCompany:', aboutCompany);
-  console.log('Received companyAddress:', companyAddress);
-
-  const updateFields = {};
-  if (designation) updateFields.designation = designation;
-  if (aboutCompany) updateFields.aboutCompany = aboutCompany;
-  if (companyAddress) updateFields.companyAddress = companyAddress;
-
   try {
+    const { id } = req.query;
+    const { designation, aboutCompany, companyAddress } = req.body;
+
+    console.log('Received ID:', id);
+    console.log('Request Body:', req.body);
+
+    const updateFields = {};
+
+    if (designation !== undefined) updateFields.designation = designation;
+    if (aboutCompany !== undefined) updateFields.aboutCompany = aboutCompany;
+    if (companyAddress !== undefined) updateFields.companyAddress = companyAddress;
+
+    if (Object.keys(updateFields).length === 0) {
+      return res.status(400).json({ message: 'No valid fields provided for update.' });
+    }
+
     const updatedBusiness = await Business.findByIdAndUpdate(
       id,
       updateFields,
@@ -265,7 +268,7 @@ const updateBusinessDetails = async (req, res) => {
       return res.status(404).json({ message: 'Business not found' });
     }
 
-    res.status(200).json({ message: 'Business details updated successfully', business: updatedBusiness });
+    res.status(200).json({ message: 'Business details updated successfully', data: updatedBusiness });
   } catch (error) {
     console.error('Error updating business details:', error);
     res.status(500).json({ message: 'Error updating business details', error });

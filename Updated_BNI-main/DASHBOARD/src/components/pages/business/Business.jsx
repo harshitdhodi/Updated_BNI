@@ -15,7 +15,6 @@ import Swal from 'sweetalert2';
 
 const BusinessList = () => {
   const [businesses, setBusinesses] = useState([]);
-  const [allBusinesses, setAllBusinesses] = useState([]);
   const [totalBusinesses, setTotalBusinesses] = useState(0);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -31,22 +30,17 @@ const BusinessList = () => {
   };
   useEffect(() => {
     fetchBusinesses();
-  }, []);
-
-  useEffect(() => {
-    // Paginate using the loaded items and total count
-    if (allBusinesses.length > 0) {
-      const offset = pageIndex * pageSize;
-      const pagedData = allBusinesses.slice(offset, offset + pageSize);
-      setBusinesses(pagedData);
-      setPageCount(Math.ceil(totalBusinesses / pageSize));
-    }
-  }, [pageIndex, pageSize, allBusinesses, totalBusinesses]);
+  }, [id, pageIndex, pageSize]);
 
   const fetchBusinesses = async () => {
       const token = getCookie("token");
+      const page = pageIndex + 1; // API expects 1-based page index
+      let url = id
+        ? `/api/business/getbusinessByuserId?userId=${id}&page=${page}&limit=${pageSize}`
+        : `/api/business/getbusiness?page=${page}&limit=${pageSize}`;
+
       const response = await axios.get(
-        `/api/business/getbusiness`,
+        url,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -54,20 +48,16 @@ const BusinessList = () => {
           withCredentials: true,
         }
       );
-      // Support API response formats:
-      // 1) { total: X, data: [...] }
-      // 2) { data: [...] }
-      // 3) [...] (direct array)
       const payload = response.data || {};
       const items = Array.isArray(payload) ? payload : payload.data || [];
-      const total = payload.total ?? (items.length || 0);
+      const total = payload.total ?? payload.count ?? (items.length || 0);
 
       const dataWithIds = (items || []).map((business, index) => ({
         ...business,
-        id: index + 1,
+        id: pageIndex * pageSize + index + 1, // Calculate sequential ID across pages
       }));
 
-      setAllBusinesses(dataWithIds);
+      setBusinesses(dataWithIds);
       setTotalBusinesses(total);
       setPageCount(Math.ceil(total / pageSize));
   };
@@ -284,9 +274,10 @@ const BusinessList = () => {
     <div className={`p-4 overflow-x-auto ${showModal ? "modal-open" : ""}`}>
       <div className="flex flex-wrap justify-between items-center mb-4">
         <h1 className="text-xl font-bold mb-3 ml-2">Business List</h1>
+        {id &&
         <button className="px-4 py-2 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300">
           <Link to={`/business_form/${id}`}>Add Business</Link>
-        </button>
+        </button>}
       </div>
       <table className="w-full mt-4 border-collapse shadow-lg overflow-x-scroll">
         <thead>

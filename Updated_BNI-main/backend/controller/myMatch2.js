@@ -4,7 +4,7 @@ const MyGives = require('../model/myGives');
 const myMatches = async (req, res) => {
   try {
     const { userId, page = 1 } = req.query; // Extract userId and page from query params
-    const limit = 5;
+    const limit = req.query.limit || 5;
 
     if (!userId) {
       return res.status(401).json({ message: 'User ID not found in request' });

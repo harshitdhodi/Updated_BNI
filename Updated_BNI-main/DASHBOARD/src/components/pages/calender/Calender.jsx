@@ -101,7 +101,7 @@ export default function SmartCalendar() {
       setEvents(formattedEvents);
     } catch (error) {
       console.error('Failed to fetch events:', error);
-      toast.error('Failed to load events');
+      toast.error('No events scheduled');
       setEvents([]);
     } finally {
       setLoading(false);
