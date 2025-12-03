@@ -88,7 +88,7 @@ export default function Navbar({ toggleSidebar }) {
 
   return (
     <div className="w-full">
-      <nav className="flex justify-between mt-2 mr-2 px-10 h-[1.5cm] shadow-red-300 shadow-md bg-white items-center border border-white rounded-full">
+      <nav className="flex justify-between mt-2 mr-2 px-10 h-[1.5cm] shadow-gray-300 shadow-sm bg-white items-center border border-white">
         <div className="flex gap-6 items-center">
           <GiHamburgerMenu
             onClick={toggleSidebar}

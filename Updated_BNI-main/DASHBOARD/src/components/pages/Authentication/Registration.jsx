@@ -56,10 +56,11 @@ const RegistrationForm = () => {
       newErrors.mobile = "Invalid mobile number. Please enter a valid 10-digit number.";
     }
 
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!password) {
       newErrors.password = "Password is required";
-    } else if (password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters long";
+    } else if (!passwordPattern.test(password)) {
+      newErrors.password = "Password must be 8+ characters and include uppercase, lowercase, number, and special character.";
     }
 
     if (!confirm_password) {

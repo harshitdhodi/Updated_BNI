@@ -147,7 +147,7 @@ const BusinessFormModal = ({
         });
         // toast.success('Business profile created successfully!');
       } else {
-        await axios.put(`/api/business/updateBusinessDetails`, submitData, {
+        await axios.put(`/api/business/updateBusinessById`, submitData, {
           params: { id: businessId },
           headers: {
             'Content-Type': 'multipart/form-data'

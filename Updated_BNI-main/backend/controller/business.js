@@ -4,73 +4,30 @@ const Member = require('../model/member'); // If needed
 const fs = require('fs');
 const path = require('path');
 
-// Function to decode base64 string and save as an image file
-const saveBase64Image = (base64Data, filename) => {
-  return new Promise((resolve, reject) => {
-    const matches = base64Data.match(/^data:(.+);base64,(.+)$/);
-    if (!matches || matches.length !== 3) {
-      console.error('Invalid base64 string:', base64Data);
-      return reject(new Error('Invalid base64 string'));
-    }
 
-    const fileBuffer = Buffer.from(matches[2], 'base64');
-    const filePath = path.join(__dirname, '../uploads', filename);
-
-    fs.writeFile(filePath, fileBuffer, (err) => {
-      if (err) {
-        console.error('Error writing file:', err);
-        return reject(err);
-      }
-      resolve(filePath); 
-    });
-  });
-};
 
 // Update images using base64 strings
-const updateImages = async (req, res) => {
-  const { id } = req.query;
-  const { bannerImg, BusinessImg } = req.body;
-
+const updateImages = async (req, res) => { // This now correctly handles multipart/form-data
   try {
-    // Check if either bannerImg or BusinessImg is provided for update
-    if (!bannerImg && !BusinessImg) {
+    const { id } = req.query;
+    
+    // With multer, files are in req.files, not req.body
+    if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ message: 'No images provided for update' });
-    }
-
-    // Convert base64 to images and save using multer
-    const saveBase64Image = async (buffer, filename) => {
-      return new Promise((resolve, reject) => {
-        fs.writeFile(path.join(__dirname, 'uploads', filename), buffer, (err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-    };
-
-    let bannerImgFilename, BusinessImgFilename;
-
-    if (req.files.bannerImg) {
-      bannerImgFilename = req.files.bannerImg.fieldname + '_' + Date.now() + '.txt';
-      await saveBase64Image(req.files.bannerImg.buffer, bannerImgFilename);
-    }
-
-    if (req.files.BusinessImg) {
-      BusinessImgFilename = req.files.BusinessImg.fieldname + '_' + Date.now() + '.txt';
-      await saveBase64Image(req.files.BusinessImg.buffer, BusinessImgFilename);
     }
 
     // Update business document in MongoDB
     const updateFields = {};
-    if (bannerImgFilename) {
-      updateFields.bannerImg = bannerImgFilename;
+    if (req.files.bannerImg && req.files.bannerImg[0]) {
+      updateFields.bannerImg = req.files.bannerImg[0].filename;
     }
-    if (BusinessImgFilename) {
-      updateFields.BusinessImg = BusinessImgFilename;
+    if (req.files.BusinessImg && req.files.BusinessImg[0]) {
+      updateFields.BusinessImg = req.files.BusinessImg[0].filename;
     }
 
     const updatedBusiness = await Business.findByIdAndUpdate(
       id,
-      { $set: updateFields },
+      updateFields,
       { new: true, runValidators: true }
     );
 
@@ -78,10 +35,10 @@ const updateImages = async (req, res) => {
       return res.status(404).json({ message: 'Business not found' });
     }
 
-    res.status(200).json({ message: 'Images updated successfully', business: updatedBusiness });
+    res.status(200).json({ message: 'Images updated successfully', data: updatedBusiness });
   } catch (error) {
     console.error('Error updating images:', error);
-    res.status(500).json({ message: 'Error updating images', error });
+    res.status(500).json({ message: 'Server error while updating images', error: error.message });
   }
 };
 
@@ -339,7 +296,7 @@ const updateBusinessById = async (req, res) => {
   const { id } = req.query;
   const updateFields = {};
   const updatedFields = {};
-
+console.log(req.body)
   try {
     // Handle file uploads if req.files is defined
     if (req.files) {

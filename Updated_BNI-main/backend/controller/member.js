@@ -71,6 +71,12 @@ console.log(req.body)
       return res.status(400).send({ status: "failed", message: "Email already exists" });
     }
 
+    // Check if the mobile number already exists
+    const existingMobile = await Member.findOne({ mobile });
+    if (existingMobile) {
+      return res.status(400).send({ status: "failed", message: "Mobile number already exists" });
+    }
+
     // // Check if all required fields are provided
     // if (!name || !email || !mobile || !password || !confirm_password || !country || !city) {
     //   return res.status(400).send({ status: "failed", message: "All fields are required" });
@@ -382,6 +388,14 @@ const updatememberById = async (req, res) => {
   const updatedFields = {};
 
   try {
+    // Check if the mobile number is being updated and if it's already in use
+    if (req.body.mobile) {
+      const existingMember = await Member.findOne({ mobile: req.body.mobile, _id: { $ne: id } });
+      if (existingMember) {
+        return res.status(400).json({ status: "failed", message: "Mobile number is already in use by another member." });
+      }
+    }
+
     // Handle file uploads if req.files is defined
     if (req.files) {
       if (req.files['bannerImg'] && req.files['bannerImg'].length > 0) {

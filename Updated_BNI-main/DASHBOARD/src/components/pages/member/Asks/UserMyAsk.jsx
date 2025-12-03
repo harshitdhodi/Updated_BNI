@@ -226,8 +226,8 @@ export default function UserMyAsk() {
 
     if (!formData.companyName.trim()) {
       newErrors.companyName = "Company Name is required.";
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.companyName)) {
-      newErrors.companyName = "Company Name must contain only letters and spaces.";
+    } else if (!/^[a-zA-Z0-9\s&.,'()-]+$/.test(formData.companyName)) {
+      newErrors.companyName = "Company Name contains invalid characters.";
     }
 
     if (!formData.dept) {

@@ -12,7 +12,7 @@ const CompanySchema = new Schema({
   },
    companyName: {
     type: String,
- 
+    unique: true,
   },
     whatsapp: {
       type: String,

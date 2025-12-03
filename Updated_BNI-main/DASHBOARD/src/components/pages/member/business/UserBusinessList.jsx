@@ -109,7 +109,7 @@ export default function UserBusinessList() {
     if (!itemToDelete) return;
 
     try {
-      await axios.delete(`/api/business/deleteBusinessById`, {
+      await axios.delete(`/api/business/deletebusiness`, {
         params: { id: itemToDelete._id }
       });
       toast.success('Business deleted successfully!');

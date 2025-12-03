@@ -30,13 +30,13 @@ router.get("/getbusinessByuserId"  ,getbusinessByuserId)
 // router.put("/updateImg",base64ImageHandler,uploadimages,bearerAuth,updateImages)
 router.put("/updateContactLinks",authMiddleware,updateContactLinks)
 router.put("/updateBusinessDetails",updateBusinessDetails)
-router.put("/updateBusinessDetails",authMiddleware,updateBusinessDetails)
+// router.put("/updateBusinessDetails",authMiddleware,updateBusinessDetails)
 router.get("/businesssList",authMiddleware,businessList)
 router.get("/getbusinessbyId",authMiddleware,getbusinessbyId)
 router.put("/updateBusinessById",generatePdfMiddleware,generatePdfMiddleware,updateBusinessById)
 router.get("/getbusinessbymyId",getbusinessbyId)
 router.get("/totalbusiness",authMiddleware,Totalbusiness)
-router.delete("/deletebusiness",authMiddleware,deletebusiness)
+router.delete("/deletebusiness",deletebusiness)
 // Updated route to accept user parameter
 router.post('/createProfile',  generatePdfMiddleware, async (req, res) => {
     try {

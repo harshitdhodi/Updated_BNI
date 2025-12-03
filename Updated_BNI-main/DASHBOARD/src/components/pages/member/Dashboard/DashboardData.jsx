@@ -62,7 +62,7 @@ function DashboardContent() {
         color: 'bg-purple-500',
         bgLight: 'bg-purple-50',
         textColor: 'text-purple-600',
-        path: 'bussiness'
+        path: 'business'
       },
       matches: {
         title: 'Matches',

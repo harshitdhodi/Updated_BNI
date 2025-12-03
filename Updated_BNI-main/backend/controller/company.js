@@ -5,6 +5,7 @@ const MyAsks = require("../model/myAsk")
 
 const fs = require('fs');
 const path = require('path');
+
 const Addcompany = async (req, res) => {
   try {
     console.log("Files:", req.files); // Log uploaded files
@@ -17,6 +18,11 @@ const Addcompany = async (req, res) => {
       twitter,
       companyAddress,
     } = req.body;
+
+    // Validate that companyName is provided
+    if (!companyName) {
+      return res.status(400).json({ message: "Company name is required" });
+    }
 
     // Extract user from req.userId
     const user = req.userId;
@@ -153,79 +159,87 @@ const getCompanyById = async (req, res) => {
   
  
   const updateCompanyById = async (req, res) => {
-    const { id } = req.query;
-    const updateFields = {};
-    const updatedFields = {};
-    const { companyName } = req.body; // Assume companyName is part of the req.body
-  
-    try {
-      // Handle file uploads if req.files is defined
-      if (req.files) {
-        // Process each file type (bannerImg, profileImg, catalog)
-        if (req.files['bannerImg'] && req.files['bannerImg'].length > 0) {
-          updateFields.bannerImg = path.basename(req.files['bannerImg'][0].path);
-          updatedFields.bannerImg = updateFields.bannerImg; // Include updated field in response
-        }
-        if (req.files['profileImg'] && req.files['profileImg'].length > 0) {
-          updateFields.profileImg = path.basename(req.files['profileImg'][0].path);
-          updatedFields.profileImg = updateFields.profileImg; // Include updated field in response
-        }
-      }
-  
-      // Update other fields from req.body
-      for (const key in req.body) {
-        if (key !== 'bannerImg' && key !== 'profileImg' && key !== 'catalog') {
-          updateFields[key] = req.body[key];
-          updatedFields[key] = req.body[key]; // Include updated field in response
-        }
-      }
-  
-      // Fetch the current company data
-      const currentCompany = await Company.findById(id);
-  
-      if (!currentCompany) {
-        return res.status(404).json({ message: 'Company not found' });
-      }
-  
-      // Update company data in the database
-      const updatedCompany = await Company.findByIdAndUpdate(
-        id,
-        updateFields,
-        { new: true, runValidators: true }
-      );
-  
-      if (!updatedCompany) {
-        return res.status(404).json({ message: 'Company not found' });
-      }
-  
-      // If companyName has been updated, update it in myGives and myAsks collections
-      if (companyName && companyName !== currentCompany.companyName) {
-        let companyNamePrefix = companyName;
-  
-        if (companyName.length > 5) {
-          companyNamePrefix = companyName.slice(0, 5);
-        } else if (companyName.length <= 5) {
-          companyNamePrefix = companyName.slice(0, 3);
-        }
-  
-        await MyGives.updateMany(
-          { companyName: { $regex: `^${companyNamePrefix}`, $options: 'i' } },
-          { $set: { companyName: companyName } }
-        );
-  
-        await MyAsks.updateMany(
-          { companyName: { $regex: `^${companyNamePrefix}`, $options: 'i' } },
-          { $set: { companyName: companyName } }
-        );
-      }
-  
-      // Respond with updated fields only
-      res.status(200).json({ id: updatedCompany._id, updatedFields });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error', error });
+  const { id } = req.query;
+  const updateFields = {};
+  const updatedFields = {};
+  const { companyName } = req.body;
+
+  try {
+    // Fetch the current company data first
+    const currentCompany = await Company.findById(id);
+
+    if (!currentCompany) {
+      return res.status(404).json({ message: 'Company not found' });
     }
-  };
+
+    // Handle file uploads if req.files is defined
+    if (req.files) {
+      if (req.files['bannerImg'] && req.files['bannerImg'].length > 0) {
+        updateFields.bannerImg = path.basename(req.files['bannerImg'][0].path);
+        updatedFields.bannerImg = updateFields.bannerImg;
+      }
+      if (req.files['profileImg'] && req.files['profileImg'].length > 0) {
+        updateFields.profileImg = path.basename(req.files['profileImg'][0].path);
+        updatedFields.profileImg = updateFields.profileImg;
+      }
+    }
+
+    // Update other fields from req.body
+    for (const key in req.body) {
+      if (key !== 'bannerImg' && key !== 'profileImg' && key !== 'catalog') {
+        updateFields[key] = req.body[key];
+        updatedFields[key] = req.body[key];
+      }
+    }
+
+    // If companyName is being updated, check for duplicates
+    if (companyName && companyName.trim() && 
+        companyName.toLowerCase() !== currentCompany.companyName.toLowerCase()) {
+          console.log("Checking for existing company with name:", companyName);
+      const existingCompany = await Company.findOne({
+        
+        companyName: { $regex: new RegExp(`^${companyName.trim()}$`, 'i') }
+      });
+      console.log(existingCompany);   
+      if (existingCompany) {
+        return res.status(409).json({ 
+          message: 'A company with this name already exists.' 
+        });
+      }
+    }
+
+    // Update company data in the database
+    const updatedCompany = await Company.findByIdAndUpdate(
+      id,
+      updateFields,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCompany) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    // If companyName has been updated, update it in myGives and myAsks collections
+    if (companyName && companyName.trim() && 
+        companyName !== currentCompany.companyName) {
+      // Use exact match on old company name to avoid updating wrong records
+      await MyGives.updateMany(
+        { companyName: currentCompany.companyName },
+        { $set: { companyName: companyName.trim() } }
+      );
+
+      await MyAsks.updateMany(
+        { companyName: currentCompany.companyName },
+        { $set: { companyName: companyName.trim() } }
+      );
+    }
+
+    res.status(200).json({ id: updatedCompany._id, updatedFields });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
 
   //delete Company
   const deleteCompany = async (req, res) => {
@@ -253,13 +267,24 @@ const getCompanyById = async (req, res) => {
           {
             $lookup: {
               from: 'companies', // The collection name for the 'Company' model
-              let: { companyName: { $toLower: '$companyName' } }, // Convert companyName to lowercase
+              let: {
+                // Normalize company name by converting to lower case and removing special characters
+                normalizedName: {
+                  $trim: {
+                    input: {
+                      $reduce: {
+                        input: { $split: [{ $toLower: '$companyName' }, '.'] },
+                        initialValue: '',
+                        in: { $concat: ['$$value', '$$this'] },
+                      },
+                    },
+                  },
+                },
+              },
               pipeline: [
                 {
                   $match: {
-                    $expr: {
-                      $eq: [{ $toLower: '$companyName' }, '$$companyName'], // Case-insensitive match
-                    },
+                    $expr: { $eq: [{ $toLower: '$companyName' }, '$$normalizedName'] }, // Case-insensitive match
                   },
                 },
               ],
@@ -298,14 +323,16 @@ const getCompanyById = async (req, res) => {
       const lowerCaseSet = new Set();
       const finalCompanyNames = [];
   
-      combinedResults.forEach((doc) => {
-        const lowerCaseName = doc.companyName.toLowerCase();
+      for (const doc of combinedResults) {
+        // Normalize by converting to lower case and removing special characters
+        const normalizedName = doc.companyName.toLowerCase().replace(/[.,?]/g, '').trim();
+
         // Only add to the final list if the lowercase version isn't already in the Set
-        if (!lowerCaseSet.has(lowerCaseName)) {
-          lowerCaseSet.add(lowerCaseName); // Add the lowercase name to the Set
+        if (!lowerCaseSet.has(normalizedName)) {
+          lowerCaseSet.add(normalizedName); // Add the normalized name to the Set
           finalCompanyNames.push(doc.companyName); // Push the original name to the final list
         }
-      });
+      };
   
       res.status(200).json({
         message: 'Non-existing companies fetched successfully',
