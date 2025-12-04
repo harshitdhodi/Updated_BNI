@@ -698,6 +698,12 @@ const refral_code = generateReferralCode();
       return res.status(400).send({ status: "failed", message: "Email already exists" });
     }
 
+    // Check if the mobile number already exists
+    const existingMobile = await Member.findOne({ mobile });
+    if (existingMobile) {
+      return res.status(400).send({ status: "failed", message: "Mobile number already exists" });
+    }
+
     // Check if all required fields are provided
     if (!name || !email || !mobile || !password || !confirm_password || !country || !city) {
       return res.status(400).send({ status: "failed", message: "All fields are required" });

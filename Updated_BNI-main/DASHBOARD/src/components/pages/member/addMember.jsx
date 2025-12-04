@@ -196,7 +196,7 @@ const CreateUser = () => {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]"
               aria-invalid={errors.name ? "true" : "false"}
             />
             {errors.name && <p className="text-gray-600 text-sm mt-1">{errors.name}</p>}
@@ -207,7 +207,7 @@ const CreateUser = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]"
               aria-invalid={errors.email ? "true" : "false"}
             />
             {errors.email && <p className="text-gray-600 text-sm mt-1">{errors.email}</p>}
@@ -220,7 +220,7 @@ const CreateUser = () => {
               type="text"
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]" // Apply same background
             />
             {errors.whatsapp && <p className="text-gray-600 text-sm mt-1">{errors.whatsapp}</p>}
           </div>
@@ -232,7 +232,7 @@ const CreateUser = () => {
               type="text"
               value={facebook}
               onChange={(e) => setFacebook(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]" // Apply same background
             />
             {errors.facebook && <p className="text-gray-600 text-sm mt-1">{errors.facebook}</p>}
           </div>
@@ -244,7 +244,7 @@ const CreateUser = () => {
               type="text"
               value={linkedin}
               onChange={(e) => setLinkedin(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]" // Apply same background
             />
             {errors.linkedin && <p className="text-gray-600 text-sm mt-1">{errors.linkedin}</p>}
           </div>
@@ -256,7 +256,7 @@ const CreateUser = () => {
               type="text"
               value={twitter}
               onChange={(e) => setTwitter(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]" // Apply same background
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]" // Apply same background
             />
             {errors.twitter && <p className="text-gray-600 text-sm mt-1">{errors.twitter}</p>}
           </div>
@@ -266,7 +266,7 @@ const CreateUser = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]"
               aria-invalid={errors.password ? "true" : "false"}
             />
             {errors.password && <p className="text-gray-600 text-sm mt-1">{errors.password}</p>}
@@ -277,7 +277,7 @@ const CreateUser = () => {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]"
               aria-invalid={errors.confirmPassword ? "true" : "false"}
             />
             {errors.confirmPassword && <p className="text-gray-600 text-sm mt-1">{errors.confirmPassword}</p>}
@@ -332,6 +332,7 @@ const CreateUser = () => {
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
               minLength={10}
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]"
               maxLength={10}
             />
             {errors.mobile && <p className="text-gray-600 text-sm mt-1">{errors.mobile}</p>}
@@ -341,7 +342,7 @@ const CreateUser = () => {
             <input
               type="file"
               onChange={handleFileChange}
-              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-[#F1F1F1] border-[#aeabab]"
+              className="w-full p-[10px] border rounded focus:outline-none focus:border-red-500 transition duration-300 bg-white border-[#aeabab]"
               accept="image/*"
             />
           </div>

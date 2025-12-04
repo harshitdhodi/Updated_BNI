@@ -134,7 +134,7 @@ const EditBusiness = () => {
     try {
       const token = getCookie("token");
       await axios.put(
-        `/api/business/updateBusinessById?id=${id}`,
+        `/api/business/updateBusinessProfile?businessId=${id}`,
         formData,
         {
           headers: {

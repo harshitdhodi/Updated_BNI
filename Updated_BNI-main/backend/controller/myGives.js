@@ -8,6 +8,14 @@ const addMyGives = async (req, res) => {
     const { user } = req.query;
     const { companyName, email, phoneNumber, webURL, dept } = req.body;
 
+    // Check if the email already exists
+    if (email) {
+      const existingGive = await myGives.findOne({ email: email.trim() });
+      if (existingGive) {
+        return res.status(409).json({ status: "failed", message: "This email already exists. Please use a different email.", field: "email" });
+      }
+    }
+
     const newCompany = new myGives({
       companyName,
       email,
@@ -26,9 +34,13 @@ const addMyGives = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+    // Handle potential unique index errors from the model if one is added later
+    if (error.code === 11000 && error.keyPattern?.email) {
+      return res.status(409).json({ status: "failed", message: "This email already exists. Please use a different email.", field: "email" });
+    }
     res
       .status(500)
-      .json({ status: "failed", message: "Unable to create company" });
+      .json({ status: "failed", message: "Unable to create record" });
   }
 };
 

@@ -1,39 +1,47 @@
 const Business = require("../model/business");
 const Member = require('../model/member'); // If needed
+const mongoose = require('mongoose');
+const multer = require('multer');
 
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
-
-
 
 // Update images using base64 strings
 const updateImages = async (req, res) => { // This now correctly handles multipart/form-data
   try {
     const { id } = req.query;
-    
-    // With multer, files are in req.files, not req.body
+
+    // If the request is multipart but no files are sent, req.files will be an empty object.
+    // This check ensures we don't proceed without files.
     if (!req.files || Object.keys(req.files).length === 0) {
-      return res.status(400).json({ message: 'No images provided for update' });
+      return res.status(400).json({ message: 'No new images were uploaded.' });
     }
 
-    // Update business document in MongoDB
+    // First, find the existing business to get old filenames for deletion.
+    const businessToUpdate = await Business.findById(id);
+    if (!businessToUpdate) {
+      return res.status(404).json({ message: 'Business not found' });
+    }
+
     const updateFields = {};
-    if (req.files.bannerImg && req.files.bannerImg[0]) {
+
+    // Handle banner image update
+    if (req.files.bannerImg?.[0]) {
+      await deleteFile(businessToUpdate.bannerImg); // Delete the old file
       updateFields.bannerImg = req.files.bannerImg[0].filename;
     }
-    if (req.files.BusinessImg && req.files.BusinessImg[0]) {
+
+    // Handle business/profile image update
+    if (req.files.BusinessImg?.[0]) {
+      await deleteFile(businessToUpdate.BusinessImg); // Delete the old file
       updateFields.BusinessImg = req.files.BusinessImg[0].filename;
     }
 
     const updatedBusiness = await Business.findByIdAndUpdate(
       id,
       updateFields,
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedBusiness) {
-      return res.status(404).json({ message: 'Business not found' });
-    }
+      { new: true, runValidators: true } // {new: true} returns the updated document
+    ).lean();
 
     res.status(200).json({ message: 'Images updated successfully', data: updatedBusiness });
   } catch (error) {
@@ -55,13 +63,10 @@ const createBusiness = async (req, res) => {
       companyAddress,
     } = req.body;
 
-    // Check if files were uploaded correctly
-    // if (!req.files || !req.files.catalog) {
-    //   return res.status(400).json({ error: "No file uploaded for catalog" });
-    // }
-
-    const pdfFileName = req.files.catalog[0].filename; // Get uploaded PDF filename
-
+    // Safely access filenames, allowing for optional files
+    const bannerImgFilename = req.files?.bannerImg?.[0]?.filename;
+    const businessImgFilename = req.files?.BusinessImg?.[0]?.filename;
+    const catalogFilename = req.files?.catalog?.[0]?.filename;
     // Find user by ID (assuming req.userId is set in middleware)
     const user = await Member.findById(req.userId);
     if (!user) {
@@ -70,8 +75,8 @@ const createBusiness = async (req, res) => {
 
     // Create new Business object
     const business = new Business({
-      bannerImg: req.files.bannerImg[0].filename, // Store image path for bannerImg
-      BusinessImg: req.files.BusinessImg[0].filename, // Store image path for BusinessImg
+      bannerImg: bannerImgFilename,
+      BusinessImg: businessImgFilename,
       contactLinks,
       industryName,
       companyName,
@@ -79,16 +84,16 @@ const createBusiness = async (req, res) => {
       aboutCompany,
       companyAddress,
       user,
-      catalog: pdfFileName, // Store PDF file name in catalog field
+      catalog: catalogFilename,
     });
 
     // Save business to database
     await business.save();
 
-    res.status(201).json({ message: "Business Business created successfully", business });
+    res.status(201).json({ message: "Business created successfully", business });
   } catch (err) {
-    console.error("Error creating business Business:", err);
-    res.status(500).json({ error: "Failed to create business Business" });
+    console.error("Error creating business:", err);
+    res.status(500).json({ error: "Failed to create business", message: err.message });
   }
 };
 
@@ -292,53 +297,70 @@ const getbusinessbyId = async (req, res) => {
 };
 
 
-const updateBusinessById = async (req, res) => {
-  const { id } = req.query;
-  const updateFields = {};
-  const updatedFields = {};
-console.log(req.body)
+const deleteFile = async (filename) => {
+  if (!filename) return;
   try {
-    // Handle file uploads if req.files is defined
-    if (req.files) {
-      // Process each file type (bannerImg, profileImg, catalog)
-      if (req.files['bannerImg'] && req.files['bannerImg'].length > 0) {
-        updateFields.bannerImg = path.basename(req.files['bannerImg'][0].path);
-        updatedFields.bannerImg = updateFields.bannerImg; // Include updated field in response
-      }
-      if (req.files['profileImg'] && req.files['profileImg'].length > 0) {
-        updateFields.profileImg = path.basename(req.files['profileImg'][0].path);
-        updatedFields.profileImg = updateFields.profileImg; // Include updated field in response
-      }
-      if (req.files['catalog'] && req.files['catalog'].length > 0) {
-        updateFields.catalog = path.basename(req.files['catalog'][0].path);
-        updatedFields.catalog = updateFields.catalog; // Include updated field in response
-      }
+    const filePath = path.join(__dirname, '..', 'images', filename);
+    await fs.unlink(filePath);
+    console.log(`Successfully deleted old file: ${filename}`);
+  } catch (err) {
+    // If file doesn't exist, we don't need to throw an error.
+    if (err.code !== 'ENOENT') {
+      console.error(`Error deleting file ${filename}:`, err);
+    }
+  }
+};
+
+const updateBusinessById = async (req, res) => {
+  try {
+    const {
+      contactLinks,
+      industryName,
+      designation,
+      companyName,
+      aboutCompany,
+      companyAddress,
+    } = req.body;
+
+    // Safely get new filenames only if files are uploaded
+    const bannerImgFilename = req.files?.bannerImg?.[0]?.filename;
+    const businessImgFilename = req.files?.BusinessImg?.[0]?.filename;
+    const catalogFilename = req.files?.catalog?.[0]?.filename;
+
+    // Find the business by ID (assuming it's sent in params or body)
+    const businessId = req.query.id || req.body.businessId;
+    if (!businessId) {
+      return res.status(400).json({ status: "failed", message: "Business ID is required" });
     }
 
-    // Update other fields from req.body
-    for (const key in req.body) {
-      if (key !== 'bannerImg' && key !== 'profileImg' && key !== 'catalog') {
-        updateFields[key] = req.body[key];
-        updatedFields[key] = req.body[key]; // Include updated field in response
-      }
+    // Find the business and ensure it belongs to the logged-in user (security)
+    const business = await Business.findOne({ _id: businessId, user: req.userId });
+    if (!business) {
+      return res.status(404).json({ status: "failed", message: "Business not found or unauthorized" });
     }
 
-    // Update Member data in the database
-    const updatedBusiness = await Business.findByIdAndUpdate(
-      id,
-      updateFields,
-      { new: true, runValidators: true }
-    ); 
+    // Update only provided fields
+    if (bannerImgFilename) business.bannerImg = bannerImgFilename;
+    if (businessImgFilename) business.BusinessImg = businessImgFilename;
+    if (catalogFilename) business.catalog = catalogFilename;
 
-    if (!updatedBusiness) {
-      return res.status(404).json({ message: 'Business not found' });
-    }
+    if (contactLinks !== undefined) business.contactLinks = contactLinks;
+    if (industryName !== undefined) business.industryName = industryName;
+    if (designation !== undefined) business.designation = designation;
+    if (companyName !== undefined) business.companyName = companyName;
+    if (aboutCompany !== undefined) business.aboutCompany = aboutCompany;
+    if (companyAddress !== undefined) business.companyAddress = companyAddress;
 
-    // Respond with updated fields only
-    res.status(200).json({ id: updatedBusiness._id, updatedFields });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error', error });
+    // Save updated business
+    await business.save();
+
+    res.status(200).json({
+      message: "Business updated successfully",
+      business,
+    });
+  } catch (err) {
+    console.error("Error updating business:", err);
+    res.status(500).json({ error: "Failed to update business", message: err.message });
   }
 };
 
@@ -358,6 +380,147 @@ const Totalbusiness = async (req, res) => {
   }
 }
 
+// Update Business Profile (with image uploads)
+const updateBusinessProfile = async (req, res) => {
+  try {
+    const { businessId } = req.query; // Get business ID from URL
+
+    // Validate businessId
+    if (!businessId || !mongoose.Types.ObjectId.isValid(businessId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'A valid Business ID is required in the query parameters.'
+      });
+    }
+
+    const updates = req.body;
+    const uploadedFiles = [];
+
+    // Handle file uploads (profileImg & bannerImg)
+    if (req.files) {
+      if (req.files.profileImg?.[0]) {
+        updates.profileImg = req.files.profileImg[0].filename;
+        uploadedFiles.push(updates.profileImg);
+      }
+      if (req.files.bannerImg?.[0]) {
+        updates.bannerImg = req.files.bannerImg[0].filename;
+        uploadedFiles.push(updates.bannerImg);
+      }
+    }
+
+    // Find existing business profile
+    const existingProfile = await Business.findById(businessId);
+
+    if (!existingProfile) {
+      // If uploading files but business not found, clean up uploaded files
+      await Promise.all(uploadedFiles.map(file => deleteFile(file)));
+      return res.status(404).json({
+        success: false,
+        message: 'Business profile not found'
+      });
+    }
+
+    // Asynchronously delete old images if new ones are uploaded
+    const deletePromises = [];
+    if (updates.profileImg && existingProfile.profileImg) {
+      deletePromises.push(deleteFile(existingProfile.profileImg));
+    }
+    if (updates.bannerImg && existingProfile.bannerImg) {
+      deletePromises.push(deleteFile(existingProfile.bannerImg));
+    }
+    await Promise.all(deletePromises);
+
+    // Update the business profile
+    const updatedProfile = await Business.findByIdAndUpdate(
+      businessId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).populate('industryName', 'name').populate('user', 'name email');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Business profile updated successfully',
+      data: updatedProfile
+    });
+  } catch (error) {
+    console.error('Update Business Profile Error:', error);
+    if (error instanceof multer.MulterError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+const createBusinessProfile = async (req, res) => {
+  try {
+    const {
+      industryName, whatsapp, facebook, linkedin, twitter,
+      designation, aboutCompany, companyName, companyAddress,
+      mobile, email
+    } = req.body;
+
+    const userId = req.query.userId;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: 'A valid User ID is required.' });
+    }
+
+    // Check if user exists
+    const userExists = await Member.findById(userId);
+    if (!userExists) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Explicitly check for mobile number uniqueness before saving
+    if (mobile) {
+      const existingBusiness = await Business.findOne({ mobile });
+      if (existingBusiness) {
+        return res.status(409).json({ success: false, message: 'This mobile number is already registered.' });
+      }
+    }
+
+    const bannerImg = req.files?.bannerImg?.[0]?.filename;
+    const profileImg = req.files?.profileImg?.[0]?.filename;
+    const catalog = req.files?.catalog?.[0]?.filename;
+
+    const newProfile = new Business({
+      user: userId,
+      companyName,
+      industryName,
+      mobile: mobile || null, // Ensure empty strings become null for sparse index
+      email,
+      designation,
+      aboutCompany,
+      companyAddress,
+      profileImg,
+      bannerImg,
+      catalog,
+      whatsapp,
+      facebook,
+      linkedin,
+      twitter,
+    });
+
+    const savedProfile = await newProfile.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Profile created successfully',
+      profile: savedProfile
+    });
+
+  } catch (error) {
+    if (error.code === 11000 && error.keyPattern?.mobile) {
+      return res.status(409).json({ success: false, message: 'This mobile number is already registered.' });
+    }
+    console.error('Create Business Profile Error:', error);
+    res.status(500).json({ success: false, message: 'An error occurred while creating the profile', error: error.message });
+  }
+};
 
 module.exports = {
   createBusiness,
@@ -370,5 +533,7 @@ module.exports = {
   getbusinessbyId,
   updateBusinessById,
   deletebusiness,
-  Totalbusiness
+  Totalbusiness,
+  updateBusinessProfile,
+  createBusinessProfile
 };

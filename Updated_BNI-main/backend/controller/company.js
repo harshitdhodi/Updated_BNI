@@ -12,6 +12,7 @@ const Addcompany = async (req, res) => {
 
     const {
       companyName,
+      email,
       whatsapp,
       facebook,
       linkedin,
@@ -22,6 +23,11 @@ const Addcompany = async (req, res) => {
     // Validate that companyName is provided
     if (!companyName) {
       return res.status(400).json({ message: "Company name is required" });
+    }
+
+    // Validate that email is provided if it's part of the request
+    if (email && !email.trim()) {
+      return res.status(400).json({ message: "Email is required" });
     }
 
     // Extract user from req.userId
@@ -37,8 +43,19 @@ const Addcompany = async (req, res) => {
 
 
     // Check if the company already exists using a case-insensitive regex
-    const currentCompany = await Company.findOne({ companyName: { $regex: new RegExp(`^${companyName}$`, 'i') } });
+    const existingCompany = await Company.findOne({ companyName: { $regex: new RegExp(`^${companyName.trim()}$`, 'i') } });
 
+    if (existingCompany) {
+      return res.status(409).json({ message: "A company with this name already exists." });
+    }
+
+    // Check if the email already exists in another company
+    if (email) {
+      const existingEmail = await Company.findOne({ email: email.trim() });
+      if (existingEmail) {
+        return res.status(409).json({ message: "This email already exists. Please use a different email.", field: "email" });
+      }
+    }
     // Create and save the new company
     const newCompany = new Company({
       bannerImg,
@@ -49,32 +66,14 @@ const Addcompany = async (req, res) => {
       twitter,
       companyAddress,
       companyName,
+      email,
       user,
     });
 
-    // Update company names in myGives and myAsks collections only if the company already exists
-    if (currentCompany) {
-      const lowerCaseCurrentCompanyName = currentCompany.companyName.toLowerCase();
-      console.log(lowerCaseCurrentCompanyName)
-      const lowerCaseNewCompanyName = companyName.toLowerCase();
-console.log(lowerCaseNewCompanyName)
-      await MyGives.updateMany(
-        { companyName: { $regex: new RegExp(`^${lowerCaseCurrentCompanyName}$`, 'i') } }, // Match the old name case-insensitively
-        { $set: { companyName: lowerCaseNewCompanyName } } // Update to the new name in lowercase
-      );
-      
-
-      await MyAsks.updateMany(
-        { companyName: { $regex: new RegExp(`^${lowerCaseCurrentCompanyName}$`, 'i') } }, // Match the old name case-insensitively
-        { $set: { companyName: lowerCaseNewCompanyName } } // Update to the new name in lowercase
-      );
-    }
     const savedCompany = await newCompany.save();
 
-    
-
     res.status(201).json({
-      message: "Company created successfully and related records updated",
+      message: "Company created successfully",
       company: savedCompany,
     });
   } catch (error) {

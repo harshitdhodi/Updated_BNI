@@ -16,6 +16,7 @@ const BusinessFormModal = ({
   const [submitting, setSubmitting] = useState(false);
   const [profileImgPreview, setProfileImgPreview] = useState(null);
   const [profileImgFile, setProfileImgFile] = useState(null);
+  const [errors, setErrors] = useState({});
 
   // Industry dropdown
   const [industries, setIndustries] = useState([]);
@@ -94,6 +95,7 @@ const BusinessFormModal = ({
       setFormData(prev => ({ ...prev, industryName: '' }));
       setProfileImgPreview(null);
       setProfileImgFile(null);
+      setErrors({});
     }
   }, [mode, businessId, isOpen]);
 
@@ -113,10 +115,49 @@ const BusinessFormModal = ({
     }
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Company Name: Must contain at least one letter and only valid characters.
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Company name is required.';
+    } else if (!/[a-zA-Z]/.test(formData.companyName) || !/^[a-zA-Z0-9\s&'.-]+$/.test(formData.companyName)) {
+      newErrors.companyName = 'Please enter a valid company name (cannot be only numbers).';
+    }
+
+    // Designation: Optional, but if present, should be valid
+    if (formData.designation && !/^[a-zA-Z0-9\s&'.-]+$/.test(formData.designation)) {
+      newErrors.designation = 'Please enter a valid designation.';
+    }
+
+    // Mobile: Must be a 10-digit number
+    if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) {
+      newErrors.mobile = 'Please enter a valid 10-digit mobile number.';
+    }
+
+    // Email: Must be a valid email format
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address.';
+    }
+
+    // Address: Should contain at least one letter or number
+    if (formData.companyAddress && !/[a-zA-Z0-9]/.test(formData.companyAddress)) {
+      newErrors.companyAddress = 'Please enter a valid address.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
 
+    if (!validateForm()) {
+      toast.error('Please fix the errors before submitting.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
       // Create FormData for multipart/form-data submission
       const submitData = new FormData();
@@ -221,6 +262,9 @@ const BusinessFormModal = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
                   placeholder="Enter company name"
                 />
+                {errors.companyName && (
+                  <p className="text-red-500 text-xs mt-1">{errors.companyName}</p>
+                )}
               </div>
 
               {/* Industry Dropdown */}
@@ -257,6 +301,9 @@ const BusinessFormModal = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
                   placeholder="e.g., CEO, Marketing Head"
                 />
+                {errors.designation && (
+                  <p className="text-red-500 text-xs mt-1">{errors.designation}</p>
+                )}
               </div>
 
               <div>
@@ -269,6 +316,9 @@ const BusinessFormModal = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
                   placeholder="+91 9876543210"
                 />
+                {errors.mobile && (
+                  <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>
+                )}
               </div>
 
               <div>
@@ -281,6 +331,9 @@ const BusinessFormModal = ({
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
                   placeholder="business@example.com"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
               </div>
 
               <div>
@@ -355,6 +408,9 @@ const BusinessFormModal = ({
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition"
                 placeholder="Full business address"
               />
+              {errors.companyAddress && (
+                  <p className="text-red-500 text-xs mt-1">{errors.companyAddress}</p>
+                )}
             </div>
 
             <div>

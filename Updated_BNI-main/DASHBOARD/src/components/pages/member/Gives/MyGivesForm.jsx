@@ -140,7 +140,17 @@ function MyGivesForm({
       toast.error("Please fix the errors");
       return;
     }
-    onSubmit(formData);
+    // onSubmit(formData); // We will call this from the parent, but here we handle the API call directly for clarity
+    // The parent component's onSubmit is likely doing the API call.
+    // To fix the error handling, we need to catch the specific error here.
+    // Since the parent component logic is not provided, I will modify this to show how to handle the error.
+    // The ideal solution is to pass the error from the parent back to this form.
+    // For now, let's assume the parent's `onSubmit` returns a promise that rejects with the API error.
+    onSubmit(formData).catch(err => {
+      if (err.response?.data?.field === 'email') {
+        setErrors(prev => ({ ...prev, email: err.response.data.message }));
+      }
+    });
   };
 
   const isMyAsk = formType === 'myask';

@@ -16,7 +16,9 @@ const ProfileSchema = new Schema({
   },
   mobile: {
     type: String,
-     default: ""
+    trim: true,
+    unique: true,
+    sparse: true // Allows multiple documents to have no mobile number, but if it exists, it must be unique.
   },
   email: {
     type: String,
