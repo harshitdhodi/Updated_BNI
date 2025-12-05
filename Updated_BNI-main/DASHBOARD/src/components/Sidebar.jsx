@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useLocation, Link, Outlet, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { LayoutDashboard, Users, Building2, Database, MessageSquare, ChevronUp, Menu, X } from 'lucide-react';
-
+import logo from "../../public/logo.png";
 const Sidebar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSubMenuOpen, setIsSubMenuOpen] = useState({});
@@ -147,8 +147,8 @@ const Sidebar = () => {
           isMenuOpen ? "translate-x-0" : "-translate-x-64 lg:translate-x-0"
         }`}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-300 lg:justify-center bg-gradient-to-r from-blue-50 to-white">
-          <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800">B-CONN</h1>
+   <div className="flex items-center justify-between h-16 px-6 border-b border-gray-300 lg:justify-center bg-gradient-to-r from-blue-50 to-white">
+          <img src={logo} alt="B-CONN Logo" className=" w-auto object-contain" />
           <button onClick={toggleSidebar} className="lg:hidden text-gray-600 hover:text-blue-600 transition-colors">
             <X size={24} strokeWidth={1.5} />
           </button>
