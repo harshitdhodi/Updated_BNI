@@ -193,7 +193,7 @@ const memberLogin = async (req, res) => {
 
     // Handle deviceTokens and generate JWT if login is successful
     // Replace deviceToken if it exists, otherwise add it
-    if (!member.deviceTokens.includes(deviceTokens)) {
+    if (deviceTokens && !member.deviceTokens.includes(deviceTokens)) {
       member.deviceTokens.push(deviceTokens);
       await member.save();
     }
@@ -201,9 +201,11 @@ const memberLogin = async (req, res) => {
     const userId = member._id;
     const token = Jwt.sign({ userId, role: "member" }, process.env.JWT_SECRET_KEY, { expiresIn: '5d' });
 
-    // Set the token in a cookie
+    // Set cookies for the frontend
     res.cookie("token", token);
     res.cookie("userRole", "member");
+    res.cookie("isOnBoarded", member.isOnBoarded); // Set the onboarding status
+    res.cookie("userId", member._id.toString()); // Set the user's ID as a string
 
     res.status(200).json({
       status: "success",

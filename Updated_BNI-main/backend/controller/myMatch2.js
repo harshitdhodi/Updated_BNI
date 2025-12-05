@@ -1,6 +1,11 @@
 const MyAsk = require('../model/myAsk');
 const MyGives = require('../model/myGives');
 
+/**
+ * Escapes special characters in a string for use in a regular expression.
+ * @param {string} str The string to escape.
+ * @returns {string} The escaped string.
+ */
 const myMatches = async (req, res) => {
   try {
     const { userId, page = 1 } = req.query; // Extract userId and page from query params
@@ -10,50 +15,54 @@ const myMatches = async (req, res) => {
       return res.status(401).json({ message: 'User ID not found in request' });
     }
 
-    console.log('Fetching asks for user...');
     // Fetch all asks for the user
-    const asks = await MyAsk.find({ user: userId });
-    console.log(asks);
+    const asks = await MyAsk.find({ user: userId }).select('companyName').lean();
 
     if (!asks.length) {
       return res.status(404).json({ message: 'No asks found for the user' });
     }
 
-    // Initialize an array to hold all matched companies
-    let allMatchedCompanies = [];
+    // Get unique, non-empty company names from the user's asks
+    const companyNames = [...new Set(asks.map(ask => ask.companyName).filter(Boolean))];
 
-    // Iterate over each ask to find matches in MyGives
-    for (const ask of asks) {
-      // Skip asks that are missing companyName or dept to prevent errors
-      if (!ask.companyName || !ask.dept) {
-        continue;
-      }
-
-      // Convert the ask company name and dept to lowercase for comparison
-      const lowerCaseCompanyName = ask.companyName.toLowerCase();
-      console.log('Searching matches for ask:', ask);
-      console.log('Lowercase company name:', lowerCaseCompanyName);
-
-      const matchedCompanies = await MyGives.find({
-        // Use regex for case-insensitive matching
-        companyName: { $regex: new RegExp(`^${lowerCaseCompanyName}$`, 'i') },
-        dept: ask.dept // Match directly by ObjectId
-      }).populate('user', 'name email mobile webURL'); // Populate user fields
-console.log('Matched Companies for ask:', ask, matchedCompanies);
-      // Accumulate matched companies
-      allMatchedCompanies = allMatchedCompanies.concat(matchedCompanies);
+    if (companyNames.length === 0) {
+      return res.status(404).json({ message: 'No asks with company names found' });
     }
 
-    if (!allMatchedCompanies.length) {
+    // Find all gives that match any of the company names, case-insensitively
+    const allMatchedGives = await MyGives.find({
+      companyName: { $in: companyNames.map(name => new RegExp(`^${name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`, 'i')) }
+    }).populate('user', 'name email mobile webURL').lean();
+
+    if (!allMatchedGives.length) {
       return res.status(404).json({ message: 'No matching companies found' });
     }
 
-    // Apply pagination to the accumulated matched companies
-    const total = allMatchedCompanies.length;
-    const paginatedMatchedCompanies = allMatchedCompanies.slice((page - 1) * limit, page * limit);
+    // Group the gives by company name (case-insensitive)
+    const groupedByCompany = allMatchedGives.reduce((acc, give) => {
+      const companyKey = give.companyName.toLowerCase();
+      if (!acc[companyKey]) {
+        acc[companyKey] = {
+          // Use the casing from the first give found for this company
+          companyName: give.companyName,
+          matches: [],
+          // Use the createdAt from the first give as a stable sort key
+          createdAt: give.createdAt 
+        };
+      }
+      acc[companyKey].matches.push(give);
+      return acc;
+    }, {});
+
+    // Convert the grouped object to an array and sort by creation date
+    const results = Object.values(groupedByCompany).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Apply pagination to the grouped results
+    const total = results.length;
+    const paginatedResults = results.slice((page - 1) * limit, page * limit);
 
     res.status(200).json({
-      data: paginatedMatchedCompanies,
+      data: paginatedResults,
       total,
       currentPage: Number(page),
       hasNextPage: total > page * limit,

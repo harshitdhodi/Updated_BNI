@@ -420,6 +420,23 @@ const updateBusinessProfile = async (req, res) => {
       });
     }
 
+    // Check for duplicate mobile number if it's being updated
+    if (updates.mobile && updates.mobile !== existingProfile.mobile) {
+      const duplicateBusiness = await Business.findOne({
+        mobile: updates.mobile,
+        _id: { $ne: businessId }
+      });
+
+      if (duplicateBusiness) {
+        // Clean up uploaded files on duplicate error
+        await Promise.all(uploadedFiles.map(file => deleteFile(file)));
+        return res.status(400).json({
+          success: false,
+          message: 'Mobile number already in use by another business.'
+        });
+      }
+    }
+
     // Asynchronously delete old images if new ones are uploaded
     const deletePromises = [];
     if (updates.profileImg && existingProfile.profileImg) {
@@ -444,8 +461,19 @@ const updateBusinessProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Update Business Profile Error:', error);
+    // Clean up uploaded files on any error
+    if (uploadedFiles.length > 0) {
+      await Promise.all(uploadedFiles.map(file => deleteFile(file)));
+    }
     if (error instanceof multer.MulterError) {
       return res.status(400).json({ success: false, message: error.message });
+    }
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        details: error.message
+      });
     }
     return res.status(500).json({
       success: false,

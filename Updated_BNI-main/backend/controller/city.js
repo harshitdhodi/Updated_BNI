@@ -42,19 +42,32 @@ const addCity = async (req, res) => {
 // Get all city
 const getCity = async (req, res) => {
     try {
-        const { page = 1 } = req.query;
-        const limit = parseInt(req.query.limit) || 10;
-        const count = await City.countDocuments();
-        const city = await City.find()
-        .skip((page - 1) * limit) // Skip records for previous pages
-        .limit(limit);
-        res.status(200).send({
-            data: city,
-            total: count,
-            currentPage: page,
-            hasNextPage: count > page * limit,
-            message: "cities fetched successfully",
-        });
+        const { page = 1, limit } = req.query;
+
+        if (limit) {
+            // If limit is provided, use pagination
+            const parsedLimit = parseInt(limit) || 10;
+            const count = await City.countDocuments();
+            const cities = await City.find()
+                .skip((page - 1) * parsedLimit)
+                .limit(parsedLimit);
+            
+            return res.status(200).send({
+                data: cities,
+                total: count,
+                currentPage: Number(page),
+                hasNextPage: count > page * parsedLimit,
+                message: "Cities fetched successfully with pagination.",
+            });
+        } else {
+            // If no limit, fetch all cities
+            const cities = await City.find();
+            return res.status(200).send({
+                data: cities,
+                total: cities.length,
+                message: "All cities fetched successfully.",
+            });
+        }
     } catch (error) {
         console.error("Error fetching city:", error);
         res.status(400).send(error);

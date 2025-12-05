@@ -6,6 +6,7 @@ export default function UserMyMatches() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [activeMatchIndex, setActiveMatchIndex] = useState({}); // { [companyName]: index }
   
   // Pagination state
   const [pageIndex, setPageIndex] = useState(0);
@@ -20,6 +21,12 @@ export default function UserMyMatches() {
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(";").shift();
   };
+
+  // Handler to change the visible match for a company
+  const handleMatchPersonChange = (companyName, index) => {
+    setActiveMatchIndex(prev => ({ ...prev, [companyName]: index }));
+  };
+
 
   // Calculate pageCount
   useEffect(() => {
@@ -61,6 +68,7 @@ export default function UserMyMatches() {
       const result = await response.json();
       setMatches(result.data || []);
       setTotalItems(result.total || 0);
+      setActiveMatchIndex({}); // Reset active indexes on new data fetch
       if (result.totalPages) {
         setPageCount(result.totalPages);
       }
@@ -200,103 +208,129 @@ export default function UserMyMatches() {
           <>
             <div className="space-y-4">
               {matches.map((match, index) => (
-                <div key={match._id} className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-                  <div className="flex flex-col lg:flex-row">
-                    {/* Header Section */}
-                    <div className="bg-gradient-to-r from-[#eef5ff] to-[#dbeafe] p-6 lg:w-64 flex-shrink-0 flex flex-col justify-between">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                            {startingRowNumber + index + 1}
+                (() => {
+                  const currentMatchIndex = activeMatchIndex[match.companyName] || 0;
+                  const person = match.matches[currentMatchIndex];
+                  if (!person) return null; // Should not happen, but good practice
+
+                  return (
+           <div key={match.companyName} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
+                      <div className="flex flex-col md:flex-row h-full">
+                        {/* Left Sidebar - Company Header */}
+                        <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-5 md:w-64 flex-shrink-0 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-10 h-10 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-base font-bold shadow-lg">
+                                {startingRowNumber + index + 1}
+                              </div>
+                              <h2 className="text-xl font-bold text-white leading-tight">{match.companyName}</h2>
+                            </div>
+                            <div className="flex items-center gap-2 text-white/90 text-xs bg-white/10 rounded-lg px-3 py-2 backdrop-blur-sm">
+                              <Calendar className="w-3.5 h-3.5" />
+                              <span>{formatDate(person.createdAt)}</span>
+                            </div>
                           </div>
-                          <h2 className="text-2xl font-bold text-black">{match.companyName}</h2>
+                          
+                          {/* Match Selector */}
+                          {match.matches.length > 1 && (
+                            <div className="mt-4 pt-4 border-t border-white/20">
+                              <p className="text-white/80 text-xs mb-2 font-medium">Switch Match:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {match.matches.map((p, idx) => (
+                                  <button 
+                                    key={idx}
+                                    onClick={() => handleMatchPersonChange(match.companyName, idx)} 
+                                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${currentMatchIndex === idx ? 'bg-white text-indigo-600 shadow-md' : 'bg-white/20 text-white hover:bg-white/30'}`}
+                                  >
+                                    {idx + 1}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 text-black/80 text-sm">
-                          <Calendar className="w-4 h-4" />
-                          <span>Added {formatDate(match.createdAt)}</span>
+
+                        {/* Right Content - Scrollable */}
+                        <div className="flex-1 overflow-y-auto bg-gray-50" style={{ maxHeight: '280px' }}>
+                          <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+                            {/* Company Info */}
+                            <div className="space-y-3">
+                              <h3 className="font-bold text-gray-800 text-xs uppercase tracking-wider mb-3 pb-2 border-b-2 border-indigo-200">Company Details</h3>
+
+                              <div className="flex items-center gap-2.5 bg-white p-3 rounded-lg shadow-sm">
+                                <Mail className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                  <p className="text-xs text-gray-500 font-medium whitespace-nowrap">Email:</p>
+                                  <a href={`mailto:${person.email}`} className="text-sm text-gray-800 hover:text-indigo-600 break-all font-medium">
+                                    {person.email}
+                                  </a>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2.5 bg-white p-3 rounded-lg shadow-sm">
+                                <Phone className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                  <p className="text-xs text-gray-500 font-medium whitespace-nowrap">Phone:</p>
+                                  <a href={`tel:${person.phoneNumber}`} className="text-sm text-gray-800 hover:text-green-600 font-medium">
+                                    {person.phoneNumber}
+                                  </a>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2.5 bg-white p-3 rounded-lg shadow-sm">
+                                <Globe className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                  <p className="text-xs text-gray-500 font-medium whitespace-nowrap">Website:</p>
+                                  <a
+                                    href={`https://${person.webURL}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-sm text-gray-800 hover:text-blue-600 break-all font-medium"
+                                  >
+                                    {person.webURL}
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Contact Person */}
+                            <div className="space-y-3">
+                              <h3 className="font-bold text-gray-800 text-xs uppercase tracking-wider mb-3 pb-2 border-b-2 border-orange-200">Contact Person</h3>
+
+                              <div className="flex items-center gap-2.5 bg-white p-3 rounded-lg shadow-sm">
+                                <User className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                  <p className="text-xs text-gray-500 font-medium whitespace-nowrap">Name:</p>
+                                  <p className="text-sm font-bold text-gray-900">{person.user?.name}</p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2.5 bg-white p-3 rounded-lg shadow-sm">
+                                <Mail className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                  <p className="text-xs text-gray-500 font-medium whitespace-nowrap">Email:</p>
+                                  <a href={`mailto:${person.user?.email}`} className="text-sm text-gray-800 hover:text-indigo-600 break-all font-medium">
+                                    {person.user?.email}
+                                  </a>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2.5 bg-white p-3 rounded-lg shadow-sm">
+                                <Phone className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                  <p className="text-xs text-gray-500 font-medium whitespace-nowrap">Mobile:</p>
+                                  <a href={`tel:${person.user?.mobile}`} className="text-sm text-gray-800 hover:text-green-600 font-medium">
+                                    {person.user?.mobile}
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-
-                    {/* Content Section */}
-                    <div className="flex-1 p-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                        {/* Company Info */}
-                        <div className="space-y-3">
-                          <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Company Info</h3>
-
-                          <div className="flex items-start gap-3">
-                            <Mail className="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-500 mb-1">Email</p>
-                              <a href={`mailto:${match.email}`} className="text-sm text-gray-700 hover:text-indigo-600 break-all">
-                                {match.email}
-                              </a>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3">
-                            <Phone className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-500 mb-1">Phone</p>
-                              <a href={`tel:${match.phoneNumber}`} className="text-sm text-gray-700 hover:text-green-600">
-                                {match.phoneNumber}
-                              </a>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3">
-                            <Globe className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-500 mb-1">Website</p>
-                              <a
-                                href={`https://${match.webURL}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-sm text-gray-700 hover:text-blue-600 break-all"
-                              >
-                                {match.webURL}
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Contact Person */}
-                        <div className="space-y-3">
-                          <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Contact Person</h3>
-
-                          <div className="flex items-start gap-3">
-                            <User className="w-5 h-5 text-orange-500 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-500 mb-1">Name</p>
-                              <p className="text-sm font-semibold text-gray-800">{match.user?.name}</p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3">
-                            <Mail className="w-5 h-5 text-indigo-500 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-500 mb-1">Email</p>
-                              <a href={`mailto:${match.user?.email}`} className="text-sm text-gray-700 hover:text-indigo-600 break-all">
-                                {match.user?.email}
-                              </a>
-                            </div>
-                          </div>
-
-                          <div className="flex items-start gap-3">
-                            <Phone className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-xs text-gray-500 mb-1">Mobile</p>
-                              <a href={`tel:${match.user?.mobile}`} className="text-sm text-gray-700 hover:text-green-600">
-                                {match.user?.mobile}
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  )
+                })
               ))}
             </div>
 

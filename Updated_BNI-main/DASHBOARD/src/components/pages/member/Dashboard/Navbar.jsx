@@ -1,5 +1,3 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
 
@@ -8,7 +6,8 @@ function Navbar({ onMenuClick }) {
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-const { id:userId } = useParams();
+  const { id: userId } = useParams();
+
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId) {
@@ -48,15 +47,15 @@ const { id:userId } = useParams();
     return name[0].toUpperCase()
   }
 
-  // Display name and role from API data or fallback
+  // Display name and email from API data or fallback
   const displayName = userData?.name || 'User'
   const displayRole = userData?.email || 'Member'
   const initials = getUserInitials(displayName)
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
-      <div className="px-4 lg:px-6 py-3 flex items-center justify-between">
-        {/* Left Section - Menu Toggle & Brand (Mobile) */}
+      <div className="px-4 lg:px-6  flex items-center justify-between">
+        {/* Left Section - Menu Toggle & Brand */}
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
@@ -69,10 +68,12 @@ const { id:userId } = useParams();
 
           {/* Mobile brand */}
           <div className="lg:hidden flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-              T
-            </div>
-            <span className="font-bold text-gray-900">TailAdmin</span>
+            <img src="/logo.png" alt="Logo" className="h-16 w-auto" />
+          </div>
+
+          {/* Desktop brand */}
+          <div className="hidden lg:flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
           </div>
         </div>
 
@@ -119,6 +120,32 @@ const { id:userId } = useParams();
                 {loading ? '...' : initials}
               </div>
             </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
+                <div className="py-1">
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Profile
+                  </a>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Settings
+                  </a>
+                  <a
+                    href="#"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    Sign out
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

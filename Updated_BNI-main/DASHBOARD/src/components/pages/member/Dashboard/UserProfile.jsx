@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from "react"
-import { User, Phone, Link as LinkIcon, Lock } from 'lucide-react';
+import { User, Phone, Link as LinkIcon, Lock, Copy, Check } from 'lucide-react';
 import axios from "axios"
 import { useParams } from "react-router-dom"
 import { toast, Toaster } from "react-hot-toast";
@@ -305,6 +305,7 @@ export default function UserProfile() {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const { id: userId } = useParams();
+  const [copied, setCopied] = useState(false);
 
   const [countries, setCountries] = useState([]);
   const [cities, setCities] = useState([]);
@@ -454,6 +455,16 @@ export default function UserProfile() {
     }
 
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCopy = () => {
+    if (userData.refral_code) {
+      navigator.clipboard.writeText(userData.refral_code);
+      toast.success("Referral code copied!");
+      setCopied(true);
+      // Reset the copied state after 2 seconds
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleSave = async () => {
@@ -674,14 +685,21 @@ export default function UserProfile() {
                   Member: {userData.approvedBymember || "pending"}
                 </span>
               </div> */}
-              <div className="px-4 py-2 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                <span className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                <span className="flex items-center gap-2 whitespace-nowrap">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                   </svg>
-                  Referral: {userData.refral_code || "—"}
+                  Referral:
                 </span>
+                <span className="font-mono font-semibold">{userData.refral_code || "—"}</span>
+                {userData.refral_code && (
+                  <button onClick={handleCopy} className="ml-2 p-1 rounded-full hover:bg-purple-200 transition-colors">
+                    {copied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
+                  </button>
+                )}
               </div>
+
             </div>
           </div>
 

@@ -10,7 +10,7 @@ const myAskSchema = new Schema({
   dept: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Department',
-    required: true,
+    // required: true,
   },
   message: {
     type: String,

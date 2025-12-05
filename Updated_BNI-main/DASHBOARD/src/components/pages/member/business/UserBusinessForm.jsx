@@ -54,7 +54,7 @@ const BusinessFormModal = ({
     fetchIndustries();
   }, []);
 
-  // Fetch business data when editing
+// Fetch business data when editing
   useEffect(() => {
     if (mode === 'edit' && businessId && isOpen) {
       const fetchBusiness = async () => {
@@ -92,13 +92,27 @@ const BusinessFormModal = ({
       };
       fetchBusiness();
     } else if (mode === 'add' && isOpen) {
-      setFormData(prev => ({ ...prev, industryName: '' }));
+      // Reset ALL form fields to empty values for add mode
+      setFormData({
+        profileImg: '',
+        companyName: '',
+        industryName: '',
+        designation: '',
+        aboutCompany: '',
+        companyAddress: '',
+        mobile: '',
+        email: '',
+        whatsapp: '',
+        facebook: '',
+        linkedin: '',
+        twitter: '',
+        catalog: ''
+      });
       setProfileImgPreview(null);
       setProfileImgFile(null);
       setErrors({});
     }
   }, [mode, businessId, isOpen]);
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -125,10 +139,7 @@ const BusinessFormModal = ({
       newErrors.companyName = 'Please enter a valid company name (cannot be only numbers).';
     }
 
-    // Designation: Optional, but if present, should be valid
-    if (formData.designation && !/^[a-zA-Z0-9\s&'.-]+$/.test(formData.designation)) {
-      newErrors.designation = 'Please enter a valid designation.';
-    }
+ 
 
     // Mobile: Must be a 10-digit number
     if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) {
@@ -188,8 +199,8 @@ const BusinessFormModal = ({
         });
         // toast.success('Business profile created successfully!');
       } else {
-        await axios.put(`/api/business/updateBusinessById`, submitData, {
-          params: { id: businessId },
+        await axios.put(`/api/business/updateBusinessProfile`, submitData, {
+          params: { businessId: businessId },
           headers: {
             'Content-Type': 'multipart/form-data'
           }

@@ -72,6 +72,10 @@ const customerSchema = new mongoose.Schema({
     type: [String], // Array of strings to store multiple device tokens
     default: [], // Default to an empty array
   },
+  isOnBoarded: {
+    type: Boolean,
+    default: false,
+  },
   ref_member: {
     type: String,
     default: "",

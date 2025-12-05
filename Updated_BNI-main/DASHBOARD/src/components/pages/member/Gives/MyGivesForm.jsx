@@ -82,28 +82,20 @@ function MyGivesForm({
   const validateForm = () => {
     const newErrors = {};
 
-    // Always required: companyName & dept
+    // Always required: companyName
     if (!formData.companyName.trim()) {
       newErrors.companyName = 'Company Name is required.';
     } else if (!/^[a-zA-Z0-9\s.,'&()-]+$/.test(formData.companyName)) {
       newErrors.companyName = "Only letters, numbers, spaces, and basic punctuation allowed.";
     }
 
-    if (!formData.dept) {
-      newErrors.dept = 'Department is required.';
-    }
-
     // Only validate these fields if it's a MyGives form
     if (formType === 'mygives') {
-      if (!formData.email.trim()) {
-        newErrors.email = 'Email is required.';
-      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
+      if (formData.email.trim() && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
         newErrors.email = 'Invalid email address.';
       }
 
-      if (!formData.phoneNumber.trim()) {
-        newErrors.phoneNumber = 'Phone Number is required.';
-      } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
+      if (formData.phoneNumber.trim() && !/^\d{10}$/.test(formData.phoneNumber)) {
         newErrors.phoneNumber = 'Must be exactly 10 digits.';
       } else if (/(.)\1{9}/.test(formData.phoneNumber) || formData.phoneNumber === '1234567890') {
         newErrors.phoneNumber = 'Enter a valid phone number.';
@@ -140,13 +132,15 @@ function MyGivesForm({
       toast.error("Please fix the errors");
       return;
     }
+
+    const payload = { ...formData, dept: formData.dept || null };
+
     // onSubmit(formData); // We will call this from the parent, but here we handle the API call directly for clarity
     // The parent component's onSubmit is likely doing the API call.
     // To fix the error handling, we need to catch the specific error here.
     // Since the parent component logic is not provided, I will modify this to show how to handle the error.
     // The ideal solution is to pass the error from the parent back to this form.
-    // For now, let's assume the parent's `onSubmit` returns a promise that rejects with the API error.
-    onSubmit(formData).catch(err => {
+    onSubmit(payload).catch(err => {
       if (err.response?.data?.field === 'email') {
         setErrors(prev => ({ ...prev, email: err.response.data.message }));
       }
@@ -165,7 +159,7 @@ function MyGivesForm({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
+
         <div className="bg-gradient-to-r from-blue-100 to-blue-50 px-6 py-4 flex justify-between items-center rounded-t-xl">
           <h2 className="text-xl font-bold text-black">{title}</h2>
           <button
@@ -178,7 +172,7 @@ function MyGivesForm({
           </button>
         </div>
 
-        {/* Body */}
+
         <div className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Company Name */}
@@ -223,7 +217,7 @@ function MyGivesForm({
               <>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Email <span className="text-red-500">*</span>
+                    Email (Optional)
                   </label>
                   <input
                     type="email"
@@ -239,7 +233,7 @@ function MyGivesForm({
 
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Phone Number <span className="text-red-500">*</span>
+                    Phone Number (Optional)
                   </label>
                   <input
                     type="text"
@@ -276,7 +270,7 @@ function MyGivesForm({
             <div className={isMyAsk ? 'md:col-span-2' : ''}>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 <Briefcase className="inline mr-1" size={18} />
-                Department <span className="text-red-500">*</span>
+                Department (Optional)
               </label>
               <select
                 name="dept"

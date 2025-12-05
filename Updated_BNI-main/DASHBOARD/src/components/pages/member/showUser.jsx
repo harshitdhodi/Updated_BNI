@@ -402,9 +402,14 @@ const ActionMenu = ({ memberId, member, position = "right", isLastOrSecondLast =
                     <td className="px-6 py-4 text-gray-800 font-medium">
                       {customer.id}
                     </td>
-                    <td className="px-6 py-4 text-gray-800 font-medium">
-                      {customer.name}
-                      {customer.refral_code}
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                      
+                        <div className="">
+                          <div className="text-sm font-medium text-gray-900">{customer.name}</div>
+                          <div className="text-sm text-gray-500"> <span className="text-gray-700 ">Referral Code:</span> {customer.refral_code}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 space-y-1">
                       <p className="flex items-center gap-2">

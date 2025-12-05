@@ -7,15 +7,6 @@ const addMyAsk = async (req, res) => {
     const { user } = req.query;
     const { companyName, dept, message } = req.body;
  
-
-    // Validate required fields
-    if (!companyName || !dept) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Company name, MyAsk, and message are required"
-      });
-    }
-
     // Check if a MyAsk with the same companyName and dept already exists for the user
     const existingMyAsk = await MyAsk.findOne({
       user: user,

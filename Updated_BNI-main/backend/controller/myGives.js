@@ -6,10 +6,12 @@ const mongoose = require("mongoose"); // Make sure mongoose is imported if neede
 const addMyGives = async (req, res) => {
   try {
     const { user } = req.query;
+    console.log("User ID from query:", user);
     const { companyName, email, phoneNumber, webURL, dept } = req.body;
 
     // Check if the email already exists
     if (email) {
+      console.log("Checking for existing email:", email.trim());
       const existingGive = await myGives.findOne({ email: email.trim() });
       if (existingGive) {
         return res.status(409).json({ status: "failed", message: "This email already exists. Please use a different email.", field: "email" });

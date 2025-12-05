@@ -8,12 +8,11 @@ const companySchema = new Schema({
   },
   email: {
     type: String,
-    required: true,
+    // required: true,
    
   },
   phoneNumber: {
     type: String,
-    required: true,
   },
   webURL: {
     type: String,
@@ -21,7 +20,6 @@ const companySchema = new Schema({
   dept: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Department',
-    required: true,
   },
   user: {
     type: Schema.Types.ObjectId,

@@ -143,7 +143,7 @@ export default function UserMyAsk() {
 
   // Debounced fetch for company suggestions
   useEffect(() => {
-    if (formData.companyName.trim().length < 2) {
+    if (formData.companyName.trim().length < 1 ) {
       setCompanySuggestions([]);
       setIsSuggestionsOpen(false);
       return;
@@ -230,10 +230,6 @@ export default function UserMyAsk() {
       newErrors.companyName = "Company Name contains invalid characters.";
     }
 
-    if (!formData.dept) {
-      newErrors.dept = "Department is required.";
-    }
-
     if (formData.message.trim() && formData.message.length > 150) {
       newErrors.message = "Message cannot exceed 150 characters.";
     }
@@ -254,12 +250,14 @@ export default function UserMyAsk() {
 
     setModalLoading(true);
 
+    const payload = { ...formData, dept: formData.dept || null };
+
     try {
       if (modalMode === 'add') {
-        await api.add(formData);
+        await api.add(payload);
         toast.success('Record added');
       } else if (currentItem) {
-        await api.update(currentItem._id, formData);
+        await api.update(currentItem._id, payload);
         toast.success('Record updated');
       }
       closeModal();
@@ -601,14 +599,14 @@ export default function UserMyAsk() {
 
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Department <span className="text-red-500">*</span>
+                        Department (Optional)
                       </label>
                       <select
                         name="dept"
                         value={formData.dept}
                         onChange={handleInputChange}
                         className={`w-full px-4 py-2.5 border rounded-lg bg-slate-50 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 ${errors.dept ? 'border-red-500' : 'border-slate-300'}`}
-                        required
+                      
                         aria-invalid={errors.dept ? "true" : "false"}
                       >
                         <option value="" disabled>Select a department</option>

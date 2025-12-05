@@ -67,6 +67,7 @@ import UserBusinessList from "./components/pages/member/business/UserBusinessLis
 import { messaging } from "./firebase";
 import { getToken } from "firebase/messaging";
 import { NotificationProvider } from "./NotificationContext";
+import OnboardingAsksGives from "./components/pages/OnBoard/OnboardingAsksGives";
 // Helper component to dynamically redirect with the member's ID
 const MemberIndexRedirect = () => {
   const { id } = useParams();
@@ -77,52 +78,27 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  const [isOnBoarded, setIsOnBoarded] = useState(null);
+  const [userId, setUserId] = useState(null);
   const notificationShownRef = useRef(false);
   
-  function requestPermission() {
-    console.log('Requesting permission for notifications...');
-    Notification.requestPermission().then((permission) => {
-        if (permission === 'granted') {
-            console.log('Notification permission granted.');
-            // Get the registration token
-            getToken(messaging, { vapidKey:"BFL6JYHGdtTgKv7b6_mnt9ifKTFZc4f5mmc3uz_IzFzqtYcgdUuXUuQalRIkLn5mz97MKl2nIoALBWJx2BCaAr4"}).then((currentToken) => {
-                if (currentToken) {
-                    console.log('FCM Token:', currentToken);
-                    // You might want to send this token to your server for later use
-                } else {
-                    console.log('No registration token available. Request permission to generate one.');
-                }
-            }).catch((err) => {
-                console.log('An error occurred while retrieving token. ', err);
-            });
-        } else {
-            console.log('Notification permission denied.');
-            // alert('You have denied notification permissions. Please enable them in your browser settings to receive notifications.');
-        }
-    });
-}
-useEffect(() => {
-    requestPermission();
-}, []);
-
-  // Show a test notification on every page load
-  useEffect(() => {
-    if (Notification.permission === "granted" && !notificationShownRef.current) {
-      new Notification("Test Notification", { body: "This is a test notification on page load!" });
-      notificationShownRef.current = true; // Mark as shown
-    }
-  }, []); // Empty dependency array ensures this runs only on mount
 
   useEffect(() => {
     const token = Cookies.get("token");
     const role = Cookies.get("userRole");
+    const onBoardedStatus = Cookies.get("isOnBoarded");
+    const id = Cookies.get("userId");
 
-    if (token && role) {
+    if (token && role && id) {
       setIsLoggedIn(true);
       setUserRole(role);
+      setIsOnBoarded(onBoardedStatus === 'true');
+      setUserId(id);
     } else {
       setIsLoggedIn(false);
       setUserRole(null);
+      setIsOnBoarded(null);
+      setUserId(null);
     }
     setLoading(false); // Set loading to false after checking the token
   }, []);
@@ -131,38 +107,65 @@ useEffect(() => {
     return <div>Loading...</div>; // Add a loading state to handle async token check
   }
 
+  // Helper: Render redirect based on role (for root "/")
+  const RootRedirect = () => {
+    if (!isLoggedIn) return <Navigate to="/login" replace />;
+    if (userRole === "admin") return <Navigate to="/dashboard" replace />;
+    if (userRole === "member") {
+      return isOnBoarded ? (
+        <Navigate to={`/member/${userId}/dashboard`} replace />
+      ) : (
+        <Navigate to={`/member/${userId}/onboarding`} replace />
+      );
+    }
+    return <Navigate to="/login" replace />;
+  };
+
   return (
     <NotificationProvider>
       <Router>
           <Toaster position="top-right" />
         <Routes>
-          {!isLoggedIn ? (
-            <>
-              <Route path="/login" element={<LoginForm />} />
-              <Route path="*" element={<Navigate to="/login" />} />
-              <Route path="/registration" element={<UserForm />} />
-              <Route path="/forgotPassword" element={<ForgotPasswordForm />} />
-              <Route path="/setPassword" element={<SetPasswordForm />} />
-            </>
-          ) : userRole === "member" ? (
-            <>
-              {/* Routes for 'member' role */}
-              <Route path="/member/:id" element={<Layout />}>
-                <Route index element={<MemberIndexRedirect />} />
-                <Route path="dashboard" element={<DashboardContent />} />
-                <Route path="user-profile" element={<UserProfile />} />
-                {/* <Route path="member-info" element={<MemberInfo />} /> */}
-                <Route path="my-asks" element={<UserMyAsk />} />
-                <Route path="my-gives" element={<UserGives />} />
-                <Route path="my-matches" element={<UserMyMatches />} />
-                <Route path="calendar" element={<SmartCalendar />} />
-                 <Route path="business" element={<UserBusinessList />} />
-                {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
-              </Route>
+          {/* Public routes (always available, but redirect if logged in) */}
+          <Route
+            path="/login"
+            element={isLoggedIn ? <RootRedirect /> : <LoginForm />}
+          />
+          <Route
+            path="/registration"
+            element={isLoggedIn ? <RootRedirect /> : <UserForm />}
+          />
+          <Route
+            path="/forgotPassword"
+            element={isLoggedIn ? <RootRedirect /> : <ForgotPasswordForm />}
+          />
+          <Route
+            path="/setPassword"
+            element={isLoggedIn ? <RootRedirect /> : <SetPasswordForm />}
+          />
 
-            </>
-          ) : (
-            userRole === "admin" ? ( <Route path="/" element={<Sidebar />}>
+          {/* Root redirect (handles "/" for all cases) */}
+          <Route path="/" element={<RootRedirect />} />
+
+          {/* Member routes (only render if logged in as member) */}
+          {isLoggedIn && userRole === "member" && (
+            <Route path="/member/:id" element={<Layout />}>
+              <Route index element={<MemberIndexRedirect />} />
+              <Route path="dashboard" element={<DashboardContent />} />
+              <Route path="user-profile" element={<UserProfile />} />
+              <Route path="onboarding" element={<OnboardingAsksGives setIsOnBoarded={setIsOnBoarded} />} />
+              <Route path="my-asks" element={<UserMyAsk />} />
+              <Route path="my-gives" element={<UserGives />} />
+              <Route path="my-matches" element={<UserMyMatches />} />
+              <Route path="calendar" element={<SmartCalendar />} />
+              <Route path="business" element={<UserBusinessList />} />
+              {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
+            </Route>
+          )}
+
+          {/* Admin routes (only render if logged in as admin) */}
+          {isLoggedIn && userRole === "admin" && (
+            <Route path="/" element={<Sidebar />}>
               <Route path="/" element={<Navigate to="/dashboard" />} />
               <Route path="/dashboard" index element={<Dashboard />} />
               
@@ -193,7 +196,7 @@ useEffect(() => {
               <Route path="/myMatches/:userId" element={<MyAllMatches />} />
               <Route path="/editMember/:id" element={<EditMember />} />
               <Route path="/business/:id" element={<BusinessList />} />
-                <Route path="/business" element={<BusinessList />} />
+              <Route path="/business" element={<BusinessList />} />
               <Route path="/business_form/:userId" element={<BusinessForm />} />
               <Route path="/business_form" element={<BusinessForm />} />
               <Route path="/myBusiness/:userId" element={<MyBusinessList />} />
@@ -212,16 +215,15 @@ useEffect(() => {
               <Route path="/edit_company/:id" element={<EditCompany />} />
               <Route path="/ref-member/:refMember" element={<RefMember />} />
               <Route path="/pending-member" element={<PendingMember />} />
-
             </Route>
-            ) : (
-              <Route path="*" element={<Navigate to="/login" />} />
-            )
           )}
+
+          {/* Catch-all: Redirect to login if no match */}
+          <Route path="*" element={<RootRedirect />} />
         </Routes>
       </Router>
     </NotificationProvider>
   );
 }
 
-export default App; 
+export default App;

@@ -7,7 +7,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2, ShieldCheck, X } from "lucide-react";
 const InfoModal = ({ title, message, onClose }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md transform transition-all relative">
         <div className="p-8 text-center">
           <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-6">
             <ShieldCheck className="h-8 w-8 text-blue-600" />
@@ -163,6 +163,7 @@ const LoginForm = () => {
                   className={`pl-10 w-full py-3 px-4 border rounded-lg leading-tight focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
                   type="email"
                   placeholder="you@example.com"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -186,6 +187,7 @@ const LoginForm = () => {
                   className={`pl-10 w-full py-3 px-4 border rounded-lg leading-tight focus:outline-none focus:ring-2 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
