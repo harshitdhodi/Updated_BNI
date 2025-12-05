@@ -34,7 +34,7 @@ const RegistrationForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    const { name, email, mobile, password, confirm_password } = formData;
+    const { name, email, ref_member, mobile, password, confirm_password } = formData;
 
     const namePattern = /^[a-zA-Z'-\s]+$/;
     if (!name.trim()) {
@@ -47,6 +47,10 @@ const RegistrationForm = () => {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!ref_member.trim()) {
+      newErrors.ref_member = "Referral code is required";
     }
 
     const mobilePattern = /^[6-9]\d{9}$/;
@@ -103,7 +107,7 @@ const RegistrationForm = () => {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="w-full max-w-5xl m-4 bg-gradient-to-r from-blue-100 to-blue-50 shadow-2xl rounded-2xl overflow-hidden"> 
         {/* Branding Section */}
-        <div className="hidden md:flex bg-gradient-to-br from-blue-600 to-blue-800 p-12 text-white flex-col justify-between">
+        <div className="hidden md:flex bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white flex-col justify-between">
           <div>
             <h1 className="text-4xl font-bold mb-3">Join Our Network</h1>
             <p className="text-blue-100">Create an account to connect, collaborate, and grow your business.</p>
@@ -114,14 +118,14 @@ const RegistrationForm = () => {
         </div>
 
         {/* Form Section */}
-        <div className="w-full  md:p-12">
+        <div className="w-full  md:px-12 py-5">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
-          <p className="text-gray-500 mb-8">Let's get you started!</p>
+          <p className="text-gray-500">Let's get you started!</p>
 
-          <form onSubmit={handleSubmit} className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 ">
             {/* Name Input */}
             <div className='pt-6'>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">Full Name</label>
+              <label className="block text-gray-700 text-sm font-semibold ">Full Name <span className="text-red-500">*</span></label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type="text" name="name" placeholder="John Doe" value={formData.name} onChange={handleChange} />
@@ -131,7 +135,7 @@ const RegistrationForm = () => {
 
             {/* Email Input */}
             <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">Email Address</label>
+              <label className="block text-gray-700 text-sm font-semibold ">Email Address <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} />
@@ -141,19 +145,20 @@ const RegistrationForm = () => {
 
             {/* Referral Code Input */}
             <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">Referral Code (Optional)</label>
+              <label className="block text-gray-700 text-sm font-semibold ">Referral Code <span className="text-red-500">*</span></label>
               <div className="relative">
                 <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  className="pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 border-gray-300 focus:ring-blue-500"
+                  className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.ref_member ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
                   type="text" name="ref_member" placeholder="Enter referral code" value={formData.ref_member} onChange={handleChange}
                 />
               </div>
+              {errors.ref_member && <p className="text-red-500 text-xs italic mt-2">{errors.ref_member}</p>}
             </div>
 
             {/* Mobile Input */}
             <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">Mobile Number</label>
+              <label className="block text-gray-700 text-sm font-semibold ">Mobile Number <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
@@ -165,7 +170,7 @@ const RegistrationForm = () => {
             </div>
             {/* Password Input */}
             <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">Password</label>
+              <label className="block text-gray-700 text-sm font-semibold ">Password <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type={showPassword ? "text" : "password"} name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} />
@@ -178,7 +183,7 @@ const RegistrationForm = () => {
 
             {/* Confirm Password Input */}
             <div>
-              <label className="block text-gray-700 text-sm font-semibold mb-2">Confirm Password</label>
+              <label className="block text-gray-700 text-sm font-semibold ">Confirm Password <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.confirm_password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type={showConfirmPassword ? "text" : "password"} name="confirm_password" placeholder="Re-enter your password" value={formData.confirm_password} onChange={handleChange} />

@@ -404,6 +404,7 @@ const ActionMenu = ({ memberId, member, position = "right", isLastOrSecondLast =
                     </td>
                     <td className="px-6 py-4 text-gray-800 font-medium">
                       {customer.name}
+                      {customer.refral_code}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-600 space-y-1">
                       <p className="flex items-center gap-2">
