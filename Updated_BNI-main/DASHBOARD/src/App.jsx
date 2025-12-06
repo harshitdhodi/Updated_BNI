@@ -57,6 +57,7 @@ import RefMember from "./components/pages/member/RefMember/RefMember";
 import PendingMember from "./components/pages/member/PendingMember/PendingMember";
 import MemberInfo from "./components/pages/member/Dashboard/MemberInfo";
 import Layout from "./components/pages/member/Dashboard/Layout";
+import OnboardingLayout from "./components/pages/member/Dashboard/OnboardingLayout";
 import DashboardContent from "./components/pages/member/Dashboard/DashboardData";
 import UserProfile from "./components/pages/member/Dashboard/UserProfile";
 import UserMyAsk from "./components/pages/member/Asks/UserMyAsk";
@@ -238,10 +239,12 @@ function App() {
           )}
           {/* Onboarding route is separate to allow access for non-onboarded members */}
           {isLoggedIn && userRole === "member" && !isOnBoarded && (
-            <Route
-              path="/member/:id/onboarding"
-              element={<OnboardingAsksGives setIsOnBoarded={setIsOnBoarded} />}
-            />
+            <Route path="/member/:id/onboarding" element={<OnboardingLayout />}>
+              <Route
+                index
+                element={<OnboardingAsksGives setIsOnBoarded={setIsOnBoarded} />}
+              />
+            </Route>
           )}
 
           {/* Admin routes (only render if logged in as admin) */}

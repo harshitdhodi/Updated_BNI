@@ -1,12 +1,29 @@
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
+import Cookies from "js-cookie";
 
 function Navbar({ onMenuClick }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [userData, setUserData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { id: userId } = useParams();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      // The member logout is handled by clearing cookies and redirecting
+      Cookies.remove("token");
+      Cookies.remove("userRole");
+      Cookies.remove("userId");
+      Cookies.remove("isOnBoarded");
+      window.location.href = "/login";
+    } catch (err) {
+      console.error("Logout error", err);
+    }
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -122,24 +139,20 @@ function Navbar({ onMenuClick }) {
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                 <div className="py-1">
-                  <a
-                    href="#"
+                  <Link
+                    to={`/member/${userId}/user-profile`}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsDropdownOpen(false)}
                   >
                     Profile
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                   >
-                    Settings
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Sign out
-                  </a>
+                    {isLoggingOut ? "Logging out..." : "Sign out"}
+                  </button>
                 </div>
               </div>
             )}

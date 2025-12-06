@@ -105,118 +105,191 @@ const RegistrationForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="w-full max-w-5xl m-4 bg-gradient-to-r from-blue-100 to-blue-50 shadow-2xl rounded-2xl overflow-hidden"> 
+      <div className="w-full max-w-5xl m-4 bg-white shadow-2xl rounded-2xl flex flex-col md:flex-row overflow-hidden">
         {/* Branding Section */}
-        <div className="hidden md:flex bg-gradient-to-br from-blue-600 to-blue-800 p-6 text-white flex-col justify-between">
+        <div className="w-full md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 p-8 md:p-12 text-white flex-col justify-between hidden md:flex">
           <div>
             <h1 className="text-4xl font-bold mb-3">Join Our Network</h1>
             <p className="text-blue-100">Create an account to connect, collaborate, and grow your business.</p>
           </div>
           <div>
-            <p className="text-sm text-blue-200">© {new Date().getFullYear()} BCONN Global. All Rights Reserved.</p>
+            <p className="text-sm text-blue-200 mt-8">© {new Date().getFullYear()} BCONN Global. All Rights Reserved.</p>
           </div>
         </div>
 
         {/* Form Section */}
-        <div className="w-full  md:px-12 py-5">
+        <div className="w-full md:w-[80%] p-8 md:p-12 bg-gradient-to-r from-blue-50 to-white">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">Create Account</h2>
-          <p className="text-gray-500">Let's get you started!</p>
+          <p className="text-gray-500 mb-8">Let's get you started!</p>
 
-          <form onSubmit={handleSubmit} className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 ">
-            {/* Name Input */}
-            <div className='pt-6'>
-              <label className="block text-gray-700 text-sm font-semibold ">Full Name <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type="text" name="name" placeholder="John Doe" value={formData.name} onChange={handleChange} />
-              </div>
-              {errors.name && <p className="text-red-500 text-xs italic mt-2">{errors.name}</p>}
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-6 grid grid-cols-1 md:grid-cols-2 gap-x-6">
+  {/* Name Input */}
+  <div>
+    <label className="block text-gray-700 text-sm mt-6 font-semibold mb-2">
+      Full Name <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <input 
+        className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${
+          errors.name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+        }`} 
+        type="text" 
+        name="name" 
+        placeholder="John Doe" 
+        value={formData.name} 
+        onChange={handleChange} 
+      />
+    </div>
+    {errors.name && <p className="text-red-500 text-xs italic mt-2">{errors.name}</p>}
+  </div>
 
-            {/* Email Input */}
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold ">Email Address <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type="email" name="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} />
-              </div>
-              {errors.email && <p className="text-red-500 text-xs italic mt-2">{errors.email}</p>}
-            </div>
+  {/* Email Input */}
+  <div>
+    <label className="block text-gray-700 text-sm font-semibold mb-2">
+      Email Address <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <input 
+        className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${
+          errors.email ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+        }`} 
+        type="email" 
+        name="email" 
+        placeholder="you@example.com" 
+        value={formData.email} 
+        onChange={handleChange} 
+      />
+    </div>
+    {errors.email && <p className="text-red-500 text-xs italic mt-2">{errors.email}</p>}
+  </div>
 
-            {/* Referral Code Input */}
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold ">Referral Code <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.ref_member ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-                  type="text" name="ref_member" placeholder="Enter referral code" value={formData.ref_member} onChange={handleChange}
-                />
-              </div>
-              {errors.ref_member && <p className="text-red-500 text-xs italic mt-2">{errors.ref_member}</p>}
-            </div>
+  {/* Referral Code Input */}
+  <div>
+    <label className="block text-gray-700 text-sm font-semibold mb-2">
+      Referral Code <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <input
+        className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${
+          errors.ref_member ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+        }`}
+        type="text" 
+        name="ref_member" 
+        placeholder="Enter referral code" 
+        value={formData.ref_member} 
+        onChange={handleChange}
+      />
+    </div>
+    {errors.ref_member && <p className="text-red-500 text-xs italic mt-2">{errors.ref_member}</p>}
+  </div>
 
-            {/* Mobile Input */}
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold ">Mobile Number <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.mobile ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
-                  type="tel" name="mobile" placeholder="e.g., 9876543210" value={formData.mobile} onChange={handleChange} maxLength={10}
-                />
-              </div>
-              {errors.mobile && <p className="text-red-500 text-xs italic mt-2">{errors.mobile}</p>}
-            </div>
-            {/* Password Input */}
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold ">Password <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type={showPassword ? "text" : "password"} name="password" placeholder="Enter your password" value={formData.password} onChange={handleChange} />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-              {errors.password && <p className="text-red-500 text-xs italic mt-2">{errors.password}</p>}
-            </div>
+  {/* Mobile Input */}
+  <div>
+    <label className="block text-gray-700 text-sm font-semibold mb-2">
+      Mobile Number <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <input
+        className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${
+          errors.mobile ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+        }`}
+        type="tel" 
+        name="mobile" 
+        placeholder="e.g., 9876543210" 
+        value={formData.mobile} 
+        onChange={handleChange} 
+        maxLength={10}
+      />
+    </div>
+    {errors.mobile && <p className="text-red-500 text-xs italic mt-2">{errors.mobile}</p>}
+  </div>
 
-            {/* Confirm Password Input */}
-            <div>
-              <label className="block text-gray-700 text-sm font-semibold ">Confirm Password <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${errors.confirm_password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`} type={showConfirmPassword ? "text" : "password"} name="confirm_password" placeholder="Re-enter your password" value={formData.confirm_password} onChange={handleChange} />
-                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
-              {errors.confirm_password && <p className="text-red-500 text-xs italic mt-2">{errors.confirm_password}</p>}
-            </div>
-            <div className='flex justify-center flex-col col-span-2 items-center'>
-               {/* Submit Button */}
-            <button className="w-full md:w-1/2 mx-auto mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 flex items-center justify-center disabled:bg-blue-400" type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="animate-spin mr-2" size={20} />
-                  Creating Account...
-                </>
-              ) : (
-                "Register"
-              )}
-            </button>
+  {/* Password Input */}
+  <div>
+    <label className="block text-gray-700 text-sm font-semibold mb-2">
+      Password <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <input 
+        className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${
+          errors.password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+        }`} 
+        type={showPassword ? "text" : "password"} 
+        name="password" 
+        placeholder="Enter your password" 
+        value={formData.password} 
+        onChange={handleChange} 
+      />
+      <button 
+        type="button" 
+        onClick={() => setShowPassword(!showPassword)} 
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      >
+        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+      </button>
+    </div>
+    {errors.password && <p className="text-red-500 text-xs italic mt-2">{errors.password}</p>}
+  </div>
 
-            {/* Login Link */}
-            <p className="text-center text-sm text-gray-600 mt-2">
-              Already have an account?{" "}
-              <Link className="font-semibold text-blue-600 hover:underline" to="/">
-                Login here
-              </Link>
-            </p>
-            </div>
-  </form>
-           
-        
+  {/* Confirm Password Input */}
+  <div>
+    <label className="block text-gray-700 text-sm font-semibold mb-2">
+      Confirm Password <span className="text-red-500">*</span>
+    </label>
+    <div className="relative">
+      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+      <input 
+        className={`pl-10 w-full py-3 px-4 border rounded-lg focus:outline-none focus:ring-2 ${
+          errors.confirm_password ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+        }`} 
+        type={showConfirmPassword ? "text" : "password"} 
+        name="confirm_password" 
+        placeholder="Re-enter your password" 
+        value={formData.confirm_password} 
+        onChange={handleChange} 
+      />
+      <button 
+        type="button" 
+        onClick={() => setShowConfirmPassword(!showConfirmPassword)} 
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      >
+        {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+      </button>
+    </div>
+    {errors.confirm_password && <p className="text-red-500 text-xs italic mt-2">{errors.confirm_password}</p>}
+  </div>
+
+  {/* Submit Button - Spans full width on all screens */}
+  <div className="col-span-1 md:col-span-2 flex flex-col items-center">
+    <button 
+      className="w-full md:w-1/2 mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-300 flex items-center justify-center disabled:bg-blue-400" 
+      type="submit" 
+      disabled={isLoading}
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="animate-spin mr-2" size={20} />
+          Creating Account...
+        </>
+      ) : (
+        "Register"
+      )}
+    </button>
+
+    {/* Login Link */}
+    <p className="text-center text-sm text-gray-600 mt-4">
+      Already have an account?{" "}
+      <Link className="font-semibold text-blue-600 hover:underline" to="/">
+        Login here
+      </Link>
+    </p>
+  </div>
+</form>
         </div>
       </div>
     </div>

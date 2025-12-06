@@ -38,7 +38,7 @@ const OnboardingAsksGives = ({ setIsOnBoarded }) => {
   const [addingAsk, setAddingAsk] = useState(false);
   const [addingGive, setAddingGive] = useState(false);
 
-  const isValid = asks.length >= 5 && gives.length >= 5;
+  const isValid = asks.length >= 10 && gives.length >= 10;
   const location = useLocation();
   const navigate = useNavigate();
   // Extract ID from pathname like "/member/USER_ID/onboarding"
@@ -69,7 +69,7 @@ const OnboardingAsksGives = ({ setIsOnBoarded }) => {
 console.log("Fetched Asks:", asksData);
 console.log("Fetched Gives:", givesData);
 
-        if (asksData.length >= 5 && givesData.length >= 5) {
+        if (asksData.length >= 10 && givesData.length >= 10) {
           toast.success('Profile already complete! Redirecting...', { id: toastId });
           Cookies.set('isOnBoarded', 'true'); // Update the cookie
           setIsOnBoarded(true); // Update the app's state
@@ -239,7 +239,7 @@ console.log("Fetched Gives:", givesData);
             Complete Your Profile
           </h1>
           <p className="text-gray-600 text-lg">
-            Add at least 5 asks and 5 gives to get started
+            Add at least 10 asks and 10 gives to get started
           </p>
         </div>
 
@@ -259,13 +259,13 @@ console.log("Fetched Gives:", givesData);
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-gray-700">Profile Completion</span>
             <span className="text-sm font-bold text-sky-600">
-              {Math.min(100, Math.round(((asks.length + gives.length) / 10) * 100))}%
+              {Math.min(100, Math.round(((asks.length + gives.length) / 20) * 100))}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-sky-400 to-blue-500 h-full transition-all duration-500 rounded-full"
-              style={{ width: `${Math.min(100, ((asks.length + gives.length) / 10) * 100)}%` }}
+              style={{ width: `${Math.min(100, ((asks.length + gives.length) / 20) * 100)}%` }}
             />
           </div>
         </div>
@@ -284,7 +284,7 @@ console.log("Fetched Gives:", givesData);
                   </div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-full px-4 py-2 font-bold text-lg">
-                  {asks.length}/5
+                  {asks.length}/10
                 </div>
               </div>
             </div>
@@ -335,7 +335,7 @@ console.log("Fetched Gives:", givesData);
                   </div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-full px-4 py-2 font-bold text-lg">
-                  {gives.length}/5
+                  {gives.length}/10
                 </div>
               </div>
             </div>
@@ -380,7 +380,7 @@ console.log("Fetched Gives:", givesData);
           {!isValid && (
             <p className="text-amber-600 mb-4 flex items-center justify-center gap-2">
               <AlertCircle size={20} />
-              Please add at least 5 asks and 5 gives to continue
+              Please add at least 10 asks and 10 gives to continue
             </p>
           )}
           <button

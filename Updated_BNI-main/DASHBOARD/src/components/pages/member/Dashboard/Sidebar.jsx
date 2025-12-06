@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import logo from "../../../../../public/logo.png";
+import Cookies from "js-cookie";
 // Sidebar Component
 function Sidebar({ isOpen, onClose }) {
   const [activeMenu, setActiveMenu] = useState("dashboard")
@@ -182,23 +183,16 @@ function Sidebar({ isOpen, onClose }) {
     e.preventDefault();
     setIsLoggingOut(true);
     try {
-      const res = await fetch("/api/user/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-      if (res.ok) {
-        // Optionally close sidebar on mobile
-        if (onClose) onClose();
-        window.location.href = "/login";
-      } else {
-        console.error("Logout failed", res.status);
-      }
+      // Clear all session-related cookies
+      Cookies.remove("token");
+      Cookies.remove("userRole");
+      Cookies.remove("userId");
+      Cookies.remove("isOnBoarded");
+
+      if (onClose) onClose(); // Close sidebar on mobile
+      window.location.href = "/login"; // Redirect to login
     } catch (err) {
       console.error("Logout error", err);
-    } finally {
       setIsLoggingOut(false);
     }
   };
