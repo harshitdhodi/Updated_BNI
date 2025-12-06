@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import {  Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Loader2, ShieldCheck, X } from "lucide-react";
 
 // A simple, reusable modal component for displaying messages
@@ -45,6 +45,7 @@ const LoginForm = () => {
     title: "",
     message: "",
   });
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
