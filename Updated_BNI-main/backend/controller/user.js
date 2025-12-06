@@ -98,8 +98,11 @@ const userLogin = async (req, res) => {
     const token = Jwt.sign({ userId: User._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "5d",
     });
-  res.cookie("token", token);
+    res.cookie("token", token);
     res.cookie("userRole", "admin");
+    // Add userId and isOnBoarded cookies for consistency with member login
+    res.cookie("userId", User._id.toString());
+    res.cookie("isOnBoarded", true); // Admins are always considered "onboarded"
 
     // Respond with success, token, and user data
     res.json({

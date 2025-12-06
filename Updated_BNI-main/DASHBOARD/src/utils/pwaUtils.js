@@ -1,40 +1,7 @@
 /**
  * PWA Utilities - Handle service worker registration, install prompts, and app updates
  */
-
-// NOTE: removed `workbox-window` import to avoid module 404s in dev
-// If you prefer Workbox features, install `workbox-window` and re-enable the import.
-
-// ============================================
-// SERVICE WORKER REGISTRATION
-// ============================================
-
-export async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) {
-    console.log('❌ Service Workers not supported');
-    return null;
-  }
-
-  try {
-    // Register the service worker
-    const registration = await navigator.serviceWorker.register('/sw.js', {
-      scope: '/',
-      updateViaCache: 'none'
-    });
-
-    console.log('✅ Service Worker registered:', registration);
-
-    // Check for updates periodically
-    setInterval(() => {
-      registration.update();
-    }, 60000); // Check every minute
-
-    return registration;
-  } catch (error) {
-    console.error('❌ Service Worker registration failed:', error);
-    return null;
-  }
-}
+import { registerSW } from 'virtual:pwa-register';
 
 // ============================================
 // PWA INSTALL PROMPT
@@ -87,73 +54,15 @@ export async function promptInstall() {
 
 export function onInstallPromptAvailable(callback) {
   installPromptCallbacks.push(callback);
+  // Return a function to allow unregistering the callback
+  return () => {
+    installPromptCallbacks = installPromptCallbacks.filter(cb => cb !== callback);
+  };
 }
 
 // ============================================
 // APP UPDATE HANDLING
 // ============================================
-
-let updateCallbacks = [];
-
-export async function checkForUpdates() {
-  if (!('serviceWorker' in navigator)) {
-    return null;
-  }
-
-  try {
-    const registration = await navigator.serviceWorker.getRegistration();
-    if (!registration) {
-      return null;
-    }
-
-    const updateCheck = await registration.update();
-    return updateCheck;
-  } catch (error) {
-    console.error('❌ Update check failed:', error);
-    return null;
-  }
-}
-
-export function setupUpdateListener() {
-  if (!('serviceWorker' in navigator)) {
-    return;
-  }
-    // Listen for controllerchange (new SW has taken control)
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      console.log('🔄 New service worker activated - app updated');
-      updateCallbacks.forEach(callback => callback());
-    });
-
-    // Check existing registration for waiting worker
-    navigator.serviceWorker.getRegistration()
-      .then(reg => {
-        if (!reg) return;
-
-        // If there's a waiting service worker, notify listeners an update is available
-        if (reg.waiting) {
-          console.log('⚠️ New service worker waiting to activate');
-          updateCallbacks.forEach(callback => callback(true));
-        }
-
-        // Listen for updatefound: a new SW is installing
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (!newWorker) return;
-          newWorker.addEventListener('statechange', () => {
-            console.log('🛠️ Service worker state:', newWorker.state);
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New update installed and there's an active controller
-              updateCallbacks.forEach(callback => callback(true));
-            }
-          });
-        });
-      })
-      .catch(err => console.error('❌ Error checking SW registration:', err));
-}
-
-export function onAppUpdated(callback) {
-  updateCallbacks.push(callback);
-}
 
 // ============================================
 // OFFLINE STATUS
@@ -212,32 +121,32 @@ export function canShowNotifications() {
 // ============================================
 
 export function initializePWA() {
-  console.log('🚀 Initializing PWA features...');
-  
-  // Register service worker
-  registerServiceWorker();
-  
-  // Setup install prompt
-  setupInstallPrompt();
-  
-  // Setup update listener
-  setupUpdateListener();
-  
-  // Setup offline detection
-  setupOfflineDetection();
-  
-  console.log('✅ PWA initialization complete');
+    console.log('🚀 Initializing PWA features...');
+
+    // Register the service worker using vite-plugin-pwa
+    const updateSW = registerSW({
+        onNeedRefresh() {
+            // if (confirm('New content available. Do you want to reload?')) {
+            //     updateSW(true);
+            // }
+        },
+        onOfflineReady() {
+            console.log('App is ready to work offline.');
+        },
+    });
+
+    // Setup install prompt, update listener, and offline detection
+    setupInstallPrompt();
+    setupOfflineDetection();
+
+    console.log('✅ PWA initialization complete');
 }
 
 export default {
-  registerServiceWorker,
   setupInstallPrompt,
   isInstallPromptAvailable,
   promptInstall,
   onInstallPromptAvailable,
-  checkForUpdates,
-  setupUpdateListener,
-  onAppUpdated,
   setupOfflineDetection,
   isOnline,
   onOfflineStatusChanged,

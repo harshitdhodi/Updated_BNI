@@ -5,6 +5,7 @@ import {
   Routes,
   Navigate,
   useParams,
+  useLocation,
 } from "react-router-dom";
 import Cookies from "js-cookie";
 import Sidebar from "./components/Sidebar";
@@ -68,6 +69,8 @@ import { messaging } from "./firebase";
 import { getToken } from "firebase/messaging";
 import { NotificationProvider } from "./NotificationContext";
 import OnboardingAsksGives from "./components/pages/OnBoard/OnboardingAsksGives";
+import { onInstallPromptAvailable, promptInstall } from "./utils/pwaUtils";
+
 // Helper component to dynamically redirect with the member's ID
 const MemberIndexRedirect = () => {
   const { id } = useParams();
@@ -75,6 +78,68 @@ const MemberIndexRedirect = () => {
 };
 
 function App() {
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallPopup, setShowInstallPopup] = useState(false);
+
+  // This component will render the custom PWA install popup
+  const PwaInstallPopup = () => {
+    const location = useLocation();
+
+    useEffect(() => {
+      const handleBeforeInstallPrompt = (e) => {
+        e.preventDefault(); // Stop browser's default install prompt
+        setDeferredPrompt(e); // Save the event for later
+        // Only show the popup on the login page
+        if (location.pathname === '/login') {
+          setShowInstallPopup(true);
+        }
+      };
+
+      window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+      return () => {
+        window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      };
+    }, [location.pathname]);
+
+    const handleInstallClick = async () => {
+      if (!deferredPrompt) return;
+
+      deferredPrompt.prompt(); // Show the native browser install prompt
+      const { outcome } = await deferredPrompt.userChoice;
+
+      if (outcome === 'accepted') {
+        console.log('User accepted the PWA installation');
+      }
+      setShowInstallPopup(false);
+      setDeferredPrompt(null);
+    };
+
+    if (!showInstallPopup || location.pathname !== '/login') {
+      return null;
+    }
+
+    return (
+      <div className="fixed top-5 right-5 ml-4 sm:ml-0 z-50 p-4 bg-white rounded-lg shadow-lg border border-gray-200 flex  items-center gap-4">
+       <div className="">
+         <div className="flex-grow">
+          <p className="text-gray-700">Install this app for a better experience!</p>
+        </div>
+        <button onClick={handleInstallClick} className="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">
+          Install
+        </button>
+       </div>
+        <button 
+          onClick={() => setShowInstallPopup(false)} 
+          className="text-gray-400 hover:text-gray-600 relative -top-4"
+          aria-label="Close install prompt"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    );
+  };
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
@@ -124,6 +189,7 @@ function App() {
   return (
     <NotificationProvider>
       <Router>
+          <PwaInstallPopup />
           <Toaster position="top-right" />
         <Routes>
           {/* Public routes (always available, but redirect if logged in) */}
@@ -149,11 +215,19 @@ function App() {
 
           {/* Member routes (only render if logged in as member) */}
           {isLoggedIn && userRole === "member" && (
-            <Route path="/member/:id" element={<Layout />}>
+            <Route
+              path="/member/:id"
+              element={
+                isOnBoarded ? (
+                  <Layout />
+                ) : (
+                  <Navigate to={`/member/${userId}/onboarding`} replace />
+                )
+              }
+            >
               <Route index element={<MemberIndexRedirect />} />
               <Route path="dashboard" element={<DashboardContent />} />
               <Route path="user-profile" element={<UserProfile />} />
-              <Route path="onboarding" element={<OnboardingAsksGives setIsOnBoarded={setIsOnBoarded} />} />
               <Route path="my-asks" element={<UserMyAsk />} />
               <Route path="my-gives" element={<UserGives />} />
               <Route path="my-matches" element={<UserMyMatches />} />
@@ -161,6 +235,13 @@ function App() {
               <Route path="business" element={<UserBusinessList />} />
               {/* You can add other member-specific child routes here in the future, like <Route path="settings" element={<Settings />} /> */}
             </Route>
+          )}
+          {/* Onboarding route is separate to allow access for non-onboarded members */}
+          {isLoggedIn && userRole === "member" && !isOnBoarded && (
+            <Route
+              path="/member/:id/onboarding"
+              element={<OnboardingAsksGives setIsOnBoarded={setIsOnBoarded} />}
+            />
           )}
 
           {/* Admin routes (only render if logged in as admin) */}

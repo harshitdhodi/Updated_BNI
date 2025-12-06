@@ -71,10 +71,7 @@ function Navbar({ onMenuClick }) {
             <img src="/logo.png" alt="Logo" className="h-16 w-auto" />
           </div>
 
-          {/* Desktop brand */}
-          <div className="hidden lg:flex items-center gap-2">
-            <img src="/logo.png" alt="Logo" className="h-8 w-auto" />
-          </div>
+        
         </div>
 
         {/* Right Section - Icons & Profile */}
