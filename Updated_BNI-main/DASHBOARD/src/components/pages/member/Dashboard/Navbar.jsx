@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
+import axios from "axios"
+import Cookies from "js-cookie"
 
 function Navbar({ onMenuClick }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -51,6 +53,24 @@ function Navbar({ onMenuClick }) {
   const displayName = userData?.name || 'User'
   const displayRole = userData?.email || 'Member'
   const initials = getUserInitials(displayName)
+
+  const handleLogout = async () => {
+    try {
+      const token = Cookies.get("token");
+      // The second argument to axios.post is data, the third is config.
+      // Sending null as data since there is no payload.
+      await axios.post("/api/user/logout", null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
+      Cookies.remove("token");
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
@@ -122,24 +142,19 @@ function Navbar({ onMenuClick }) {
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50">
                 <div className="py-1">
-                  <a
-                    href="#"
+                  <Link
+                    to={`/member/${userId}/user-profile`}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Profile
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Settings
-                  </a>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  </Link>
+                 
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Sign out
-                  </a>
+                  </button>
                 </div>
               </div>
             )}
