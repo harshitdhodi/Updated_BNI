@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import axios from "axios"
 import Cookies from "js-cookie"
 
@@ -11,20 +11,6 @@ function Navbar({ onMenuClick }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { id: userId } = useParams();
   const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      // The member logout is handled by clearing cookies and redirecting
-      Cookies.remove("token");
-      Cookies.remove("userRole");
-      Cookies.remove("userId");
-      Cookies.remove("isOnBoarded");
-      window.location.href = "/login";
-    } catch (err) {
-      console.error("Logout error", err);
-    }
-  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -71,20 +57,23 @@ function Navbar({ onMenuClick }) {
   const initials = getUserInitials(displayName)
 
   const handleLogout = async () => {
+    setIsLoggingOut(true);
+
     try {
-      const token = Cookies.get("token");
-      // The second argument to axios.post is data, the third is config.
-      // Sending null as data since there is no payload.
-      await axios.post("/api/user/logout", null, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
-      });
-      Cookies.remove("token");
-      window.location.href = "/login";
+      // Attempt to log out from the server. We don't block the UI for this.
+      // This is a "fire and forget" request.
+      await axios.post("/api/user/logout");
     } catch (error) {
-      console.error("Error logging out:", error);
+      // Even if server logout fails, we proceed with client-side logout.
+      console.error("Server logout failed, proceeding with client-side logout:", error);
+    } finally {
+      // Clear all local session state
+      Cookies.remove("token");
+      Cookies.remove("userRole");
+      Cookies.remove("userId");
+      Cookies.remove("isOnBoarded");
+      // Navigate to the login page and force a full page reload
+      window.location.href = "/login";
     }
   };
 
@@ -167,7 +156,7 @@ function Navbar({ onMenuClick }) {
                   </Link>
                  
                   <button
-                    onClick={handleLogout}
+                    onClick={handleLogout} disabled={isLoggingOut}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
                     Sign out

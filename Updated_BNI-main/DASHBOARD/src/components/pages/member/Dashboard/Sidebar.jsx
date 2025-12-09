@@ -2,13 +2,12 @@ import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import logo from "../../../../../public/logo.png";
 import Cookies from "js-cookie";
+import RNDLogo from "../../../../../public/RND_Logo.webp";
 // Sidebar Component
 function Sidebar({ isOpen, onClose }) {
   const [activeMenu, setActiveMenu] = useState("dashboard")
-  const [expandedMenus, setExpandedMenus] = useState({ dashboard: true })
+  const [expandedMenus, setExpandedMenus] = useState({ dashboard: true });
   const { id } = useParams(); // Get the member ID from the URL
-  const navigate = useNavigate();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const toggleMenu = (id) => {
     setExpandedMenus((prev) => ({
@@ -176,27 +175,6 @@ function Sidebar({ isOpen, onClose }) {
     },
   ]
 
- 
-
-  // logout handler
-  const handleLogout = async (e) => {
-    e.preventDefault();
-    setIsLoggingOut(true);
-    try {
-      // Clear all session-related cookies
-      Cookies.remove("token");
-      Cookies.remove("userRole");
-      Cookies.remove("userId");
-      Cookies.remove("isOnBoarded");
-
-      if (onClose) onClose(); // Close sidebar on mobile
-      window.location.href = "/login"; // Redirect to login
-    } catch (err) {
-      console.error("Logout error", err);
-      setIsLoggingOut(false);
-    }
-  };
-
   return (
     <>
       {/* Overlay for mobile */}
@@ -299,16 +277,14 @@ function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* Footer - Fixed at bottom */}
-        <div className="p-4 border-t border-gray-200  flex-shrink-0">
-          <button
-            onClick={handleLogout}
-            className="w-full bg-gradient-to-r from-red-400 to-red-600 text-red-600 hover:text-red-700 hover:bg-red-100 rounded-lg p-4 text-center"
-            disabled={isLoggingOut}
-          >
-            <p className="text-md font-semibold text-black mb-1">
-              {isLoggingOut ? "Logging out..." : "Logout"}
-            </p>
-          </button>
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <div className="flex items-center flex-col justify-center gap-2">
+       <p className="text-lg font-semibold text-center text-gray-800">Developed and Maintained by</p>
+
+            {/* <a href="https://www.rnd.com" target="_blank" rel="noopener noreferrer"> */}
+              <img src={RNDLogo} alt="RND Logo" className="object-contain w-[10rem] " />
+            {/* </a> */}
+          </div>
         </div>
 
       </aside>

@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import Navbar from '../member/Dashboard/Navbar';
+// import Navbar from '../member/Dashboard/Navbar';
 
 const Modal = ({ show, onClose, title, children }) => {
   if (!show) return null;
@@ -231,7 +231,7 @@ console.log("Fetched Gives:", givesData);
 
   return (
     <div className="min-h-screen ">
-      <Navbar />
+      {/* <Navbar /> */}
       <div className="max-w-4xl p-5 mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
