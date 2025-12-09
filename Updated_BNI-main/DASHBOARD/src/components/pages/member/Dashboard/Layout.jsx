@@ -5,16 +5,16 @@ import Navbar from "./Navbar"
 import Sidebar from "./Sidebar"
 import { useState } from "react"
 
-export default function Layout() {
+export default function Layout({ hideSidebar = false }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar - Independent scroll */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {!hideSidebar && <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />}
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className={`flex-1 flex flex-col min-w-0 h-screen overflow-hidden ${hideSidebar ? 'w-full' : ''}`}>
         {/* Navbar - Fixed at top */}
         <Navbar onMenuClick={() => setIsSidebarOpen(true)} />
 

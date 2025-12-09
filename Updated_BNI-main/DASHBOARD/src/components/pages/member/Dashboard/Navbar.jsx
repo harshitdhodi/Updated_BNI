@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
-import { useParams, Link, useNavigate } from "react-router-dom"
-import Cookies from "js-cookie";
+import { useParams, Link } from "react-router-dom"
+import axios from "axios"
+import Cookies from "js-cookie"
 
 function Navbar({ onMenuClick }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -68,6 +69,24 @@ function Navbar({ onMenuClick }) {
   const displayName = userData?.name || 'User'
   const displayRole = userData?.email || 'Member'
   const initials = getUserInitials(displayName)
+
+  const handleLogout = async () => {
+    try {
+      const token = Cookies.get("token");
+      // The second argument to axios.post is data, the third is config.
+      // Sending null as data since there is no payload.
+      await axios.post("/api/user/logout", null, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        withCredentials: true,
+      });
+      Cookies.remove("token");
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
@@ -146,12 +165,12 @@ function Navbar({ onMenuClick }) {
                   >
                     Profile
                   </Link>
+                 
                   <button
                     onClick={handleLogout}
-                    disabled={isLoggingOut}
-                    className="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                   >
-                    {isLoggingOut ? "Logging out..." : "Sign out"}
+                    Sign out
                   </button>
                 </div>
               </div>

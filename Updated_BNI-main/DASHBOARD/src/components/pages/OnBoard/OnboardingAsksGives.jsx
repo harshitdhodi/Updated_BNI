@@ -4,6 +4,7 @@ import Cookies from 'js-cookie';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import Navbar from '../member/Dashboard/Navbar';
 
 const Modal = ({ show, onClose, title, children }) => {
   if (!show) return null;
@@ -26,6 +27,7 @@ const Modal = ({ show, onClose, title, children }) => {
 };
 
 const OnboardingAsksGives = ({ setIsOnBoarded }) => {
+  const REQUIRED_COUNT = 10;
   const [asks, setAsks] = useState([]);
   const [gives, setGives] = useState([]);
   const [showAskModal, setShowAskModal] = useState(false);
@@ -38,7 +40,7 @@ const OnboardingAsksGives = ({ setIsOnBoarded }) => {
   const [addingAsk, setAddingAsk] = useState(false);
   const [addingGive, setAddingGive] = useState(false);
 
-  const isValid = asks.length >= 10 && gives.length >= 10;
+  const isValid = asks.length >= REQUIRED_COUNT && gives.length >= REQUIRED_COUNT;
   const location = useLocation();
   const navigate = useNavigate();
   // Extract ID from pathname like "/member/USER_ID/onboarding"
@@ -69,7 +71,7 @@ const OnboardingAsksGives = ({ setIsOnBoarded }) => {
 console.log("Fetched Asks:", asksData);
 console.log("Fetched Gives:", givesData);
 
-        if (asksData.length >= 10 && givesData.length >= 10) {
+        if (asksData.length >= REQUIRED_COUNT && givesData.length >= REQUIRED_COUNT) {
           toast.success('Profile already complete! Redirecting...', { id: toastId });
           Cookies.set('isOnBoarded', 'true'); // Update the cookie
           setIsOnBoarded(true); // Update the app's state
@@ -228,10 +230,11 @@ console.log("Fetched Gives:", givesData);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-cyan-50 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen ">
+      <Navbar />
+      <div className="max-w-4xl p-5 mx-auto">
         {/* Header */}
-        <div className="text-center mb-12 pt-8">
+        <div className="text-center mb-12">
           <div className="inline-block bg-gradient-to-r from-sky-400 to-blue-500 text-white px-6 py-2 rounded-full text-sm font-semibold mb-4 shadow-lg">
             Welcome Onboarding
           </div>
@@ -255,17 +258,17 @@ console.log("Fetched Gives:", givesData);
         )}
 
         {/* Progress Indicator */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div className="bg-white rounded-2xl shadow-lg p-6   mb-8">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-semibold text-gray-700">Profile Completion</span>
             <span className="text-sm font-bold text-sky-600">
-              {Math.min(100, Math.round(((asks.length + gives.length) / 20) * 100))}%
+              {Math.min(100, Math.round(((asks.length + gives.length) / (REQUIRED_COUNT * 2)) * 100))}%
             </span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-sky-400 to-blue-500 h-full transition-all duration-500 rounded-full"
-              style={{ width: `${Math.min(100, ((asks.length + gives.length) / 20) * 100)}%` }}
+              style={{ width: `${Math.min(100, ((asks.length + gives.length) / (REQUIRED_COUNT * 2)) * 100)}%` }}
             />
           </div>
         </div>
@@ -284,7 +287,7 @@ console.log("Fetched Gives:", givesData);
                   </div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-full px-4 py-2 font-bold text-lg">
-                  {asks.length}/10
+                  {asks.length}/{REQUIRED_COUNT}
                 </div>
               </div>
             </div>
@@ -335,7 +338,7 @@ console.log("Fetched Gives:", givesData);
                   </div>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-full px-4 py-2 font-bold text-lg">
-                  {gives.length}/10
+                  {gives.length}/{REQUIRED_COUNT}
                 </div>
               </div>
             </div>
