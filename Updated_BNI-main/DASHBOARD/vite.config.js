@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["favicon.svg", "robots.txt", "apple-touch-icon.png"],
       manifest: {
-        name: "BCONN",
-        short_name: "BCONN",
-        description: "BCONN Progressive Web App",
+        name: "BIZCONN",
+        short_name: "BIZCONN",
+        description: "BIZCONN Progressive Web App",
         start_url: "/",
         display: "standalone",
         background_color: "#ffffff",

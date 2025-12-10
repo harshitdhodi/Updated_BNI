@@ -1,6 +1,6 @@
 {
-    "name": "BCONN",
-  "short_name": "BCONN",
+    "name": "BIZCONN",
+  "short_name": "BIZCONN",
   "theme_color": "#f32121",
   "background_color": "#2196f3",
   "display": "standalone",
