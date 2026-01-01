@@ -186,13 +186,53 @@ console.log("Fetched Gives:", givesData);
     }
   };
 
-  const removeAsk = (id) => {
-    setAsks(asks.filter(ask => ask.id !== id));
-  };
+// In OnboardingAsksGives.jsx, update these functions:
 
-  const removeGive = (id) => {
-    setGives(gives.filter(give => give.id !== id));
-  };
+const removeAsk = async (id) => {
+  // Show confirmation dialog
+  const confirmDelete = window.confirm('Are you sure you want to delete this ask?');
+  if (!confirmDelete) return; // User cancelled the deletion
+
+  try {
+    const token = getCookie("token");
+    await axios.delete(`/api/myAsk/deleteMyAskById?id=${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      withCredentials: true,
+    });
+    
+    // Only update local state if API call is successful
+    setAsks(asks.filter(ask => ask._id !== id && ask.id !== id));
+    toast.success('Ask removed successfully');
+  } catch (error) {
+    console.error('Error removing ask:', error);
+    toast.error(error.response?.data?.message || 'Failed to remove ask');
+  }
+};
+
+const removeGive = async (id) => {
+  // Show confirmation dialog
+  const confirmDelete = window.confirm('Are you sure you want to delete this give?');
+  if (!confirmDelete) return; // User cancelled the deletion
+
+  try {
+    const token = getCookie("token");
+    await axios.delete(`/api/myGives/deletemyGivesById?id=${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      withCredentials: true,
+    });
+    
+    // Only update local state if API call is successful
+    setGives(gives.filter(give => give._id !== id && give.id !== id));
+    toast.success('Give removed successfully');
+  } catch (error) {
+    console.error('Error removing give:', error);
+    toast.error(error.response?.data?.message || 'Failed to remove give');
+  }
+};
 
   const handleSubmit = async () => {
     if (!isValid) return;

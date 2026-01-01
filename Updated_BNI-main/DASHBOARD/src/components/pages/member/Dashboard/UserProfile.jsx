@@ -477,18 +477,16 @@ export default function UserProfile() {
       let config = {};
 
       if (profileImageFile) {
-        const formData = new FormData();
+        requestBody = new FormData();
         for (const key in userData) {
           if (key === "profileImg" && typeof userData[key] === "string" && userData[key].startsWith("data:image")) {
             continue;
           }
           if (userData[key] !== undefined && userData[key] !== null && userData[key] !== "") {
-            formData.append(key, userData[key]);
+            requestBody.append(key, userData[key]);
           }
         }
-        formData.append("profileImg", profileImageFile);
-        if (userData.password) formData.append("password", userData.password);
-        config.headers = { "Content-Type": "multipart/form-data" };
+        requestBody.append("profileImg", profileImageFile);
       } else {
         // Create a copy of userData and remove fields that shouldn't be sent as JSON
         const { profileImg, ...otherData } = userData;

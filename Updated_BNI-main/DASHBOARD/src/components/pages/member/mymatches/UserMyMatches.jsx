@@ -7,7 +7,7 @@ export default function UserMyMatches() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeMatchIndex, setActiveMatchIndex] = useState({}); // { [companyName]: index }
-  
+
   // Pagination state
   const [pageIndex, setPageIndex] = useState(0);
   const [pageSize, setPageSize] = useState(10);
@@ -54,11 +54,11 @@ export default function UserMyMatches() {
       const token = getCookie("token");
       const response = await fetch(
         `/api/match2/forAdminAllMatches?userId=${userId}&page=${pageIndex + 1}&limit=${pageSize}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: 'include',
-        }
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: 'include',
+      }
       );
 
       if (!response.ok) {
@@ -66,16 +66,28 @@ export default function UserMyMatches() {
       }
 
       const result = await response.json();
-      setMatches(result.data || []);
-      setTotalItems(result.total || 0);
-      setActiveMatchIndex({}); // Reset active indexes on new data fetch
-      if (result.totalPages) {
-        setPageCount(result.totalPages);
+
+      // Ensure we have valid data structure
+      if (result && Array.isArray(result.data)) {
+        setMatches(result.data);
+        setTotalItems(result.total || result.data.length);
+        setActiveMatchIndex({});
+
+        if (result.totalPages) {
+          setPageCount(result.totalPages);
+        }
+      } else {
+        // Handle case where data is not in expected format
+        console.warn('Unexpected API response format:', result);
+        setMatches([]);
+        setTotalItems(0);
       }
+
       setError(null);
     } catch (err) {
       setError(err.message);
       console.error('Error fetching matches:', err);
+      setMatches([]);
     } finally {
       setLoading(false);
     }
@@ -207,17 +219,24 @@ export default function UserMyMatches() {
         ) : (
           <>
             <div className="space-y-4">
-              {matches.map((match, index) => (
+              {/* {matches.map((match, index) => (
                 (() => {
                   const currentMatchIndex = activeMatchIndex[match.companyName] || 0;
                   const person = match.matches[currentMatchIndex];
-                  if (!person) return null; // Should not happen, but good practice
-
+                  if (!person) return null; */}
+{matches.map((match, index) => {
+  const currentMatchIndex = activeMatchIndex[match.companyName] || 0;
+  const person = match.matches && match.matches[currentMatchIndex];
+  
+  if (!person) {
+    console.log('No person found for company:', match.companyName);
+    return null;
+  }
                   return (
-           <div key={match.companyName} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
+                    <div key={match.companyName} className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-shadow duration-300 overflow-hidden">
                       <div className="flex flex-col md:flex-row h-full">
                         {/* Left Sidebar - Company Header */}
-                        <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-5 md:w-64 flex-shrink-0 flex flex-col justify-between">
+                        <div className="bg-gradient-to-br from-[#40add2] to-blue-700 p-5 md:w-64 flex-shrink-0 flex flex-col justify-between">
                           <div>
                             <div className="flex items-center gap-3 mb-3">
                               <div className="w-10 h-10 bg-white/20 backdrop-blur-sm text-white rounded-full flex items-center justify-center text-base font-bold shadow-lg">
@@ -230,16 +249,16 @@ export default function UserMyMatches() {
                               <span>{formatDate(person.createdAt)}</span>
                             </div>
                           </div>
-                          
+
                           {/* Match Selector */}
                           {match.matches.length > 1 && (
                             <div className="mt-4 pt-4 border-t border-white/20">
                               <p className="text-white/80 text-xs mb-2 font-medium">Switch Match:</p>
                               <div className="flex flex-wrap gap-2">
                                 {match.matches.map((p, idx) => (
-                                  <button 
+                                  <button
                                     key={idx}
-                                    onClick={() => handleMatchPersonChange(match.companyName, idx)} 
+                                    onClick={() => handleMatchPersonChange(match.companyName, idx)}
                                     className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${currentMatchIndex === idx ? 'bg-white text-indigo-600 shadow-md' : 'bg-white/20 text-white hover:bg-white/30'}`}
                                   >
                                     {idx + 1}
@@ -331,7 +350,7 @@ export default function UserMyMatches() {
                     </div>
                   )
                 })
-              ))}
+              }
             </div>
 
             {/* Pagination */}
@@ -383,7 +402,7 @@ export default function UserMyMatches() {
                       <button
                         key={`page-${page}`}
                         onClick={() => goToPage(page)}
-                        className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${currentPage === page ? "bg-indigo-600 text-white shadow-md" : "bg-white hover:bg-indigo-50 text-gray-700 border border-gray-300"}`}
+                        className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${currentPage === page ? "bg-[#3fadd1] text-white shadow-md" : "bg-white hover:bg-indigo-50 text-gray-700 border border-gray-300"}`}
                       >
                         {page}
                       </button>

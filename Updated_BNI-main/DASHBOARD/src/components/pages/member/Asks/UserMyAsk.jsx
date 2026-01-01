@@ -224,10 +224,17 @@ export default function UserMyAsk() {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.companyName.trim()) {
+    const trimmedCompanyName = formData.companyName.trim();
+    if (!trimmedCompanyName) {
       newErrors.companyName = "Company Name is required.";
-    } else if (!/^[a-zA-Z0-9\s&.,'()-]+$/.test(formData.companyName)) {
-      newErrors.companyName = "Company Name contains invalid characters.";
+    } else if (trimmedCompanyName.length < 2) {
+      newErrors.companyName = "Company Name must be at least 2 characters.";
+    } else if (trimmedCompanyName.length > 100) {
+      newErrors.companyName = "Company Name cannot exceed 100 characters.";
+    } else if (!/[a-zA-Z]/.test(trimmedCompanyName)) {
+      newErrors.companyName = "Company Name must contain at least one letter.";
+    } else if (!/^[a-zA-Z0-9\s&.,'()-]+$/.test(trimmedCompanyName)) {
+      newErrors.companyName = "Company Name has invalid characters.";
     }
 
     if (formData.message.trim() && formData.message.length > 150) {
@@ -575,6 +582,7 @@ export default function UserMyAsk() {
                           autoComplete="off"
                           className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all duration-150 ${errors.companyName ? 'border-red-500' : 'border-slate-300'}`}
                           placeholder="Enter company name"
+                          maxLength={100}
                           required
                           aria-invalid={errors.companyName ? "true" : "false"}
                         />

@@ -503,10 +503,24 @@ const createBusinessProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    // Explicitly check for mobile number uniqueness before saving
+    // Check for existing business with same companyName and designation for this user
+    const existingBusiness = await Business.findOne({
+      user: userId,
+      companyName: companyName,
+      industryName: industryName
+    });
+
+    if (existingBusiness) {
+      return res.status(409).json({
+        success: false,
+        message: 'A business profile with this company name and designation already exists for this user.'
+      });
+    }
+
+    // Check for mobile number uniqueness
     if (mobile) {
-      const existingBusiness = await Business.findOne({ mobile });
-      if (existingBusiness) {
+      const businessWithSameMobile = await Business.findOne({ mobile });
+      if (businessWithSameMobile) {
         return res.status(409).json({ success: false, message: 'This mobile number is already registered.' });
       }
     }

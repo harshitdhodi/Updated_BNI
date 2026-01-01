@@ -82,11 +82,17 @@ function MyGivesForm({
   const validateForm = () => {
     const newErrors = {};
 
-    // Always required: companyName
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = 'Company Name is required.';
-    } else if (!/^[a-zA-Z0-9\s.,'&()-]+$/.test(formData.companyName)) {
-      newErrors.companyName = "Only letters, numbers, spaces, and basic punctuation allowed.";
+    const trimmedCompanyName = formData.companyName.trim();
+    if (!trimmedCompanyName) {
+      newErrors.companyName = "Company Name is required.";
+    } else if (trimmedCompanyName.length < 2) {
+      newErrors.companyName = "Company Name must be at least 2 characters.";
+    } else if (trimmedCompanyName.length > 100) {
+      newErrors.companyName = "Company Name cannot exceed 100 characters.";
+    } else if (!/[a-zA-Z]/.test(trimmedCompanyName)) {
+      newErrors.companyName = "Company Name must contain at least one letter.";
+    } else if (!/^[a-zA-Z0-9\s&.,'()-]+$/.test(trimmedCompanyName)) {
+      newErrors.companyName = "Company Name has invalid characters.";
     }
 
     // Only validate these fields if it's a MyGives form
@@ -191,6 +197,7 @@ function MyGivesForm({
                 }`}
                 placeholder="e.g., Google, Microsoft"
                 autoComplete="off"
+                maxLength={100}
               />
               {/* Suggestions (only show for MyGives) */}
               {!isMyAsk && isSuggestionsOpen && companySuggestions.length > 0 && (

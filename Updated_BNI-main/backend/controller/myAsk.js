@@ -44,7 +44,7 @@ const addMyAsk = async (req, res) => {
 
 const getMyAsks = async (req, res) => {
   try {
-    const { userId, page = 1, limit = 5 } = req.query;
+    const { userId, page = 1, limit = 10 } = req.query;
 
     // Check if user exists
     const user = await User.findById(userId);
@@ -154,7 +154,7 @@ const updateMyAsk = async (req, res) => {
     // 3. Extract and validate request body
     const { companyName, dept, message } = req.body;
 
-    if (!companyName || !dept) {
+    if (!companyName) {
       return res.status(400).json({ 
         message: "All fields are required: companyName, dept, message" 
       });

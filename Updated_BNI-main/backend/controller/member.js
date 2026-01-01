@@ -57,9 +57,42 @@ function decryptPassword(encryptedPassword) {
 }
 
 
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Helper function to send referral email
+const sendReferralEmail = async (toEmail, newMemberName) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: toEmail,
+    subject: 'New Referral Signup',
+    text: `Congratulations! You have a new referral: ${newMemberName} has joined using your referral code.`
+  };
+  return await transporter.sendMail(mailOptions);
+};
+
+// Helper function to send welcome email
+const sendWelcomeEmail = async (toEmail, name) => {
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: toEmail,
+    subject: 'Registration Confirmation - Welcome!',
+    text: `Hi ${name}, Welcome to our platform! Your account has been successfully registered. We're excited to have you on board.`
+  };
+  return await transporter.sendMail(mailOptions);
+};
+
 const memberRegistration = async (req, res) => {
   const { name, email, mobile, password, confirm_password, country, city, ref_member } = req.body;
-console.log(req.body)
+  console.log(req.body);
+  
   // Safely handle optional images, checking if req.files exists
   const bannerImg = req.files && req.files['bannerImg'] ? path.basename(req.files['bannerImg'][0].path) : null;
   const profileImg = req.files && req.files['profileImg'] ? path.basename(req.files['profileImg'][0].path) : null;
@@ -77,11 +110,6 @@ console.log(req.body)
       return res.status(400).send({ status: "failed", message: "Mobile number already exists" });
     }
 
-    // // Check if all required fields are provided
-    // if (!name || !email || !mobile || !password || !confirm_password || !country || !city) {
-    //   return res.status(400).send({ status: "failed", message: "All fields are required" });
-    // }
-
     // Check if password and confirm_password match
     if (password !== confirm_password) {
       return res.status(400).send({ status: "failed", message: "Password and confirm password do not match" });
@@ -97,21 +125,36 @@ console.log(req.body)
     let approvedByadmin = "pending";
     let approvedBymember = "pending";
 
-    // Find the referrer by referrer_code in both User and Member collections
-    let referrer = await User.findOne({ refral_code: ref_member });
+    let emailResponses = []; // Renamed from notificationResponses for clarity
 
-    let notificationResponses = [];
-
-    if (referrer) {
+    // Handle referral code validation and referrer lookup
+    if (ref_member) {
+      if (typeof ref_member !== 'string' || ref_member.length !== 6) {
+        return res.status(400).send({ 
+          status: "failed",
+          message: "Invalid referral code format. Must be a 6-character code."
+        });
+      }
+      
+      // Check if referrer exists in either User or Member collections
+      let referrer = await User.findOne({ refral_code: ref_member }) ||
+                     await Member.findOne({ refral_code: ref_member });
+      
+      if (!referrer) {
+        return res.status(400).send({ 
+          status: "failed",
+          message: "Invalid referral code. No member found with this code."
+        });
+      }
+      
+      // If referrer exists, set approval status and send email
       approvedByadmin = "approved";
       approvedBymember = "approved";
-      const referrerNotificationResponse = await sendReferralNotification(referrer, name);
-      notificationResponses.push(referrerNotificationResponse);
-    } else {
-      referrer = await Member.findOne({ refral_code: ref_member });
-      if (referrer) {
-        const referrerNotificationResponse = await sendReferralNotification(referrer, name);
-        notificationResponses.push(referrerNotificationResponse);
+      
+      // Send email to referrer if they have an email
+      if (referrer.email) {
+        const referralEmailResponse = await sendReferralEmail(referrer.email, name);
+        emailResponses.push(referralEmailResponse);
       }
     }
 
@@ -131,19 +174,10 @@ console.log(req.body)
       approvedBymember
     });
 
-    // Send a notification to the new member for registration confirmation
-    if (newMember.deviceTokens && newMember.deviceTokens.length > 0) {
-      const memberNotificationData = {
-        title: 'Registration Confirmation',
-        body: `Hi ${name}, Welcome to our platform!`,
-        token: newMember.deviceTokens[0], // Get the first token for simplicity
-      };
-
-      // Directly send the notification without validating the token
-      const memberNotificationResponse = await sendNotification(memberNotificationData);
-      notificationResponses.push(memberNotificationResponse);
-    }
-
+    // Send a welcome email to the new member
+    const welcomeEmailResponse = await sendWelcomeEmail(email, name);
+    emailResponses.push(welcomeEmailResponse);
+conso
     // Save the new member to the database
     await newMember.save();
 
@@ -152,15 +186,13 @@ console.log(req.body)
       status: "success",
       message: "Member Registered Successfully",
       newMember,
-      notificationResponses
+      emailResponses // Updated key to match
     });
   } catch (error) {
     console.error(error);
     res.status(500).send({ status: "failed", message: "Unable to register" });
   }
 };
-
-
 
 
 // Login from

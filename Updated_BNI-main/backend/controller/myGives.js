@@ -93,7 +93,7 @@ const getMyGivesByUserId = async (req, res) => {
     
     // Parse page and limit as integers with defaults
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 5;
+    const limit = parseInt(req.query.limit, 10) || 10;
     
     // Validate userId
     if (!userId) {

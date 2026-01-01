@@ -138,7 +138,7 @@ function Navbar({ onMenuClick }) {
                   </>
                 )}
               </div>
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#3fadd1] to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
                 {loading ? '...' : initials}
               </div>
             </button>

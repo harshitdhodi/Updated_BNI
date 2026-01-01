@@ -27,31 +27,51 @@ const EditAllMyGives = () => {
     fetchDepartments();
   }, [id]);
 
-  const fetchMyGive = async () => {
-    try {
-      const token = getCookie("token");
-      const response = await axios.get(`/api/myGives/getmyGivesById?id=${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        withCredentials: true,
-      });
-      console.log("API response:", response);
-
-      const myGiveData = response.data.data;
-
-      if (myGiveData) {
-        setMyGive(myGiveData);
-        if (myGiveData.companyName) {
-          setSelectedCompany({ companyName: myGiveData.companyName });
+  useEffect(() => {
+    if (myGive.dept && departments.length > 0) {
+      const isAlreadyId = departments.some((d) => d._id === myGive.dept);
+      if (!isAlreadyId) {
+        const deptObject = departments.find((d) => d.name === myGive.dept);
+        if (deptObject) {
+          setMyGive((prevMyGive) => ({
+            ...prevMyGive,
+            dept: deptObject._id,
+          }));
         }
-      } else {
-        console.error("No My Gives data found");
       }
-    } catch (error) {
-      console.error("Error fetching My Gives data:", error);
     }
-  };
+  }, [myGive.dept, departments]);
+
+const fetchMyGive = async () => {
+  try {
+    const token = getCookie("token");
+    const response = await axios.get(`/api/myGives/getmyGivesById?id=${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      withCredentials: true,
+    });
+    console.log("API response:", response);
+
+    const myGiveData = response.data.data;
+
+    if (myGiveData) {
+      // Normalize dept if it's an object
+      if (myGiveData.dept && typeof myGiveData.dept === 'object' && myGiveData.dept._id) {
+        myGiveData.dept = myGiveData.dept._id;
+      }
+      
+      setMyGive(myGiveData);
+      if (myGiveData.companyName) {
+        setSelectedCompany({ companyName: myGiveData.companyName });
+      }
+    } else {
+      console.error("No My Gives data found");
+    }
+  } catch (error) {
+    console.error("Error fetching My Gives data:", error);
+  }
+};
 
   const fetchDepartments = async () => {
     try {
@@ -194,7 +214,7 @@ const EditAllMyGives = () => {
                     >
                       <option value="">Select Department</option>
                       {departments.map((dept) => (
-                        <option key={dept._id} value={dept.name}>
+                        <option key={dept._id} value={dept._id}>
                           {dept.name}
                         </option>
                       ))}
@@ -207,7 +227,7 @@ const EditAllMyGives = () => {
                       value={myGive[key]}
                       onChange={handleChange}
                       className="w-1/2 p-2 border rounded focus:outline-none focus:border-red-500"
-                      required
+                      
                     />
                   )}
                 </div>
