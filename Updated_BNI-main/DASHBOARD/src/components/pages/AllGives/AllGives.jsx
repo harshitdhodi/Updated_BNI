@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import ReactHTMLTableToExcel from "react-html-table-to-excel";
+import * as XLSX from 'xlsx';
 import { Link } from "react-router-dom";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import Swal from 'sweetalert2';
@@ -98,7 +98,22 @@ const AllGives = () => {
   const handlePreviousPage = () => {
     if (pageIndex > 0) {
       setPageIndex(pageIndex - 1);
-    }``
+    }
+  };
+
+  const exportToExcel = () => {
+    const dataForExport = allData.map((give, index) => ({
+      ID: index + 1,
+      'Company Name': give.companyName,
+      Email: give.email,
+      URL: give.webURL,
+      Phone: give.phoneNumber,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataForExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Gives');
+    XLSX.writeFile(wb, 'give_list.xlsx');
   };
 
   const handleDelete = async (id) => {
@@ -162,15 +177,10 @@ const AllGives = () => {
             <button className="px-4 w-1/2 lg:w-[200px] py-1 mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-red-600 transition duration-300 border border-gray-300 ">
               <Link to="/addGivesbyEmail">Add Members Gives</Link>
             </button>
-            <button className="px-4 py-2 w-1/2 lg:w-[200px] mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition duration-300 border border-gray-300 ">
-              <ReactHTMLTableToExcel
-                id="test-table-xls-button"
-                className="btn btn-success"
-                table="table-to-xls"
-                filename="give_list"
-                sheet="give_list"
-                buttonText="Export to Excel"
-              />
+            <button
+              onClick={exportToExcel}
+              className="px-4 py-2 w-1/2 lg:w-[200px] mt-3 bg-gradient-to-r from-blue-100 to-blue-50 text-gray-700 rounded hover:bg-slate-900 transition duration-300 border border-gray-300 ">
+              Export to Excel
             </button>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {  Link } from "react-router-dom";
 import { Mail, Lock, Eye, EyeOff, Loader2, ShieldCheck, X } from "lucide-react";
@@ -46,6 +46,35 @@ const LoginForm = () => {
     message: "",
   });
 
+  // Function to clear all cookies
+  const clearAllCookies = () => {
+    const cookies = document.cookie.split(";");
+    
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      
+      // Delete cookie for current path
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+      
+      // Delete cookie for root path
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;";
+      
+      // Delete cookie for domain
+      const domain = window.location.hostname;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=" + domain;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=." + domain;
+    }
+    
+    console.log("All cookies cleared");
+  };
+
+  // Clear cookies when component mounts
+  useEffect(() => {
+    clearAllCookies();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -73,6 +102,9 @@ const LoginForm = () => {
       setIsLoading(false);
       return;
     }
+
+    // Clear cookies before attempting login
+    clearAllCookies();
 
     try {
       // Attempt 1: Login as a member
